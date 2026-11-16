@@ -1,5 +1,5 @@
 # game-lab — rulesets, reference simulators, and baselines
-*A companion to `apps/ai-game-master`: the games that engine can run, with **official cited rules**, self-play reference simulators, and a **null-model baseline** for each. Built to the same covenant as the fleet — every number here traces to a real run; nothing is estimated.*
+*A companion to `apps/game/ai-game-master`: the games that engine can run, with **official cited rules**, self-play reference simulators, and a **null-model baseline** for each. Built to the same covenant as the fleet — every number here traces to a real run; nothing is estimated.*
 
 ## Layout
 - `rules/` — official rules, fetched from authoritative sources (Bicycle / Pagat / FIDE / WOTC SRD / Mattel) and cited inline. `COMPENDIUM.md` covers the board classics, the bluffing/deduction family, D&D 5e (shape + gap), and make-believe; `uno-official.md` is the Uno correction (official vs house, tagged).

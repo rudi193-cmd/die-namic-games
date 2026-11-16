@@ -11,7 +11,7 @@ have to their sibling apps: it imports ``apps/game/engine_v1_7.py``'s
 ``apps/game``. ``apps/game`` is not installed as a package, so the only way
 to reach it is a narrow path shim -- see ``_ensure_game_engine_on_path``
 below, the same one-directory-once pattern the other two adapters use for
-their own sibling apps (``apps/game-lab/sims`` and ``apps/bureau``
+their own sibling apps (``apps/game/game-lab/sims`` and ``apps/bureau``
 respectively).
 
 REUSE, NOT REIMPLEMENTATION: the only thing this module reuses from
@@ -147,12 +147,12 @@ def _ensure_game_engine_on_path() -> None:
     under apps/game itself.
 
     Resolved relative to this file:
-    apps/the-table/the_table/game_engine_adapter.py -> repo root is three
+    apps/game/the-table/the_table/game_engine_adapter.py -> repo root is four
     parents up -> apps/game/archive/first-engine holds the module: apps/game
     is now where Die-Namic is built, and its first engine is archived there,
     whole and unedited.
     """
-    repo_root = Path(__file__).resolve().parents[3]
+    repo_root = Path(__file__).resolve().parents[4]
     game_dir = repo_root / "apps" / "game" / "archive" / "first-engine"  # archived 2026-11-14, kept whole
     game_str = str(game_dir)
     if game_str not in sys.path:

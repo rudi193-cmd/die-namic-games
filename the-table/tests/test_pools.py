@@ -2,7 +2,7 @@
 peaks bands a forecast, competent policies only ever play legal moves from a
 seat's own view, and the same N gives the same numbers.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
 """
 from __future__ import annotations
 

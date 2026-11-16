@@ -15,7 +15,7 @@ one-script must be beside the-table (`../willow-bot/one-script`, or
 `ONESCRIPT_HOME`); with none, `gm5e`, `sealed_run` and `combat fight` say why
 and exit 2.
 
-The one covenant is identical to the-table's and to `apps/ai-game-master`'s:
+The one covenant is identical to the-table's and to `apps/game/ai-game-master`'s:
 
 > **The machine proposes, rolls, and remembers. It never seals. A person at
 > the head of the table seals canon, with their own key.**
@@ -24,7 +24,7 @@ The one covenant is identical to the-table's and to `apps/ai-game-master`'s:
 
 | File | What it does |
 |------|--------------|
-| `dice5e.py` | The dice seam. Dice-notation **authority** is the MIT-licensed [`dice`](https://pypi.org/project/dice/) library (borntyping/python-dice) — the reuse-vs-build wall from `apps/ai-game-master/docs/DECISION.md`. Two speedups sit on top without owning the grammar: a **cache** (each expression compiles once) and a **fast path** (simple `NdM±K` / advantage forms compute directly with the injected RNG, ~3000× faster than re-parsing pyparsing every call). The library still validates every expression and remains the fallback; a test asserts the fast path never diverges from it. Injects the engine's own `random.Random`, so seeded fights stay reproducible and the global `random` is never touched. |
+| `dice5e.py` | The dice seam. Dice-notation **authority** is the MIT-licensed [`dice`](https://pypi.org/project/dice/) library (borntyping/python-dice) — the reuse-vs-build wall from `apps/game/ai-game-master/docs/DECISION.md`. Two speedups sit on top without owning the grammar: a **cache** (each expression compiles once) and a **fast path** (simple `NdM±K` / advantage forms compute directly with the injected RNG, ~3000× faster than re-parsing pyparsing every call). The library still validates every expression and remains the fallback; a test asserts the fast path never diverges from it. Injects the engine's own `random.Random`, so seeded fights stay reproducible and the global `random` is never touched. |
 | `monte_carlo.py` | Runs the whole adventure at volume (default 500 seeded rounds) for three level-3 pregens side by side, and reports where the average rolls out — per-beat success rates, successes-per-run distribution, the "night held together" verdict, and the one beat no policy can resolve. |
 | `gm5e.py` | A live 5e roller CLI (checks, saves, attacks, damage) that appends every roll to the one-script record the moment it happens. `propose` puts a fact before the human as a proposal; `seal` refuses (a seal is the human's, made with their key through the one-script). |
 | `sealed_run.py` | One live playthrough to Maunder's question, then the decision: the machine's seal attempt **refused**, the beat **proposed** for the human's seal (`onescript seal proposal:<hash> --proof ...`), the chain **verified**, and a tampered copy **rejected**. Until flatten F3 the seal itself is the one-script's, not this script's. |
@@ -64,7 +64,7 @@ healerless level-3 party with no death saves, not a tuned one.
 
 Record boxes hold played rolls, proposals, and their keys files — that is **data**,
 not blueprint. Every box is written under `_boxes/` and is `.gitignore`d, the
-same wall `apps/ai-game-master` draws between the repo (how to build the vault)
+same wall `apps/game/ai-game-master` draws between the repo (how to build the vault)
 and the box (the campaign that stays home). Nothing in this directory commits a
 played campaign.
 

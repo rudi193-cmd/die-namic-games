@@ -2,7 +2,7 @@
 the forbidden acts (a tampered combat log must REFUSE to verify; a dead
 combatant must not act).
 
-Run from apps/the-table/aetheris5e/:
+Run from apps/game/the-table/aetheris5e/:
     python3 -m unittest test_combat -v
 """
 from __future__ import annotations

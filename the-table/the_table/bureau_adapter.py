@@ -42,10 +42,10 @@ def _ensure_bureau_on_path() -> None:
     works, without installing bureau as a package and without touching
     anything under apps/bureau itself.
 
-    Resolved relative to this file: apps/the-table/the_table/bureau_adapter.py
+    Resolved relative to this file: apps/game/the-table/the_table/bureau_adapter.py
     -> repo root is three parents up -> apps/bureau is the sibling app.
     """
-    repo_root = Path(__file__).resolve().parents[3]
+    repo_root = Path(__file__).resolve().parents[4]
     bureau_dir = repo_root / "apps" / "bureau"
     bureau_str = str(bureau_dir)
     if bureau_str not in sys.path:

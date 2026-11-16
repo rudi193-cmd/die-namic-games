@@ -9,7 +9,7 @@ protocol at volume. Every number here traces to a single reproducible run of
 - **Policy:** uniform-random over `legal_moves` each turn
 - **Driver:** the same `GameSession` surface the GM loop uses; reads only public
   `result()` / `observe(0).view`
-- **Reproduce:** `cd apps/the-table && python3 -m the_table.baseline 500` (byte-identical every run)
+- **Reproduce:** `cd apps/game/the-table && python3 -m the_table.baseline 500` (byte-identical every run)
 
 ## The measured run
 

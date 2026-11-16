@@ -2,8 +2,8 @@
 
 The table's first abstract board game: nothing hidden and nothing random, so
 the same moves are the same game. the-table is the CONSUMER: it imports
-game-lab's pure checkers helpers from ``apps/game-lab/sims/baseline_core.py``
-through the shared path shim and never modifies ``apps/game-lab``. That
+game-lab's pure checkers helpers from ``apps/game/game-lab/sims/baseline_core.py``
+through the shared path shim and never modifies ``apps/game/game-lab``. That
 module imports python-chess at its top (for its chess baseline), which is why
 the-table's ``requirements.txt`` carries ``chess``; its own run is behind
 ``if __name__ == "__main__":``, so importing it only defines functions.

@@ -6,7 +6,7 @@ concurrent agent to the pinned schema) when present, and falls back to a
 tiny fixture world of the identical shape in ``setUp`` otherwise, so this
 suite is never blocked on load order between the two build tasks.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
 """
 from __future__ import annotations
 
@@ -26,8 +26,8 @@ from the_table.worlds import (
 
 from ._seal import SUBJECT, answer_for, human_seal
 
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-_REAL_WORLD_PATH = os.path.join(_REPO_ROOT, "apps", "the-table", "worlds", "hasbeen.json")
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+_REAL_WORLD_PATH = os.path.join(_REPO_ROOT, "apps", "game", "the-table", "worlds", "hasbeen.json")
 
 SEEDS = (0, 1, 2, 3, 7, 15, 42, 100)
 

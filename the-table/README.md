@@ -16,7 +16,7 @@ none, they say why and exit 2.
 > Open it in a browser.
 
 ```sh
-python3 -m unittest discover -s tests -t .   # from apps/the-table/ — all suites
+python3 -m unittest discover -s tests -t .   # from apps/game/the-table/ — all suites
 python3 -m the_table.proof                    # the end-to-end proof (or: python3 the_table/proof.py)
 ```
 
@@ -55,7 +55,7 @@ across five seeds, checks the result is well-formed, and asserts every
 `the_table/crazy_eights_adapter.py` is the SECOND real implementation, and the
 proof that the protocol is game-agnostic: `CrazyEightsSession` (`seats = 4`)
 reuses game-lab's real Crazy Eights rule functions — `is_legal`,
-`legal_cards`, `make_deck`, `SUITS`, imported from `apps/game-lab/sims/
+`legal_cards`, `make_deck`, `SUITS`, imported from `apps/game/game-lab/sims/
 crazy_eights.py` through a small, local `sys.path` shim, the same pattern
 `bureau_adapter.py` uses for `apps/bureau` — for every legality decision;
 this module owns none of the rules, only the turn-by-turn loop around them.
@@ -170,7 +170,7 @@ interleaved, because `scene` reseeds the *global* `random` module in its own
 `game_engine_adapter.py`'s module docstring) and interleaving could let that
 reseed land between two draws of another game's `random_policy`. Run it with
 `python3 -m the_table.proof` or `python3 the_table/proof.py` (both from
-`apps/the-table/`); it prints a short section per game (transcript, `Result`,
+`apps/game/the-table/`); it prints a short section per game (transcript, `Result`,
 turn count, rows written), then the chain's check, the tamper check and a
 combined line, and exits 0 only if all of it holds (2 when the one-script is
 not beside). Adding a fourth game to the
@@ -195,7 +195,7 @@ duplicate-name / non-callable-factory rejection.
 Two kinds of game the table didn't have, on game-lab's own rules through the
 same one-directory shim as Crazy Eights:
 
-| Game | Kind | Reused from `apps/game-lab/sims` | Restated here, and its check |
+| Game | Kind | Reused from `apps/game/game-lab/sims` | Restated here, and its check |
 |---|---|---|---|
 | `hearts` | trick-taking, 4 seats, one hand with a pass left | `legal_plays`, `card_points`, `make_deck`, `pass_direction`, `target_seat` | the trick winner and shooting the moon: 40 deals played by game-lab's "john" policy score the same here as in its `play_hand` |
 | `liars_dice` | dice bluffing, 4 seats, hidden cups, ones wild | `count_face`, `bids_above`, `NUM_PLAYERS`, `DICE_PER_PLAYER`, `ROUND_CAP` | the round loop (who loses a die, who opens next); cups rolled from the session's own seeded rng |
@@ -286,7 +286,7 @@ Where the-table is heading, drawn before the code:
 
 ## Playground tier
 
-`apps/the-table/` is a playground build (contested tier, per
+`apps/game/the-table/` is a playground build (contested tier, per
 [`stores/README.md`](../../stores/README.md)) — scoped to its own SOIL
 collection, default-deny reach, no fleet-store writes. Nothing here is a
 standing SAFE app until it is promoted.

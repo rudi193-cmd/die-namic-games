@@ -7,7 +7,7 @@ modified by a scene run, no matter how many CHAOS_BURST beats it hits, and
 (2) determinism comes entirely from seeding the global random module in
 reset(), documented as a coupling of engine_v1_7.py itself.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
 """
 from __future__ import annotations
 
@@ -28,8 +28,8 @@ DEFAULT_BEATS = 6
 
 # apps/game/engine_state.json, resolved the same way game_engine_adapter.py
 # resolves apps/game itself (repo root three parents up from this test file:
-# apps/the-table/tests/test_game_engine_adapter.py -> repo root).
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# apps/game/the-table/tests/test_game_engine_adapter.py -> repo root).
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 _ENGINE_STATE_PATH = os.path.join(_REPO_ROOT, "apps", "game", "archive", "first-engine", "engine_state.json")
 
 

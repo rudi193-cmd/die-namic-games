@@ -449,7 +449,8 @@ class TestSwapSafety(unittest.TestCase):
             self.assertEqual([g[0] for g in got[i]], [t[0] for t in solo[i]])
 
     def test_state_file_still_untouched(self):
-        p = Path(gea.__file__).resolve().parents[2] / "game" / "engine_state.json"
+        p = Path(gea.__file__).resolve().parents[2] / "archive" / "first-engine" / "engine_state.json"
+        self.assertTrue(p.exists(), f"the engine's state file isn't at {p}: this test would check nothing")
         before = (p.exists(), p.read_bytes() if p.exists() else None)
         _scene_trace(2)
         self.assertEqual((p.exists(), p.read_bytes() if p.exists() else None), before)

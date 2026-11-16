@@ -27,7 +27,7 @@ from pathlib import Path
 def _ensure_catgrid_on_path() -> None:
     """Put apps/catgrid on sys.path so ``import catgrid`` works, without
     installing it and without touching anything under apps/catgrid."""
-    catgrid_dir = str(Path(__file__).resolve().parents[3] / "apps" / "catgrid")
+    catgrid_dir = str(Path(__file__).resolve().parents[4] / "apps" / "catgrid")
     if catgrid_dir not in sys.path:
         sys.path.insert(0, catgrid_dir)
 

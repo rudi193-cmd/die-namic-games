@@ -2,7 +2,7 @@
 seeds -- the second adapter, reusing game-lab's real rule logic, plugged into
 the SAME run_session / LedgerSink bureau uses, unchanged.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
 """
 from __future__ import annotations
 
