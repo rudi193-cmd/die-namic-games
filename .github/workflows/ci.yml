@@ -10,13 +10,67 @@
 #   the-table       the-table's whole suite and its aetheris5e combat tests,
 #                   with everything it reaches for checked out beside it (new
 #                   here: it had no CI job in the store)
+#
+# And willow's maintainer add-ons, run from the willow the pin names (ci/
+# holds what drives them; ci/README.md says what each is for):
+#
+#   plan            ci-cache's pip key for every job here, and the files
+#                   mutants breaks, one job each
+#   known           unpinned, agents-md-check, secrets-audit, ref-check and
+#                   advisories (on osv.dev's PyPI database), every row held to
+#                   ci/known.json: a new one fails, and so does a stale entry
+#   mutants         willow's mutants, breaking Die-Namic's own code (one job a
+#                   file): a break its tests miss fails
+#   why             on a red run only: ci-why pulls each failing job's failing
+#                   block out of its log, into the run's summary
 name: ci
 
 on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
+  # ci-cache reads the repo's lockfiles and prints the pip cache's key: every
+  # requirements.txt here, lock/requirements.txt's exact pins among them. Each
+  # job restores ~/.cache/pip on it, so a run whose pins haven't moved
+  # downloads nothing. And mutants.json's files, so each gets its own job.
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      pip: ${{ steps.key.outputs.pip }}
+      mutants: ${{ steps.key.outputs.mutants }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: die-namic-games
+
+      - name: Which willow
+        id: pin
+        run: |
+          echo "commit=$(python3 -c 'import json; print(json.load(open("die-namic-games/willow.pin.json"))["commit"])')" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: willow-memory/Willow
+          ref: ${{ steps.pin.outputs.commit }}
+          path: willow
+
+      - name: ci-cache's key, and the files mutants breaks
+        id: key
+        run: |
+          set -eo pipefail
+          python3 willow/adapters/stdlib/ci-cache/ci_cache.py --from die-namic-games | tee "$RUNNER_TEMP/keys.txt"
+          key=$(awk '$1 == "pip" {print $3}' "$RUNNER_TEMP/keys.txt")
+          if [ -z "$key" ]; then
+            echo "::error::ci-cache gave no pip key"
+            exit 1
+          fi
+          echo "pip=$key" >> "$GITHUB_OUTPUT"
+          echo "mutants=$(python3 -c 'import json; print(json.dumps(list(json.load(open("die-namic-games/ci/mutants.json"))["targets"])))')" >> "$GITHUB_OUTPUT"
+
   # Die-Namic plays willow's add-ons where they live: its tests need a willow
   # checkout, and only the one willow.pin.json names. So this job reads the
   # pin's commit, checks willow out at it, and runs the tests on it
@@ -25,10 +79,16 @@ jobs:
   # ocr's requirements are installed here, and the job fails if they don't
   # import. And it fails if anything skipped.
   die-namic:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ needs.plan.outputs.pip }}
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -72,22 +132,26 @@ jobs:
   # rather than skipped. chess_selfplay.py runs its whole body at import (13
   # games, a hardcoded output path), so it gets a compile check only.
   game-lab-sims:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ needs.plan.outputs.pip }}
+
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-          cache: pip
-          cache-dependency-path: game-lab/requirements.txt
 
-      - name: Install the one real dependency (python-chess, core-five path)
+      - name: Install the one real dependency (python-chess, core-five path), at its pin
         run: |
           python -m pip install --upgrade pip
-          pip install -r game-lab/requirements.txt
+          pip install -r game-lab/requirements.txt -c lock/requirements.txt
 
       - name: The gate can fail — prove it catches its own breakage
         working-directory: game-lab/sims
@@ -98,10 +162,16 @@ jobs:
         run: python ci_smoke.py
 
   ai-game-master:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ needs.plan.outputs.pip }}
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -130,9 +200,14 @@ jobs:
   # drive has one seat, so there is no other seat to check (test_story_session,
   # "world has fewer than 2 seats"). Any other skip is something not reached.
   the-table:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ needs.plan.outputs.pip }}
       - uses: actions/checkout@v7
         with:
           path: die-namic-games
@@ -154,10 +229,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Its dependencies (python-chess, dice)
+      - name: Its dependencies (python-chess, dice), at their pins
         run: |
           python -m pip install --upgrade pip >/dev/null
-          pip install pytest -r die-namic-games/the-table/requirements.txt -r die-namic-games/the-table/aetheris5e/requirements.txt
+          pip install pytest -r die-namic-games/the-table/requirements.txt -r die-namic-games/the-table/aetheris5e/requirements.txt -c die-namic-games/lock/requirements.txt
 
       - name: the-table's suite, with everything it reaches for beside it
         working-directory: die-namic-games/the-table
@@ -182,3 +257,139 @@ jobs:
           ONESCRIPT_HOME: ${{ github.workspace }}/willow-bot/one-script
           SAFE_APP_STORE: ${{ github.workspace }}/safe-app-store
         run: python -m pytest test_combat.py -q -rs
+
+  # willow's report add-ons on the repo, from the willow the pin names,
+  # checked out beside it so none of willow's files is read as Die-Namic's.
+  # ci/known.py runs each with --json and holds every row to ci/known.json:
+  # a row it doesn't accept fails, and so does an entry no row matches.
+  # advisories matches the locked pins to osv.dev's PyPI advisories, fetched
+  # here each run, since the add-on fetches nothing itself.
+  known:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: die-namic-games
+
+      - name: Which willow
+        id: pin
+        run: |
+          echo "commit=$(python3 -c 'import json; print(json.load(open("die-namic-games/willow.pin.json"))["commit"])')" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: willow-memory/Willow
+          ref: ${{ steps.pin.outputs.commit }}
+          path: willow
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: osv.dev's PyPI advisories
+        run: |
+          set -eo pipefail
+          curl -sSfL --retry 3 -o "$RUNNER_TEMP/pypi.zip" https://osv-vulnerabilities.storage.googleapis.com/PyPI/all.zip
+          mkdir -p "$RUNNER_TEMP/osv" && unzip -q "$RUNNER_TEMP/pypi.zip" -d "$RUNNER_TEMP/osv"
+          echo "$(ls "$RUNNER_TEMP/osv" | wc -l) advisories"
+
+      - name: Every row known (unpinned, agents-md-check, secrets-audit, ref-check, advisories)
+        run: python die-namic-games/ci/known.py --db "$RUNNER_TEMP/osv"
+
+  # willow's mutants breaks Die-Namic's own code a few ways a file, and runs
+  # the tests that cover it against each break (ci/mutants.json names both):
+  # a break the tests pass on fails here, unless mutants.json accepts it with
+  # the reason it is harmless. One job a file, so the box's slow tests run
+  # side by side. Each needs what die-namic's job needs: the ocr add-on's
+  # requirements and tesseract, for the end-of-night test.
+  mutants:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        file: ${{ fromJSON(needs.plan.outputs.mutants) }}
+    name: mutants (${{ matrix.file }})
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: die-namic-games
+
+      - name: Which willow
+        id: pin
+        run: |
+          echo "commit=$(python3 -c 'import json; print(json.load(open("die-namic-games/willow.pin.json"))["commit"])')" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: willow-memory/Willow
+          ref: ${{ steps.pin.outputs.commit }}
+          path: willow
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ needs.plan.outputs.pip }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: tesseract and ocr's requirements
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q tesseract-ocr
+          python -m pip install --upgrade pip >/dev/null
+          pip install pytest -r willow/adapters/deps/ocr/requirements.txt
+
+      - name: Its breaks, each against its tests
+        run: python die-namic-games/ci/mutants.py run "${{ matrix.file }}"
+
+  # Only when a job above failed: ci-why reads each failed job's log and pulls
+  # out the failing block (the test, its assertion, where), into this run's
+  # summary, so the reason is the first thing on the page. It reads; it never
+  # turns a run green or red.
+  why:
+    needs: [plan, die-namic, game-lab-sims, ai-game-master, the-table, known, mutants]
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: die-namic-games
+
+      - name: Which willow
+        id: pin
+        run: |
+          echo "commit=$(python3 -c 'import json; print(json.load(open("die-namic-games/willow.pin.json"))["commit"])')" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: willow-memory/Willow
+          ref: ${{ steps.pin.outputs.commit }}
+          path: willow
+
+      - name: Why each failed job failed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.run_id }}
+          ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -o pipefail
+          gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs/$RUN/attempts/$ATTEMPT/jobs" \
+            --jq '.jobs[] | select(.conclusion == "failure") | "\(.id)\t\(.name)"' > "$RUNNER_TEMP/failed.tsv"
+          {
+            echo "## Why CI went red"
+            while IFS=$'\t' read -r id name; do
+              echo
+              echo "### $name"
+              echo '```'
+              gh api "repos/$GITHUB_REPOSITORY/actions/jobs/$id/logs" > "$RUNNER_TEMP/$id.log" || echo "(its log couldn't be read)"
+              python3 willow/adapters/stdlib/ci-why/ci_why.py "$RUNNER_TEMP/$id.log" || true
+              echo '```'
+            done < "$RUNNER_TEMP/failed.tsv"
+          } | tee -a "$GITHUB_STEP_SUMMARY"

@@ -66,3 +66,14 @@ def test_a_willow_missing_a_file_or_none_at_all_is_refused(alone, monkeypatch):
     monkeypatch.delenv("WILLOW_ROOT")
     with pytest.raises(willow_pin.Unpinned, match="no willow there"):
         willow_pin.root()
+
+
+def test_a_refusal_names_the_pinned_commit_by_its_first_twelve(alone, monkeypatch):
+    commit = willow_pin.pin()["commit"]
+    w = copy_of_willow(alone / "w")
+    (w / "kernel.py").write_text("# not the pinned kernel\n")
+    monkeypatch.setenv("WILLOW_ROOT", str(w))
+    with pytest.raises(willow_pin.Unpinned) as got:
+        willow_pin.root()
+    said = str(got.value)
+    assert f"(willow {commit[:12]});" in said and f"off the pin at {commit[:12]}," in said

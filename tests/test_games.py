@@ -78,3 +78,35 @@ def test_what_isnt_a_game_or_a_box_is_refused(tmp_path):
     got = play("play-checkers", "--table", tmp_path, "new")
     assert got.returncode == 2 and "isn't a box" in got.stderr
     assert play().returncode == 2
+
+
+def test_a_pinned_add_on_that_isnt_a_game_here_is_refused_naming_the_games():
+    assert "stack" in willow_pin.pin()["add_ons"] and not (HERE / "stack").exists()
+    got = play("stack")
+    assert got.returncode == 2
+    assert got.stderr.strip().endswith(f"isn't one of the games: {', '.join(GAMES)}")
+
+
+def test_no_game_named_prints_how_to_play():
+    got = play()
+    assert got.returncode == 2 and "python games/play.py GAME --table DIR [ARGS...]" in got.stderr
+
+
+def test_a_game_whose_script_isnt_named_for_it_is_found_if_it_is_the_only_one(tmp_path):
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("play", HERE / "play.py")
+    play_py = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(play_py)
+    folder = tmp_path / "adapters" / "stdlib" / "play-x"
+    folder.mkdir(parents=True)
+    (folder / "test_scan.py").write_text("")
+    (folder / "scan.py").write_text("")
+    assert play_py.script(tmp_path, "play-x") == folder / "scan.py"
+    (folder / "two.py").write_text("")
+    with pytest.raises(FileNotFoundError, match="no one script"):
+        play_py.script(tmp_path, "play-x")
+    (folder / "two.py").unlink()
+    (folder / "scan.py").unlink()
+    with pytest.raises(FileNotFoundError, match="no one script"):
+        play_py.script(tmp_path, "play-x")
