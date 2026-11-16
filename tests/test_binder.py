@@ -166,3 +166,8 @@ def test_ask_says_where_to_look_or_that_nothing_holds_it_by_the_kernels_codes():
     assert got.returncode == 0 and got.stdout.startswith("monsters/spring-wasps.md:")
     assert run("pancakes").returncode == 42
     assert run().returncode == 2 and run("--top", "many", "hound").returncode == 2
+
+
+def test_ask_with_no_question_prints_how_to_ask():
+    got = run()
+    assert got.returncode == 2 and "python box/ask.py [--table DIR] [--top N] QUESTION..." in got.stderr
