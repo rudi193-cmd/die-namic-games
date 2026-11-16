@@ -22,7 +22,7 @@ import sys
 import tempfile
 
 _TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
-_APP_ROOT = os.path.dirname(_TESTS_DIR)  # apps/game/the-table
+_APP_ROOT = os.path.dirname(_TESTS_DIR)  # the-table
 sys.path.insert(0, _APP_ROOT)
 
 from the_table.ledger_sink import LedgerSink  # noqa: E402

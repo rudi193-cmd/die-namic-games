@@ -1,6 +1,6 @@
 """build.py: lay Die-Namic's games and worlds into its pages. Python 3.9+.
 
-    python apps/game/ui/build.py
+    python ui/build.py
 
 Writes two pages from their sources:
 - index.html, the front page (index.src.html): every game in games/, its
@@ -106,12 +106,12 @@ TABLE = {
     "title": "the table",
     "summary": "The box's stories played beat by beat, in chapters that carry canon: roll 2d6 and a stat, seal or decline every ruling, and ask the binder.",
     "commands": [
-        "python apps/game/box/open_table.py open  --table DIR --key FILE",
-        "python apps/game/games/play.py game-master --table DIR act Grit --world WORLD.json",
-        "python apps/game/games/play.py game-master --table DIR ask --world WORLD.json",
-        "python apps/game/games/play.py game-master --table DIR settle --world WORLD.json",
-        "python apps/game/box/session.py --table DIR",
-        "python apps/game/box/ideas.py --table DIR",
+        "python box/open_table.py open  --table DIR --key FILE",
+        "python games/play.py game-master --table DIR act Grit --world WORLD.json",
+        "python games/play.py game-master --table DIR ask --world WORLD.json",
+        "python games/play.py game-master --table DIR settle --world WORLD.json",
+        "python box/session.py --table DIR",
+        "python box/ideas.py --table DIR",
     ],
     "notes": "", "came": "", "checked": "", "card": "",
 }

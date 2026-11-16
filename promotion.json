@@ -1,9 +1,9 @@
 {
-  "_what": "Die-Namic's promotion attestation, drafted by the maker's side: the mechanical pointers (core, seam, host) are filled in for stores/promote_check.py to check. The attested facts are a person's to state and are left unstated: verified_by (who ratifies; never the author, never a model), repo_url (its own repo, once made) and host_repointed (once the store consumes it). Until then the gate refuses, as it should.",
+  "_what": "Die-Namic's promotion attestation. Extracted to its own repo on 2026-11-16, not promoted: the mechanical pointers (core, seam, host) are filled in for safe-app-store's stores/promote_check.py to check, and its own repo is stated. What only a person can state is left unstated: verified_by (who ratifies; never the author, never a model) and host_repointed (once the store consumes it). Until then the gate refuses, as it should.",
   "app_id": "game",
   "author": "USER",
   "verified_by": "",
-  "repo_url": "",
+  "repo_url": "https://github.com/rudi193-cmd/die-namic-games",
   "host": "safe-app-store",
   "core_module": "die_namic",
   "semantic_seam": "die_namic.binder:Binder",

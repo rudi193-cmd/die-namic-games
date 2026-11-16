@@ -1,6 +1,6 @@
 """ask.py: ask the GM's binder in your own words. Python 3.9+.
 
-    python apps/game/box/ask.py [--table DIR] [--top N] QUESTION...
+    python box/ask.py [--table DIR] [--top N] QUESTION...
 
 The box's own binder and words list unless --table names a box laid by
 open_table.py (then DIR/pile and DIR/words.txt). It prints where to look,
@@ -30,7 +30,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import willow_pin  # noqa: E402
 
-ROOT = willow_pin.root()  # willow, held to apps/game/willow.pin.json
+ROOT = willow_pin.root()  # willow, held to willow.pin.json
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "adapters" / "stdlib" / "pile-rank"))
 import kernel  # noqa: E402

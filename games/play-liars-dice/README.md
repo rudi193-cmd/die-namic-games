@@ -7,11 +7,11 @@ A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its
 ## Playing it
 
 ```
-python apps/game/games/play.py play-liars-dice --table DIR new
-python apps/game/games/play.py play-liars-dice --table DIR show
-python apps/game/games/play.py play-liars-dice --table DIR bid 3 5
-python apps/game/games/play.py play-liars-dice --table DIR call
-python apps/game/games/play.py play-liars-dice --table DIR check
+python games/play.py play-liars-dice --table DIR new
+python games/play.py play-liars-dice --table DIR show
+python games/play.py play-liars-dice --table DIR bid 3 5
+python games/play.py play-liars-dice --table DIR call
+python games/play.py play-liars-dice --table DIR check
 ```
 
 On a box laid by `box/open_table.py`, `--table DIR` plays on its record.
@@ -20,4 +20,4 @@ Each cup is dice's own roll row, thrown straight before its round; each bid and 
 
 ## Where it came from
 
-Liar's Dice, ported from the-table's liar's dice over game-lab's rules and simplifications (apps/game/the-table, apps/game/game-lab in this store), checked against game-lab's on 159,920 bids, 100,000 counts and 3,000 whole games.
+Liar's Dice, ported from the-table's liar's dice over game-lab's rules and simplifications (the-table, game-lab in this store), checked against game-lab's on 159,920 bids, 100,000 counts and 3,000 whole games.

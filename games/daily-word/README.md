@@ -7,8 +7,8 @@ A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its
 ## Playing it
 
 ```
-python apps/game/games/play.py daily-word --table DIR today
-python apps/game/games/play.py daily-word --table DIR guess WORD
+python games/play.py daily-word --table DIR today
+python games/play.py daily-word --table DIR guess WORD
 ```
 
 On a box laid by `box/open_table.py`, `--table DIR` plays on its record.

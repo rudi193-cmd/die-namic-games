@@ -11,7 +11,7 @@ Four things pinned:
     "all games really do run through the same loop", not just that they
     construct.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from the-table/)
 """
 from __future__ import annotations
 

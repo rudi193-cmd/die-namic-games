@@ -37,16 +37,24 @@ import sys
 from pathlib import Path
 
 
+
+def safe_app_store() -> Path:
+    """The safe-app-store checkout whose apps the-table adapts (bureau, catgrid):
+    $SAFE_APP_STORE, else one beside die-namic-games, the way the box finds willow
+    and host.py finds the one-script."""
+    import os
+
+    return Path(os.environ.get("SAFE_APP_STORE") or Path(__file__).resolve().parents[3] / "safe-app-store")
+
 def _ensure_bureau_on_path() -> None:
     """Put apps/bureau on sys.path so ``from bureau.play import Session``
     works, without installing bureau as a package and without touching
     anything under apps/bureau itself.
 
-    Resolved relative to this file: apps/game/the-table/the_table/bureau_adapter.py
+    Resolved relative to this file: the-table/the_table/bureau_adapter.py
     -> repo root is three parents up -> apps/bureau is the sibling app.
     """
-    repo_root = Path(__file__).resolve().parents[4]
-    bureau_dir = repo_root / "apps" / "bureau"
+    bureau_dir = safe_app_store() / "apps" / "bureau"  # a store app: found in the store beside
     bureau_str = str(bureau_dir)
     if bureau_str not in sys.path:
         sys.path.insert(0, bureau_str)

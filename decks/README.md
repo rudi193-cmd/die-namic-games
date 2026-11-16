@@ -5,12 +5,12 @@ The card pages (`ui/play-hearts.html`, `ui/play-crazy-eights.html`,
 also offer it: a **Deck** for the faces and a **Back**, each remembered in
 that browser.
 
-    python apps/game/decks/fetch_decks.py          # every deck below
-    python apps/game/decks/fetch_decks.py knoll    # just one
-    python apps/game/decks/fetch_decks.py --list
-    python apps/game/ui/build.py                   # then lay the pages again
+    python decks/fetch_decks.py          # every deck below
+    python decks/fetch_decks.py knoll    # just one
+    python decks/fetch_decks.py --list
+    python ui/build.py                   # then lay the pages again
 
-The art lands in `apps/game/ui/decks/`, which git ignores, with a `deck.json`
+The art lands in `ui/decks/`, which git ignores, with a `deck.json`
 for each deck and a `NOTICE.md` for all of them. Running it again fetches
 only what's missing.
 

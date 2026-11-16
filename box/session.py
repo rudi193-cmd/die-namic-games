@@ -1,10 +1,10 @@
 """session.py: a session at the table played by code, as far as it goes without the person. Python 3.9+.
 
-    python apps/game/box/session.py --table DIR [--world NAME] [--now TS]
-    python apps/game/box/session.py --table DIR [--world NAME] offer CHARACTER "FACT" [--as KIND]
-    python apps/game/box/session.py --table DIR canon
-    python apps/game/box/session.py --table DIR recap
-    python apps/game/box/session.py --table DIR export-canon [--to FILE]
+    python box/session.py --table DIR [--world NAME] [--now TS]
+    python box/session.py --table DIR [--world NAME] offer CHARACTER "FACT" [--as KIND]
+    python box/session.py --table DIR canon
+    python box/session.py --table DIR recap
+    python box/session.py --table DIR export-canon [--to FILE]
 
 The game master's bookkeeping, done by code: every action beat is rolled for
 the character whose turn it is, leaning into the approach the beat suggests,
@@ -60,7 +60,7 @@ import willow_pin
 
 ROOT = (
     willow_pin.root()
-)  # willow, where its pieces live, held to apps/game/willow.pin.json
+)  # willow, where its pieces live, held to willow.pin.json
 GM_DIR = ROOT / "adapters" / "stdlib" / "game-master"
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(GM_DIR))

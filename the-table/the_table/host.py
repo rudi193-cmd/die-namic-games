@@ -5,7 +5,7 @@ The record is the one chain (willows-grove
 pieces move into willow-bot (F4) it lives beside the-table, not in it. The
 operator chose how a script reaches it (F-7, "1 B"): it finds the one-script
 beside it, the way the-table already reaches ``apps/bureau``, ``apps/game``
-and ``apps/game/game-lab`` -- a ``sys.path`` shim. This module is that shim.
+and ``game-lab`` -- a ``sys.path`` shim. This module is that shim.
 
 Only the scripts that RUN a session import it (``proof.py``,
 ``aetheris5e/sealed_run.py``, ``gm5e.py``, ``combat.py``). The library
@@ -41,7 +41,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
-_REPOS = Path(__file__).resolve().parents[5]  # the_table -> the-table -> game -> apps -> safe-app-store -> repos
+_REPOS = Path(__file__).resolve().parents[3]  # the_table -> the-table -> die-namic-games -> repos
 
 #: Exit code for "the one-script is not reachable": said, not a failure of the game.
 UNREACHABLE = 2

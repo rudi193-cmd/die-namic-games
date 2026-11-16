@@ -24,10 +24,19 @@ import sys
 from pathlib import Path
 
 
+
+def safe_app_store() -> Path:
+    """The safe-app-store checkout whose apps the-table adapts (bureau, catgrid):
+    $SAFE_APP_STORE, else one beside die-namic-games, the way the box finds willow
+    and host.py finds the one-script."""
+    import os
+
+    return Path(os.environ.get("SAFE_APP_STORE") or Path(__file__).resolve().parents[3] / "safe-app-store")
+
 def _ensure_catgrid_on_path() -> None:
     """Put apps/catgrid on sys.path so ``import catgrid`` works, without
     installing it and without touching anything under apps/catgrid."""
-    catgrid_dir = str(Path(__file__).resolve().parents[4] / "apps" / "catgrid")
+    catgrid_dir = str(safe_app_store() / "apps" / "catgrid")  # a store app: found in the store beside
     if catgrid_dir not in sys.path:
         sys.path.insert(0, catgrid_dir)
 

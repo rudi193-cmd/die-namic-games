@@ -1,7 +1,7 @@
 """LiarsDiceSession: game-lab's Perudo rules one bid at a time; each rule
 tested by the move it forbids; cups hidden until a challenge lifts them.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from the-table/)
 """
 from __future__ import annotations
 

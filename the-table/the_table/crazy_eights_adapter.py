@@ -3,10 +3,10 @@
 the-table is the CONSUMER here, exactly the same relationship
 ``bureau_adapter.py`` has to bureau: it imports game-lab's pure Crazy Eights
 helpers, never the reverse, and never modifies anything under
-``apps/game/game-lab``. game-lab is not installed as a package, so the only way to
+``game-lab``. game-lab is not installed as a package, so the only way to
 reach it is a path shim -- see ``_ensure_game_lab_sims_on_path`` below, the
 same narrow one-directory-once pattern ``bureau_adapter.py`` uses for
-``apps/bureau``. ``apps/game/game-lab/sims/crazy_eights.py`` guards its demo run
+``apps/bureau``. ``game-lab/sims/crazy_eights.py`` guards its demo run
 behind ``if __name__ == '__main__':`` (see the bottom of that file), so
 importing it only defines functions/constants -- no side effects.
 
@@ -88,17 +88,17 @@ from pathlib import Path
 
 
 def _ensure_game_lab_sims_on_path() -> None:
-    """Put apps/game/game-lab/sims on sys.path so ``from crazy_eights import ...``
+    """Put game-lab/sims on sys.path so ``from crazy_eights import ...``
     works, without installing game-lab as a package and without touching
-    anything under apps/game/game-lab itself.
+    anything under game-lab itself.
 
     Resolved relative to this file:
-    apps/game/the-table/the_table/crazy_eights_adapter.py -> repo root is four
-    parents up -> apps/game/game-lab/sims is the sibling directory holding the
+    the-table/the_table/crazy_eights_adapter.py -> repo root is four
+    parents up -> game-lab/sims is the sibling directory holding the
     module.
     """
-    repo_root = Path(__file__).resolve().parents[4]
-    sims_dir = repo_root / "apps" / "game" / "game-lab" / "sims"
+    repo_root = Path(__file__).resolve().parents[2]  # die-namic-games
+    sims_dir = repo_root / "game-lab" / "sims"
     sims_str = str(sims_dir)
     if sims_str not in sys.path:
         sys.path.insert(0, sims_str)

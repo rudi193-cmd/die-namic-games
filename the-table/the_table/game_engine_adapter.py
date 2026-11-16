@@ -6,12 +6,12 @@ and the first one built expressly for the "AI Game Master" side of the-table:
 no board, no hand of cards, just beats of declared action -> roll -> outcome.
 
 the-table is the CONSUMER here, the same relationship the other two adapters
-have to their sibling apps: it imports ``apps/game/engine_v1_7.py``'s
+have to their sibling apps: it imports ``engine_v1_7.py``'s
 ``Engine`` class, never the reverse, and never modifies anything under
 ``apps/game``. ``apps/game`` is not installed as a package, so the only way
 to reach it is a narrow path shim -- see ``_ensure_game_engine_on_path``
 below, the same one-directory-once pattern the other two adapters use for
-their own sibling apps (``apps/game/game-lab/sims`` and ``apps/bureau``
+their own sibling apps (``game-lab/sims`` and ``apps/bureau``
 respectively).
 
 REUSE, NOT REIMPLEMENTATION: the only thing this module reuses from
@@ -26,7 +26,7 @@ which supplies the words there; the engine module itself is pure mechanics).
 THE TRAPS IN ``engine_v1_7.py`` -- and how this adapter avoids every one:
 
   1. ``Engine.apply_debility``, ``Engine.restore_debility``, and
-     ``Engine._save_state`` all write to ``apps/game/engine_state.json`` on
+     ``Engine._save_state`` all write to ``engine_state.json`` on
      disk. Writing into another app's directory from here would be a
      data-lane violation (the-table's own SOIL lane is not
      ``apps/game``'s). This adapter NEVER calls any of those three methods,
@@ -40,7 +40,7 @@ THE TRAPS IN ``engine_v1_7.py`` -- and how this adapter avoids every one:
      compute it -- it can; it just also writes a file we must never touch.
 
   2. ``Engine.__init__`` calls ``_load_state()``, which READS
-     ``apps/game/engine_state.json`` if present, so a bare ``Engine()``'s
+     ``engine_state.json`` if present, so a bare ``Engine()``'s
      starting stats depend on whatever is sitting on disk in another app's
      directory -- not reproducible from this adapter's point of view. So
      ``reset(seed)`` constructs ``Engine()`` and immediately OVERWRITES
@@ -67,7 +67,7 @@ THE TRAPS IN ``engine_v1_7.py`` -- and how this adapter avoids every one:
      ``_load_state``); nothing is written to disk until ``_save_state`` is
      explicitly called, which this adapter never does. A full scene --
      ``reset`` through a terminal ``step`` -- therefore leaves
-     ``apps/game/engine_state.json`` completely untouched (see
+     ``engine_state.json`` completely untouched (see
      ``tests/test_game_engine_adapter.py``'s
      ``TestGameEngineStateFileUntouched``, which snapshots the file's
      existence/mtime/bytes before a scene and asserts byte-identity, or
@@ -147,13 +147,13 @@ def _ensure_game_engine_on_path() -> None:
     under apps/game itself.
 
     Resolved relative to this file:
-    apps/game/the-table/the_table/game_engine_adapter.py -> repo root is four
-    parents up -> apps/game/archive/first-engine holds the module: apps/game
+    the-table/the_table/game_engine_adapter.py -> repo root is four
+    parents up -> archive/first-engine holds the module: apps/game
     is now where Die-Namic is built, and its first engine is archived there,
     whole and unedited.
     """
-    repo_root = Path(__file__).resolve().parents[4]
-    game_dir = repo_root / "apps" / "game" / "archive" / "first-engine"  # archived 2026-11-14, kept whole
+    repo_root = Path(__file__).resolve().parents[2]  # die-namic-games
+    game_dir = repo_root / "archive" / "first-engine"  # archived 2026-11-14, kept whole
     game_str = str(game_dir)
     if game_str not in sys.path:
         sys.path.insert(0, game_str)
@@ -204,7 +204,7 @@ class SceneSession:
         if self._rng is None:
             random.seed(seed)  # LEGACY only
 
-        # Trap 2: Engine() reads apps/game/engine_state.json via
+        # Trap 2: Engine() reads engine_state.json via
         # _load_state(); overwrite immediately with a fresh, deterministic
         # baseline so this scene never depends on that file's contents.
         engine = Engine()
@@ -273,7 +273,7 @@ class SceneSession:
         if status == "CHAOS_BURST":
             # Trap 1: apply the debility ourselves, in-adapter, on our own
             # engine.stats dict -- NEVER via Engine.apply_debility (which
-            # would _save_state() into apps/game/engine_state.json).
+            # would _save_state() into engine_state.json).
             internal = _STAT_MAP[stat]
             if self._engine.stats[internal] > _DEBILITY_FLOOR:
                 self._engine.stats[internal] -= 1

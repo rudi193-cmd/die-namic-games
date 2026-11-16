@@ -1,7 +1,7 @@
 """CheckersSession: game-lab's checkers one move at a time; each rule tested by
 the move it forbids; the restated ending held to game-lab's own checkers_once.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from the-table/)
 """
 from __future__ import annotations
 

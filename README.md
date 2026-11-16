@@ -1,10 +1,26 @@
-# game: where Die-Namic is built
+# Die-Namic
 
-The store's playground home for **Die-Namic**: the game side of the house,
-the box an AI game master keeps a table in. It starts empty on purpose. The
-pieces come over one at a time, each as its own step, and when the build
-meets the store's promotion bar it is lifted out into its own repo in the
-Die-Namic-Systems org.
+The game side of the house: the box an AI game master keeps a table in, the
+games it plays, and the pages that play them in a browser.
+
+Die-Namic was built in the SAFE App Store's playground (`apps/game` in
+[safe-app-store](https://github.com/rudi193-cmd/safe-app-store)) and lifted
+out here on 2026-11-16, with its history: the box's, and the-table's,
+ai-game-master's and game-lab's from before they came over. It is extracted,
+not promoted: the store keeps a record of it, and its promotion waits on what
+only a person can give (see [promotion.json](promotion.json)).
+
+It plays with [willow](https://github.com/willow-memory/Willow)'s kernel and
+add-ons where they live, pinned by commit and by each file's SHA-256
+([willow.pin.json](willow.pin.json)): put a willow checkout beside this one
+(or set `WILLOW_ROOT`). the-table also adapts two of the store's apps, bureau
+and catgrid: put a safe-app-store checkout beside this one (or set
+`SAFE_APP_STORE`).
+
+    pytest                                   # Die-Namic's own tests (tests/)
+    python box/ask.py "what are the dog's stats"
+    python games/play.py play-checkers --table DIR new
+    python ui/build.py                       # lay the pages in ui/
 
 ## What was here: the first engine
 
@@ -37,11 +53,11 @@ proposed in `stores/decisions/proposed.json`.
   back here. Each is a willow add-on and stays
   in willow; its folder says what it is, how to play it, and where it came
   from, and [`games/play.py`](games/play.py) plays any of them on a box's
-  record through the pin: `python apps/game/games/play.py play-checkers --table DIR move 11-15`.
+  record through the pin: `python games/play.py play-checkers --table DIR move 11-15`.
 - **[willow.pin.json](willow.pin.json)**: the box plays with willow's
   kernel and add-ons where they live, in willow, pinned by commit and by
   each file's SHA-256. The box finds a willow checkout (`WILLOW_ROOT`, or
-  one beside safe-app-store) and refuses one whose files differ.
+  one beside die-namic-games) and refuses one whose files differ.
 
 ## What came over
 
@@ -73,7 +89,7 @@ catalog entries are archived and point here.
   with whoever grew it.
 - **[box/ask.py](box/ask.py)**: the host side of that seam: the box hands
   the core willow's reading of the binder and willow's pile-rank ranker,
-  found through the pin. `python apps/game/box/ask.py "what are the dog's stats"`.
+  found through the pin. `python box/ask.py "what are the dog's stats"`.
 - **[tests/](tests/)**: Die-Namic's own tests, the box's, the games' and
   the core's, run from here with a bare `pytest` (`pytest.ini`), as store CI
   and the promotion gate run them. The builds that came over keep their own

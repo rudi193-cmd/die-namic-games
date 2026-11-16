@@ -3,7 +3,7 @@
 The first trick-taking game at the table. the-table is the CONSUMER, the way
 ``crazy_eights_adapter.py`` is: it imports game-lab's pure Hearts helpers
 through the same one-directory path shim and never modifies
-``apps/game/game-lab``. ``apps/game/game-lab/sims/hearts.py`` guards its demo run behind
+``game-lab``. ``game-lab/sims/hearts.py`` guards its demo run behind
 ``if __name__ == '__main__':``, so importing it only defines functions.
 
 REUSE: every legality decision is game-lab's ``legal_plays`` (follow suit,

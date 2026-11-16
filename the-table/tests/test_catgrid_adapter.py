@@ -2,7 +2,7 @@
 with the guards the other adapters carry: JSON round-trips, side-effect-free
 legal_moves, the step cap, and the answer never in a view.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from the-table/)
 """
 from __future__ import annotations
 

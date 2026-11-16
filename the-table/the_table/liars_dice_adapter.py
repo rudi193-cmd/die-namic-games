@@ -3,7 +3,7 @@
 The first dice-bluffing game at the table, and the first where the dice are
 hidden: each seat sees its own cup only. the-table is the CONSUMER: it imports
 game-lab's pure helpers through the shared path shim and never modifies
-``apps/game/game-lab``; ``apps/game/game-lab/sims/liars_dice.py`` guards its demo run
+``game-lab``; ``game-lab/sims/liars_dice.py`` guards its demo run
 behind ``if __name__ == '__main__':``.
 
 REUSE: what counts on a challenge is game-lab's ``count_face`` (ones wild,

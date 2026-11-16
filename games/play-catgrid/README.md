@@ -7,10 +7,10 @@ A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its
 ## Playing it
 
 ```
-python apps/game/games/play.py play-catgrid --table DIR play --moves A1,B3,C5
-python apps/game/games/play.py play-catgrid --table DIR play --seed "my board" --size 6
-python apps/game/games/play.py play-catgrid --table DIR check
-python apps/game/games/play.py play-catgrid --table DIR play [--seed TEXT]
+python games/play.py play-catgrid --table DIR play --moves A1,B3,C5
+python games/play.py play-catgrid --table DIR play --seed "my board" --size 6
+python games/play.py play-catgrid --table DIR check
+python games/play.py play-catgrid --table DIR play [--seed TEXT]
 ```
 
 On a box laid by `box/open_table.py`, `--table DIR` plays on its record.

@@ -1,9 +1,9 @@
 """open_table.py: a game master's box, laid with nothing sealed. Python 3.9+.
 
-    python apps/game/box/open_table.py open  --table DIR --key FILE [--now TS]
-    python apps/game/box/open_table.py prep  --table DIR
-    python apps/game/box/open_table.py end   --table DIR
-    python apps/game/box/open_table.py check --table DIR
+    python box/open_table.py open  --table DIR --key FILE [--now TS]
+    python box/open_table.py prep  --table DIR
+    python box/open_table.py end   --table DIR
+    python box/open_table.py check --table DIR
 
 The box is the game master's binder. `open` lays a fresh one in DIR, which
 must not exist yet:
@@ -58,7 +58,7 @@ import willow_pin
 
 ROOT = (
     willow_pin.root()
-)  # willow, where its pieces live, held to apps/game/willow.pin.json
+)  # willow, where its pieces live, held to willow.pin.json
 sys.path.insert(0, str(ROOT))
 import kernel
 

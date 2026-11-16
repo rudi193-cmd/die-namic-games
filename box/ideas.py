@@ -1,6 +1,6 @@
 """ideas.py: story ideas between sessions, made from what's in the box. Python 3.9+.
 
-    python apps/game/box/ideas.py --table DIR [--seed TEXT] [--count N]
+    python box/ideas.py --table DIR [--seed TEXT] [--count N]
 
 For the GM's eyes, between sessions. Nothing here is canon and nothing is
 handed in: an idea the GM likes, they write in their binder or into a story.
@@ -37,7 +37,7 @@ import willow_pin
 
 ROOT = (
     willow_pin.root()
-)  # willow, where its pieces live, held to apps/game/willow.pin.json
+)  # willow, where its pieces live, held to willow.pin.json
 STDLIB = ROOT / "adapters" / "stdlib"
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(HERE))

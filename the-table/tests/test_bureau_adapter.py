@@ -1,6 +1,6 @@
 """Drives BureauSession as a GameSession, end to end, across several seeds.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from the-table/)
 """
 from __future__ import annotations
 

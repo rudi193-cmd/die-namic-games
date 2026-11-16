@@ -1,10 +1,10 @@
 """fetch_decks.py: fetch Die-Namic's card art from where it lives. Python 3.9+.
 
-    python apps/game/decks/fetch_decks.py              (every deck below)
-    python apps/game/decks/fetch_decks.py knoll rws1910
-    python apps/game/decks/fetch_decks.py --list
+    python decks/fetch_decks.py              (every deck below)
+    python decks/fetch_decks.py knoll rws1910
+    python decks/fetch_decks.py --list
 
-The art is never committed. This fetches it into apps/game/ui/decks/ (which
+The art is never committed. This fetches it into ui/decks/ (which
 git ignores), one folder a deck, each with a deck.json saying what it holds
 and where it came from, and writes ui/decks/NOTICE.md for all of them.
 ui/build.py reads the deck.json files and offers each deck on the card pages;
@@ -222,7 +222,7 @@ FETCH = {"knoll": knoll, "tekeye": tekeye, "kennard-goodall": kennard, "kennard-
 
 def notice() -> None:
     lines = ["# The card art in this folder", "",
-             "Fetched by apps/game/decks/fetch_decks.py; never committed. Every deck is public domain or CC0.", ""]
+             "Fetched by decks/fetch_decks.py; never committed. Every deck is public domain or CC0.", ""]
     for p in sorted(OUT.glob("*/deck.json")):
         d = json.loads(p.read_text())
         lines += [f"## {d['name']} ({d['id']})", "", f"- By: {d['credit']}", f"- Licence: {d['license']}", f"- From: {d['source']}"]
@@ -246,7 +246,7 @@ def main(argv: list[str]) -> int:
         deck = DECKS[key]
         folder = OUT / key
         folder.mkdir(parents=True, exist_ok=True)
-        print(f"{key}: fetching into {folder.relative_to(HERE.parents[2])}")
+        print(f"{key}: fetching into {folder.relative_to(HERE.parent)}")
         held = FETCH[key](folder, deck)
         cards = sorted(p.stem for p in folder.iterdir() if p.suffix in (".svg", ".jpg", ".png") and not p.stem.startswith("back-"))
         meta = {"id": key, **{k: v for k, v in deck.items() if k not in ("query", "width")}, **held, "cards": len(cards)}

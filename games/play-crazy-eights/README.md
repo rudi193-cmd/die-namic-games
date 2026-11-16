@@ -7,12 +7,12 @@ A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its
 ## Playing it
 
 ```
-python apps/game/games/play.py play-crazy-eights --table DIR new
-python apps/game/games/play.py play-crazy-eights --table DIR show
-python apps/game/games/play.py play-crazy-eights --table DIR play 8H S
-python apps/game/games/play.py play-crazy-eights --table DIR draw
-python apps/game/games/play.py play-crazy-eights --table DIR pass
-python apps/game/games/play.py play-crazy-eights --table DIR check
+python games/play.py play-crazy-eights --table DIR new
+python games/play.py play-crazy-eights --table DIR show
+python games/play.py play-crazy-eights --table DIR play 8H S
+python games/play.py play-crazy-eights --table DIR draw
+python games/play.py play-crazy-eights --table DIR pass
+python games/play.py play-crazy-eights --table DIR check
 ```
 
 On a box laid by `box/open_table.py`, `--table DIR` plays on its record.
@@ -21,4 +21,4 @@ Each deal, card, draw and pass is a row on the record, through the kernel. The h
 
 ## Where it came from
 
-Crazy Eights, ported from the-table's crazy eights over game-lab's rules (apps/game/the-table, apps/game/game-lab in this store), one card drawn at a time as the-table plays it; its legal cards checked against game-lab's in 159,776 states.
+Crazy Eights, ported from the-table's crazy eights over game-lab's rules (the-table, game-lab in this store), one card drawn at a time as the-table plays it; its legal cards checked against game-lab's in 159,776 states.

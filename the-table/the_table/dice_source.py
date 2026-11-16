@@ -8,7 +8,7 @@ This module binds the table's engine (``apps/game``'s ``Engine``, found by
 read as before. With no one script beside, importing this raises
 ``host.Unreachable`` and says why (F-16).
 
-``apps/game/engine_v1_7.py`` is still NOT edited; see ``onescript/dice.py``
+``engine_v1_7.py`` is still NOT edited; see ``onescript/dice.py``
 for the swap's safety rules (one re-entrant lock, LIFO exits, never across a
 ``yield``).
 """

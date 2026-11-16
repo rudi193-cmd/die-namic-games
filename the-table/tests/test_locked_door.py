@@ -2,7 +2,7 @@
 ("grid", ...) moves; how it ends picks the outcome; hearts and earned hints
 carry door to door. Each rule by the move or world it forbids.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from the-table/)
 """
 from __future__ import annotations
 

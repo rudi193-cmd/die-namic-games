@@ -1,10 +1,10 @@
 """play.py: one of Die-Namic's games, played on a box's record. Python 3.9+.
 
-    python apps/game/games/play.py GAME --table DIR [ARGS...]
-    python apps/game/games/play.py GAME [ARGS...]          (a game that reads no box)
+    python games/play.py GAME --table DIR [ARGS...]
+    python games/play.py GAME [ARGS...]          (a game that reads no box)
 
 Each game is a willow add-on, and stays in willow: Die-Namic plays it where
-it lives, through the pin the box uses (apps/game/willow.pin.json,
+it lives, through the pin the box uses (willow.pin.json,
 box/willow_pin.py), which refuses a willow whose files differ. GAME is a
 folder here, and the add-on of the same name.
 

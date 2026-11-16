@@ -2,12 +2,12 @@
 the THIRD adapter, reusing apps/game's dice-resolution rule (Engine.roll),
 plugged into the SAME run_session / LedgerSink bureau and crazy_eights use,
 unchanged. Also proves the two hardest guarantees named in the adapter's
-module docstring: (1) apps/game/engine_state.json is never created or
+module docstring: (1) engine_state.json is never created or
 modified by a scene run, no matter how many CHAOS_BURST beats it hits, and
 (2) determinism comes entirely from seeding the global random module in
 reset(), documented as a coupling of engine_v1_7.py itself.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from the-table/)
 """
 from __future__ import annotations
 
@@ -26,11 +26,11 @@ from the_table.gm import first_legal_policy, random_policy, run_session
 SEEDS = (0, 1, 2, 3, 7, 15, 42, 100)
 DEFAULT_BEATS = 6
 
-# apps/game/engine_state.json, resolved the same way game_engine_adapter.py
+# engine_state.json, resolved the same way game_engine_adapter.py
 # resolves apps/game itself (repo root three parents up from this test file:
-# apps/game/the-table/tests/test_game_engine_adapter.py -> repo root).
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-_ENGINE_STATE_PATH = os.path.join(_REPO_ROOT, "apps", "game", "archive", "first-engine", "engine_state.json")
+# the-table/tests/test_game_engine_adapter.py -> repo root).
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # die-namic-games
+_ENGINE_STATE_PATH = os.path.join(_REPO_ROOT, "archive", "first-engine", "engine_state.json")
 
 
 def _assert_json_roundtrip(testcase: unittest.TestCase, value, label: str) -> None:
@@ -49,7 +49,7 @@ def _assert_observation_serializable(testcase: unittest.TestCase, obs: Observati
 
 
 class _EngineStateSnapshot:
-    """Existence + mtime + bytes of apps/game/engine_state.json, so a test
+    """Existence + mtime + bytes of engine_state.json, so a test
     can assert nothing about it changed across a scene run."""
 
     def __init__(self, path: str) -> None:
@@ -67,19 +67,19 @@ class _EngineStateSnapshot:
         now_exists = os.path.exists(self.path)
         testcase.assertEqual(
             self.existed, now_exists,
-            "apps/game/engine_state.json existence changed across a scene run "
+            "engine_state.json existence changed across a scene run "
             f"(was existed={self.existed}, now existed={now_exists})",
         )
         if self.existed:
             testcase.assertEqual(
                 self.mtime_ns, os.stat(self.path).st_mtime_ns,
-                "apps/game/engine_state.json mtime changed -- a scene run must never touch it",
+                "engine_state.json mtime changed -- a scene run must never touch it",
             )
             with open(self.path, "rb") as f:
                 now_data = f.read()
             testcase.assertEqual(
                 self.data, now_data,
-                "apps/game/engine_state.json bytes changed -- a scene run must never write it",
+                "engine_state.json bytes changed -- a scene run must never write it",
             )
 
 
@@ -317,7 +317,7 @@ class TestSceneSessionViewAndMoveJSON(unittest.TestCase):
 
 class TestEngineStateFileUntouched(unittest.TestCase):
     """The key data-lane guarantee: a scene run never creates or modifies
-    apps/game/engine_state.json, including scenes that hit CHAOS_BURST (and
+    engine_state.json, including scenes that hit CHAOS_BURST (and
     therefore the in-adapter debility path)."""
 
     def test_engine_state_json_untouched_across_a_clean_scene(self):

@@ -2,7 +2,7 @@
 
 ``campaign.db`` stays (forge-convergence §9 row 11, settled; SPEC R9). Its
 chain "vouches for every row except the last" and asks for a head kept outside
-the box (``apps/game/ai-game-master/schema/01_ledger.sql:34-37``). That head goes
+the box (``ai-game-master/schema/01_ledger.sql:34-37``). That head goes
 into the one-script record as ONE ``agm_head`` verdict row before the next
 sealed tip, so the human's tip covers it.
 

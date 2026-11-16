@@ -5,8 +5,8 @@ record (the one chain, flatten F-1), each checked by the one-script's OWN
 verifier.
 
 Run with:
-    python3 -m the_table.proof        (from apps/game/the-table/)
-    python3 the_table/proof.py        (from apps/game/the-table/)
+    python3 -m the_table.proof        (from the-table/)
+    python3 the_table/proof.py        (from the-table/)
 
 It needs the one-script beside the-table (``the_table/host.py``, flatten
 F-7): with none, it says why and exits 2, never falling back to a chain of

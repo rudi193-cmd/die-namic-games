@@ -1,7 +1,7 @@
 """BackgammonSession: game-lab's backgammon one die at a time; each rule
 tested by the move it forbids; the dice the session's own, from its seed.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from the-table/)
 """
 from __future__ import annotations
 

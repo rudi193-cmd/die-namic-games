@@ -15,7 +15,7 @@ what falls out:
   the game has pooled by midgame; near chance means it is still open.
 
 Two policies, because game-lab found random play hides structure that an
-identical competent player in every seat reveals (``apps/game/game-lab/README.md``):
+identical competent player in every seat reveals (``game-lab/README.md``):
 
 * ``random``: a uniform legal move, drawn from ``random.Random(seed)``;
 * ``john``: game-lab's own competent policy where it ships one (Hearts, Liar's

@@ -6,7 +6,7 @@
 
 ## Where this came from
 
-This started as a game-master spine — the code in `apps/game/the-table/`. The PR title
+This started as a game-master spine — the code in `the-table/`. The PR title
 "The Table" was the tell: it was never really about games. A table is what a
 household gathers *around*; the gaming table is just one way to sit at it.
 

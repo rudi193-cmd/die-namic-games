@@ -9,7 +9,7 @@ Two suites:
     (temp dir) driven through run_session with a seeded policy, asserting
     terminal is reached and ai-game-master's own verifier accepts the chain.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from the-table/)
 """
 from __future__ import annotations
 

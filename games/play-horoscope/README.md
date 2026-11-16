@@ -7,8 +7,8 @@ A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its
 ## Playing it
 
 ```
-python apps/game/games/play.py play-horoscope Ana
-python apps/game/games/play.py play-horoscope NAME [--date YYYY-MM-DD] [--coder]
+python games/play.py play-horoscope Ana
+python games/play.py play-horoscope NAME [--date YYYY-MM-DD] [--coder]
 ```
 
 It reads no box: it takes its arguments alone.

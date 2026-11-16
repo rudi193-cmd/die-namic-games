@@ -7,7 +7,7 @@ the derived world against ``worlds.py``'s own validator (the ONLY shape
 ``StorySession`` accepts), and the full pipeline -- log -> derived world ->
 StorySession -> ``run_session`` with a sealed decision.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from the-table/)
 """
 from __future__ import annotations
 

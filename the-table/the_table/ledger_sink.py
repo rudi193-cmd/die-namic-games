@@ -46,7 +46,7 @@ mirrors the exact hashing scheme ai-game-master already uses, so its rows
 verify under ai-game-master's own verifier without modification there.
 
 Reused, not reinvented — the hash scheme is copied byte-for-byte (comments
-included) from two places in apps/game/ai-game-master, which must already agree
+included) from two places in ai-game-master, which must already agree
 with each other:
 
   * docs/poc_vander_room.py, append_turn() (~line 44-60): the writer shape —
@@ -64,7 +64,7 @@ HARD CONSTRAINT: this sink never touches the `canon` table, never writes a
 SEALED/REJECTED status, never signs a ruling. It writes only
 kind IN ('session_open', 'turn', 'session_close') ledger rows — the
 append-only record of what happened at the table. Sealing canon is a human
-act (apps/game/ai-game-master/CLAUDE.md) and is out of scope here by design.
+act (ai-game-master/CLAUDE.md) and is out of scope here by design.
 """
 from __future__ import annotations
 
@@ -81,10 +81,10 @@ GENESIS = "genesis"  # same empty-chain sentinel nestor.ledger.head()/verify() a
                       # ai-game-master's schema/verifier use.
 
 # ── path resolution: the-table is a CONSUMER of ai-game-master, never an editor of it.
-# apps/game/the-table/the_table/ledger_sink.py -> repo root is four directories up.
+# the-table/the_table/ledger_sink.py -> repo root is four directories up.
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(_THIS_DIR))))
-AGM_ROOT = os.path.join(_REPO_ROOT, "apps", "game", "ai-game-master")
+_REPO_ROOT = os.path.dirname(os.path.dirname(_THIS_DIR))  # die-namic-games
+AGM_ROOT = os.path.join(_REPO_ROOT, "ai-game-master")
 AGM_SCHEMA_DIR = os.path.join(AGM_ROOT, "schema")
 AGM_PROVISION_SH = os.path.join(AGM_ROOT, "bootstrap", "provision.sh")
 AGM_VERIFY_PY = os.path.join(AGM_ROOT, "bootstrap", "verify_ledger.py")

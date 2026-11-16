@@ -36,7 +36,7 @@ REUSE, NOT REIMPLEMENTATION -- the dice: this module reuses
 beat (2d6 + stat) the same way ``game_engine_adapter.py``'s ``SceneSession``
 does, and avoids every trap that module's docstring documents:
   * never call ``apply_debility``/``restore_debility``/``_save_state`` (all
-    three write ``apps/game/engine_state.json`` -- a different app's data
+    three write ``engine_state.json`` -- a different app's data
     lane);
   * ``engine.stats`` is overridden fresh from THIS module's own per-seat
     character sheet before every roll, never read from
@@ -217,7 +217,7 @@ class StorySession:
         if self._rng is None:
             random.seed(seed)  # LEGACY only
 
-        # Trap 2: Engine() reads apps/game/engine_state.json via
+        # Trap 2: Engine() reads engine_state.json via
         # _load_state(); this module never reads that dict -- engine.stats
         # is overwritten fresh from our own per-seat sheet before every roll
         # (see step()) -- so what Engine() happens to load here is inert.

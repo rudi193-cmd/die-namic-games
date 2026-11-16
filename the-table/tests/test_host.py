@@ -40,7 +40,7 @@ def box():
 def test_it_looks_beside_safe_app_store_by_default(monkeypatch):
     monkeypatch.delenv("ONESCRIPT_HOME", raising=False)
     monkeypatch.delenv("ONESCRIPT_GROVE", raising=False)
-    repos = os.path.dirname(os.path.dirname(os.path.dirname(_APP_ROOT)))
+    repos = os.path.dirname(os.path.dirname(_APP_ROOT))  # the-table -> die-namic-games -> repos
     w = host.where()
     assert str(w["onescript"]) == os.path.join(repos, "willow-bot", "one-script")
     assert str(w["grove"]) == os.path.join(repos, "willows-grove")

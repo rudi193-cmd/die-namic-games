@@ -7,14 +7,14 @@ A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its
 ## Playing it
 
 ```
-python apps/game/games/play.py play-bureau --table DIR new
-python apps/game/games/play.py play-bureau --table DIR go pigeon
-python apps/game/games/play.py play-bureau --table DIR hand hanz
-python apps/game/games/play.py play-bureau --table DIR wait
-python apps/game/games/play.py play-bureau --table DIR look
-python apps/game/games/play.py play-bureau --table DIR quit
-python apps/game/games/play.py play-bureau prove
-python apps/game/games/play.py play-bureau --table DIR check
+python games/play.py play-bureau --table DIR new
+python games/play.py play-bureau --table DIR go pigeon
+python games/play.py play-bureau --table DIR hand hanz
+python games/play.py play-bureau --table DIR wait
+python games/play.py play-bureau --table DIR look
+python games/play.py play-bureau --table DIR quit
+python games/play.py play-bureau prove
+python games/play.py play-bureau --table DIR check
 ```
 
 On a box laid by `box/open_table.py`, `--table DIR` plays on its record.

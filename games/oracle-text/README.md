@@ -7,7 +7,7 @@ A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its
 ## Playing it
 
 ```
-python apps/game/games/play.py oracle-text --seed TEXT [--grammar FILE] [--count N] [--origin NAME]
+python games/play.py oracle-text --seed TEXT [--grammar FILE] [--count N] [--origin NAME]
 ```
 
 It reads no box: it takes its arguments alone.

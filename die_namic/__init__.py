@@ -2,7 +2,7 @@
 
 What Die-Namic adds of its own lives here, with everything it leans on
 handed in rather than imported: the core imports nothing from willow, the
-store, or the network. The box (apps/game/box) is the host: it finds willow
+store, or the network. The box (box) is the host: it finds willow
 through its pin and injects willow's pieces, the reader and the ranker,
 into the core. The arrow points one way: the host imports the core.
 

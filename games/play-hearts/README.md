@@ -7,12 +7,12 @@ A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its
 ## Playing it
 
 ```
-python apps/game/games/play.py play-hearts --table DIR new
-python apps/game/games/play.py play-hearts --table DIR show
-python apps/game/games/play.py play-hearts --table DIR pass west 2C QS AH
-python apps/game/games/play.py play-hearts --table DIR play 2C
-python apps/game/games/play.py play-hearts --table DIR deal
-python apps/game/games/play.py play-hearts --table DIR check
+python games/play.py play-hearts --table DIR new
+python games/play.py play-hearts --table DIR show
+python games/play.py play-hearts --table DIR pass west 2C QS AH
+python games/play.py play-hearts --table DIR play 2C
+python games/play.py play-hearts --table DIR deal
+python games/play.py play-hearts --table DIR check
 ```
 
 On a box laid by `box/open_table.py`, `--table DIR` plays on its record.
@@ -21,4 +21,4 @@ Each deal, pass and card is a row on the record, through the kernel. The hands a
 
 ## Where it came from
 
-Hearts, ported from the-table's hearts over game-lab's rules (apps/game/the-table, apps/game/game-lab in this store), its legal plays checked against game-lab's in 104,000 states and its scoring on 2,000 hands.
+Hearts, ported from the-table's hearts over game-lab's rules (the-table, game-lab in this store), its legal plays checked against game-lab's in 104,000 states and its scoring on 2,000 hands.

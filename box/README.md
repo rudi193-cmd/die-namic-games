@@ -15,7 +15,7 @@ pieces and the code that puts them together were checked together. The
 pieces stay in willow, as add-ons, and the box runs on them there, pinned:
 [`../willow.pin.json`](../willow.pin.json) names willow's commit and each
 file the box runs by its SHA-256, and [`willow_pin.py`](willow_pin.py)
-finds a willow checkout (`WILLOW_ROOT`, or one beside safe-app-store) and
+finds a willow checkout (`WILLOW_ROOT`, or one beside die-namic-games) and
 refuses one whose files differ.
 
 ## What's in the box
@@ -37,9 +37,9 @@ refuses one whose files differ.
 
 ## Laying the box
 
-    python apps/game/box/open_table.py open  --table DIR --key FILE
-    python apps/game/box/open_table.py prep  --table DIR
-    python apps/game/box/open_table.py check --table DIR
+    python box/open_table.py open  --table DIR --key FILE
+    python box/open_table.py prep  --table DIR
+    python box/open_table.py check --table DIR
 
 `open` lays a fresh box in DIR:
 
@@ -109,7 +109,7 @@ each with the want it answers:
 
 ## The end of the night
 
-    python apps/game/box/open_table.py end --table DIR
+    python box/open_table.py end --table DIR
 
 Photograph the night's handwritten pages and put them in `DIR/scans`, named
 by the date (`2026-11-21.jpg`). `end` runs [gm-end.md](gm-end.md), each
@@ -136,7 +136,7 @@ for print. A check for OCR damage is an idea on willow's list, `ocr-noise`.
 
 ## Previously on...
 
-    python apps/game/box/session.py --table DIR recap
+    python box/session.py --table DIR recap
 
 For the start of the next session. It has two parts:
 
@@ -151,8 +151,8 @@ For the start of the next session. It has two parts:
 
 ## Between sessions
 
-    python apps/game/box/ideas.py  --table DIR [--seed TEXT]
-    python apps/game/box/author.py DIR/stories/wasp-nest.md --to DIR/worlds/wasp-nest.json
+    python box/ideas.py  --table DIR [--seed TEXT]
+    python box/author.py DIR/stories/wasp-nest.md --to DIR/worlds/wasp-nest.json
 
 **Ideas from the box.** `ideas.py` builds a story-seed grammar out of the
 box's own words: the characters and places of the story last played, the
@@ -187,7 +187,7 @@ reason.
 
 ## The play grows the world
 
-    python apps/game/box/session.py --table DIR export-canon --to canon.md
+    python box/session.py --table DIR export-canon --to canon.md
     python promote.py import-canon canon.md --timeline ID      (in story-timeline)
 
 What the table made true goes back to the writer's timeline, the other half
@@ -206,9 +206,9 @@ writer runs the import.
 
 ## A session, played by code
 
-    python apps/game/box/session.py --table DIR --world clockwork-cellar
-    python apps/game/box/session.py --table DIR --world clockwork-cellar offer pell "A guest comes down the stair" --as guest
-    python apps/game/box/session.py --table DIR canon
+    python box/session.py --table DIR --world clockwork-cellar
+    python box/session.py --table DIR --world clockwork-cellar offer pell "A guest comes down the stair" --as guest
+    python box/session.py --table DIR canon
 
 `session.py` is the GM's bookkeeping with no model in it. It rolls each
 action beat for the character whose beat it is, leaning into the approach

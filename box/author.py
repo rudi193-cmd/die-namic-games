@@ -1,6 +1,6 @@
 """author.py: a story written as markdown, made into a world game-master plays. Python 3.9+.
 
-    python apps/game/box/author.py STORY.md [--to WORLD.json]
+    python box/author.py STORY.md [--to WORLD.json]
 
 For writing between sessions: a new story, or the next chapter of one, in
 plain headings and `key: value` lines, the way the binder is written. It is
@@ -60,7 +60,7 @@ import willow_pin
 
 ROOT = (
     willow_pin.root()
-)  # willow, where its pieces live, held to apps/game/willow.pin.json
+)  # willow, where its pieces live, held to willow.pin.json
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "adapters" / "stdlib" / "game-master"))
 import game_master as gm

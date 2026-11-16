@@ -28,7 +28,7 @@ import willow_pin
 
 ROOT = (
     willow_pin.root()
-)  # willow, where its pieces live, held to apps/game/willow.pin.json
+)  # willow, where its pieces live, held to willow.pin.json
 sys.path.insert(0, str(ROOT))
 import kernel
 

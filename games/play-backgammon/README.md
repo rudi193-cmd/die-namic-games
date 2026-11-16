@@ -7,12 +7,12 @@ A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its
 ## Playing it
 
 ```
-python apps/game/games/play.py play-backgammon --table DIR new
-python apps/game/games/play.py play-backgammon --table DIR show
-python apps/game/games/play.py play-backgammon --table DIR roll
-python apps/game/games/play.py play-backgammon --table DIR move "24/18 13/11"
-python apps/game/games/play.py play-backgammon --table DIR resign
-python apps/game/games/play.py play-backgammon --table DIR check
+python games/play.py play-backgammon --table DIR new
+python games/play.py play-backgammon --table DIR show
+python games/play.py play-backgammon --table DIR roll
+python games/play.py play-backgammon --table DIR move "24/18 13/11"
+python games/play.py play-backgammon --table DIR resign
+python games/play.py play-backgammon --table DIR check
 ```
 
 On a box laid by `box/open_table.py`, `--table DIR` plays on its record.
@@ -21,4 +21,4 @@ Each throw is dice's own roll row; each turn a row, through the kernel.
 
 ## Where it came from
 
-Backgammon, ported from the-table's backgammon over game-lab's rules (apps/game/the-table, apps/game/game-lab in this store), its moves checked against game-lab's on 216,372 positions. A turn uses as many dice as it can, and the larger when only one can, as the game's rules have it.
+Backgammon, ported from the-table's backgammon over game-lab's rules (the-table, game-lab in this store), its moves checked against game-lab's on 216,372 positions. A turn uses as many dice as it can, and the larger when only one can, as the game's rules have it.

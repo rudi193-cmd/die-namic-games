@@ -7,9 +7,9 @@ A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its
 ## Playing it
 
 ```
-python apps/game/games/play.py play-dice --table DIR roll 2d6+1
-python apps/game/games/play.py play-dice --table DIR check
-python apps/game/games/play.py play-dice --table DIR roll DICE
+python games/play.py play-dice --table DIR roll 2d6+1
+python games/play.py play-dice --table DIR check
+python games/play.py play-dice --table DIR roll DICE
 ```
 
 On a box laid by `box/open_table.py`, `--table DIR` plays on its record.

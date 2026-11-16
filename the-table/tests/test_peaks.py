@@ -8,7 +8,7 @@ test, through ``StorySession``'s PUBLIC surface only (``reset``, ``observe``,
 ``step``, ``pending_seal``, ``is_terminal``, ``result``) -- ``peaks.py``
 itself never touches the session.
 
-Run with: python -m pytest -q tests/test_peaks.py (from apps/game/the-table/)
+Run with: python -m pytest -q tests/test_peaks.py (from the-table/)
 """
 from __future__ import annotations
 

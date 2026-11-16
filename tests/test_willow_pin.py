@@ -32,8 +32,8 @@ def test_every_add_on_the_box_plays_with_is_pinned():
 
 @pytest.fixture
 def alone(tmp_path, monkeypatch):
-    """A store with no willow beside it: only WILLOW_ROOT is looked at."""
-    monkeypatch.setattr(willow_pin, "STORE", tmp_path / "store")
+    """A repo with no willow beside it: only WILLOW_ROOT is looked at."""
+    monkeypatch.setattr(willow_pin, "REPO", tmp_path / "repo")
     return tmp_path
 
 

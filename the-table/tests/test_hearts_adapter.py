@@ -2,7 +2,7 @@
 by the move it forbids, and the restated trick and moon rules held to
 game-lab's own ``play_hand``.
 
-Run with: python3 -m unittest discover -s tests -t . (from apps/game/the-table/)
+Run with: python3 -m unittest discover -s tests -t . (from the-table/)
 """
 from __future__ import annotations
 

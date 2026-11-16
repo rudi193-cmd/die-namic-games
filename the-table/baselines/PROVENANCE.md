@@ -8,7 +8,7 @@ measured numbers, and any correction is disclosed rather than quietly replaced.*
 One command, deterministic:
 
 ```bash
-cd apps/game/the-table
+cd the-table
 python3 -m the_table.baseline 500
 ```
 

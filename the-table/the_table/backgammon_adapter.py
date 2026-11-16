@@ -2,7 +2,7 @@
 
 A board game with dice: everything on the board is public, and the dice are
 the session's own, rolled from its seed. the-table is the CONSUMER: it imports
-game-lab's pure backgammon helpers from ``apps/game/game-lab/sims/baseline_core.py``
+game-lab's pure backgammon helpers from ``game-lab/sims/baseline_core.py``
 through the shared path shim (python-chess is in ``requirements.txt`` only
 because that module imports it at the top).
 

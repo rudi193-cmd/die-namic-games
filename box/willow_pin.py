@@ -1,13 +1,13 @@
 """willow_pin.py: where the box finds willow, held to the pin. Python 3.9+.
 
 The box plays with willow's kernel and add-ons where they live, in willow;
-apps/game/willow.pin.json pins them: willow's commit, and each file the box
+willow.pin.json pins them: willow's commit, and each file the box
 runs at that commit by its SHA-256. `root()` finds a willow checkout and
 gives its folder only if every pinned file is there with its pinned bytes.
 
 Where it looks, in order: WILLOW_ROOT, if set; then a checkout beside
-safe-app-store named Willow or willow, the way the store's CI checks out a
-sibling repository. A checkout missing a file, or holding one that differs,
+die-namic-games named Willow or willow, the way its CI checks out a sibling
+repository. A checkout missing a file, or holding one that differs,
 is refused by name: the box never runs on a willow it wasn't pinned to.
 """
 
@@ -20,7 +20,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 PIN = HERE.parent / "willow.pin.json"
-STORE = HERE.parents[2]  # safe-app-store, holding apps/game/box
+REPO = HERE.parent  # die-namic-games, holding box/
 
 
 class Unpinned(RuntimeError):
@@ -33,7 +33,7 @@ def pin() -> dict:
 
 def candidates() -> list[Path]:
     found = [Path(os.environ["WILLOW_ROOT"])] if os.environ.get("WILLOW_ROOT") else []
-    return found + [STORE.parent / "Willow", STORE.parent / "willow"]
+    return found + [REPO.parent / "Willow", REPO.parent / "willow"]
 
 
 def drift(root: Path, pinned: dict) -> list[str]:
@@ -63,6 +63,6 @@ def root() -> Path:
         )
     raise Unpinned(
         f"no willow checkout matches the pin (willow {pinned['commit'][:12]}); "
-        "set WILLOW_ROOT, or check willow out beside safe-app-store. "
+        "set WILLOW_ROOT, or check willow out beside die-namic-games. "
         + "; ".join(tried)
     )

@@ -7,7 +7,7 @@ A willow add-on, and it stays in willow: Die-Namic plays it there, pinned by its
 ## Playing it
 
 ```
-python apps/game/games/play.py verse --table DIR [--seed TEXT] [--lines N]
+python games/play.py verse --table DIR [--seed TEXT] [--lines N]
 ```
 
 On a box laid by `box/open_table.py`, `--table DIR` plays on its record.
