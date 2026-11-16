@@ -127,6 +127,23 @@ def made(rel: str, mid: str) -> str:
     return f"{' -> '.join(changed)} (Python {sys.version.split()[0]})"
 
 
+_stamp = [0]
+
+
+def fresh(copy: Path, target: Path) -> None:
+    """No code cached from an earlier break is run for this one. A cached .pyc
+    holds when its source has the same size and the same whole-second mtime,
+    and a break made in place is often the size of the last one (`3` made
+    `(4)`, `2` made `(3)`). PYTHONDONTWRITEBYTECODE doesn't stop it: a test
+    that runs `python -I` ignores the variable and writes the cache. So every
+    __pycache__ in the copy goes, and the file gets an mtime of its own."""
+    for cache in list(copy.rglob("__pycache__")):
+        shutil.rmtree(cache, ignore_errors=True)
+    _stamp[0] += 1
+    when = int(time.time()) + _stamp[0]
+    os.utime(target, (when, when))
+
+
 def run(files: list[str], per: int | str | None, limit: int) -> int:
     cfg = config()
     accepted = cfg.get("accepted", {})
@@ -154,6 +171,7 @@ def run(files: list[str], per: int | str | None, limit: int) -> int:
                 target = copy / m["file"]
                 original = target.read_text(encoding="utf-8")
                 target.write_text(broken(original, m["point"]), encoding="utf-8")
+                fresh(copy, target)
                 try:
                     # An accepted break the tests kill is run twice more before it
                     # is called stale: a test that fails now and then on a CI
@@ -178,6 +196,7 @@ def run(files: list[str], per: int | str | None, limit: int) -> int:
                     couldnt.append(f"{m['id']}: its tests ran past {limit} s")
                 finally:
                     target.write_text(original, encoding="utf-8")
+                    fresh(copy, target)
             mine = {k for k in accepted if k in {m["id"] for m in mutants(rel)}}
             wrong = [m for m in survived if m["id"] not in accepted]
             stale = sorted(mine - {m["id"] for m in survived} & {m["id"] for m in chosen})
