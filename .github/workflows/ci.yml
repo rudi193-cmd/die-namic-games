@@ -122,8 +122,7 @@ jobs:
   # safe-app-store (bureau and catgrid, the store apps it adapts). So this job
   # checks out all four side by side in the workspace, the layout the-table
   # expects on a person's machine, and names each by its variable too.
-  # willow-bot and willows-grove are taken at their default branches, the
-  # store at main.
+  # Each is taken at its default branch (the store's is master).
   #
   # The suite runs under pytest, which collects both its unittest classes and
   # test_peaks.py's plain test functions. It fails if anything skipped except
@@ -148,7 +147,6 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: rudi193-cmd/safe-app-store
-          ref: main
           path: safe-app-store
 
       - name: Set up Python
