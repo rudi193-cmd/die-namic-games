@@ -12,5 +12,5 @@
   "privacy_tier": "client_only",
   "local_processing": 1.0,
   "entry_point": "box/open_table.py",
-  "license": "MIT"
+  "license": "Apache-2.0"
 }
