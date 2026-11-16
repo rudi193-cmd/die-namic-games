@@ -699,3 +699,10 @@ def test_a_world_is_written_as_one_space_indented_json(t):
     got = py(HERE / "author.py", t.dir / "stories" / "wasp-nest.md")
     world = json.loads(got.stdout)
     assert got.stdout == json.dumps(world, indent=1, ensure_ascii=False) + "\n"
+
+
+def test_a_note_that_ends_at_next_time_is_no_thread(t):
+    t.open()
+    (t.pile / "sessions" / "2026-11-20.md").write_text("We stopped there. Pick it up next time\n")
+    got = py(HERE / "ideas.py", "--table", t.dir, "--seed", "between nights")
+    assert got.returncode == 0, got.stderr  # no thread to deal from it, and no crash looking

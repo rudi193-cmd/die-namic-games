@@ -15,7 +15,9 @@ file first: which test covers which file is not guessed.
 A break whose tests fail is killed. One they pass is a survivor: the tests
 can't tell the code from a broken copy, and it fails here unless
 mutants.json's `accepted` gives the reason it is harmless. An accepted id
-that no longer survives is stale, and fails too.
+that no longer survives is stale, and fails too; since a test that fails now
+and then would make an accepted break look killed, one is run three times and
+called stale only when every run kills it, naming the test that did.
 
 The suite is run once unbroken first, and must pass: a break is only judged
 against tests that pass without it. So, unlike the add-on (where a collection
@@ -117,12 +119,21 @@ def run(files: list[str], per: int | str | None, limit: int) -> int:
                 original = target.read_text(encoding="utf-8")
                 target.write_text(willow_mutants.broken(original, m["point"]), encoding="utf-8")
                 try:
-                    got = subprocess.run(
-                        pytest, capture_output=True, text=True, timeout=limit, cwd=copy, env=env,
-                        check=False,
-                    )
-                    killed_by[m["id"]] = [ln for ln in got.stdout.splitlines()
-                                          if ln.startswith(("FAILED", "ERROR"))][:3]  # fmt: skip
+                    # An accepted break the tests kill is run twice more before it
+                    # is called stale: a test that fails now and then on a CI
+                    # runner would otherwise kill it once and turn the run red.
+                    # It is stale only if every run kills it, and says what did.
+                    tries = 3 if m["id"] in accepted else 1
+                    for _ in range(tries):
+                        got = subprocess.run(
+                            pytest, capture_output=True, text=True, timeout=limit, cwd=copy,
+                            env=env, check=False,
+                        )  # fmt: skip
+                        if got.returncode == 0:
+                            break
+                        killed_by.setdefault(m["id"], []).extend(
+                            ln for ln in got.stdout.splitlines() if ln.startswith(("FAILED", "ERROR"))
+                        )
                     if got.returncode == 0:
                         survived.append(m)
                     elif got.returncode not in (1, 2):
