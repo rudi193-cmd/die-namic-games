@@ -6,9 +6,9 @@
 willow's mutants add-on breaks an add-on's code in small ways, one at a time,
 and runs its tests against each break. It is built for willow's own
 adapters/stdlib, so this drives it for Die-Namic: the breaks are its own
-(`points` finds where one can be made, `broken` makes it: a comparison
-flipped, an `and` made `or`, a whole number made one larger), taken from the
-willow the pin names, and only the files and their tests are Die-Namic's,
+(`points` finds where one can be made: a comparison flipped, an `and` made
+`or`, a whole number made one larger), taken from the willow the pin names,
+and made in place (`broken` below: only the broken expression is rewritten), and only the files and their tests are Die-Namic's,
 named in ci/mutants.json. Every break runs against the whole suite, fastest
 file first: which test covers which file is not guessed.
 
@@ -91,6 +91,28 @@ def mutants(rel: str) -> list[dict]:
     return sorted(out, key=lambda m: m["id"])
 
 
+def broken(source: str, point: int) -> str:
+    """The file's source with the break at `point` made, and every other byte
+    as it was. willow's `broken` writes the whole file back through
+    ast.unparse; on a CI runner's Python that rewrite alone changed how a
+    file behaved (binder's every break was killed there by a test the break
+    never touched), so here only the broken expression is unparsed, in
+    parentheses, and spliced in where it stood."""
+    tree = ast.parse(source)
+    kind, node = willow_mutants.points(tree)[point]
+    if kind == "compare":
+        node.ops[0] = willow_mutants.SWAP[type(node.ops[0])]()
+    elif kind == "and-or":
+        node.op = ast.Or() if isinstance(node.op, ast.And) else ast.And()
+    else:
+        node.value += 1
+    lines = source.encode("utf-8").splitlines(keepends=True)
+    start = sum(len(ln) for ln in lines[: node.lineno - 1]) + node.col_offset
+    end = sum(len(ln) for ln in lines[: node.end_lineno - 1]) + node.end_col_offset
+    raw = source.encode("utf-8")
+    return (raw[:start] + f"({ast.unparse(node)})".encode() + raw[end:]).decode("utf-8")
+
+
 def made(rel: str, mid: str) -> str:
     """The line a break changes, before and after, as this Python makes it:
     what to compare when a break is judged one way here and another there."""
@@ -98,8 +120,8 @@ def made(rel: str, mid: str) -> str:
 
     m = next(x for x in mutants(rel) if x["id"] == mid)
     source = (REPO / rel).read_text(encoding="utf-8")
-    plain = ast.unparse(ast.parse(source)).splitlines()
-    broke = willow_mutants.broken(source, m["point"]).splitlines()
+    plain = source.splitlines()
+    broke = broken(source, m["point"]).splitlines()
     changed = [ln.strip() for ln in difflib.unified_diff(plain, broke, lineterm="", n=0)
                if ln[:1] in "+-" and not ln.startswith(("+++", "---"))]  # fmt: skip
     return f"{' -> '.join(changed)} (Python {sys.version.split()[0]})"
@@ -131,7 +153,7 @@ def run(files: list[str], per: int | str | None, limit: int) -> int:
             for m in chosen:
                 target = copy / m["file"]
                 original = target.read_text(encoding="utf-8")
-                target.write_text(willow_mutants.broken(original, m["point"]), encoding="utf-8")
+                target.write_text(broken(original, m["point"]), encoding="utf-8")
                 try:
                     # An accepted break the tests kill is run twice more before it
                     # is called stale: a test that fails now and then on a CI
