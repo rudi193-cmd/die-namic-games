@@ -7,15 +7,9 @@
 #                   pytest, as the store's promotion gate runs them
 #   game-lab-sims   game-lab's sims run and return measured shape
 #   ai-game-master  ai-game-master's guard tests
-#
-# Not run here, said plainly: the-table's suite. Its tests need willow-bot's
-# one-script (and, for a session, willows-grove's law) beside this checkout,
-# and its bureau and catgrid adapters need a safe-app-store checkout beside it
-# (the_table/host.py; SAFE_APP_STORE). It had no CI job in the store either.
-# Adding one is a step of its own: check out willow-memory/willow-bot (as the
-# store's catgrid leg does) and rudi193-cmd/safe-app-store beside this repo,
-# set ONESCRIPT_HOME and SAFE_APP_STORE, and run
-# `python -m unittest discover -s tests -t .` from the-table/.
+#   the-table       the-table's whole suite and its aetheris5e combat tests,
+#                   with everything it reaches for checked out beside it (new
+#                   here: it had no CI job in the store)
 name: ci
 
 on:
@@ -120,3 +114,73 @@ jobs:
           python -m pip install --upgrade pip >/dev/null
           pip install pytest -r requirements.txt
           python -m pytest tests/ -q
+
+  # the-table reaches outside this repo, and finds each piece beside it, as
+  # the_table/host.py and its adapters look: willow-bot's one-script (the
+  # table's randomness and the record), willows-grove (the law a session is
+  # held to, and the original experiments two tests replay against), and
+  # safe-app-store (bureau and catgrid, the store apps it adapts). So this job
+  # checks out all four side by side in the workspace, the layout the-table
+  # expects on a person's machine, and names each by its variable too.
+  # willow-bot and willows-grove are taken at their default branches, the
+  # store at main.
+  #
+  # The suite runs under pytest, which collects both its unittest classes and
+  # test_peaks.py's plain test functions. It fails if anything skipped except
+  # the two skips the data itself makes: the world those StorySession tests
+  # drive has one seat, so there is no other seat to check (test_story_session,
+  # "world has fewer than 2 seats"). Any other skip is something not reached.
+  the-table:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: die-namic-games
+      - uses: actions/checkout@v7
+        with:
+          repository: willow-memory/willow-bot
+          path: willow-bot
+      - uses: actions/checkout@v7
+        with:
+          repository: willow-memory/willows-grove
+          path: willows-grove
+      - uses: actions/checkout@v7
+        with:
+          repository: rudi193-cmd/safe-app-store
+          ref: main
+          path: safe-app-store
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Its dependencies (python-chess, dice)
+        run: |
+          python -m pip install --upgrade pip >/dev/null
+          pip install pytest -r die-namic-games/the-table/requirements.txt -r die-namic-games/the-table/aetheris5e/requirements.txt
+
+      - name: the-table's suite, with everything it reaches for beside it
+        working-directory: die-namic-games/the-table
+        env:
+          ONESCRIPT_HOME: ${{ github.workspace }}/willow-bot/one-script
+          ONESCRIPT_DIR: ${{ github.workspace }}/willow-bot/one-script
+          ONESCRIPT_GROVE: ${{ github.workspace }}/willows-grove
+          SAFE_APP_STORE: ${{ github.workspace }}/safe-app-store
+          TABLE_PLAY_PY: ${{ github.workspace }}/willows-grove/seat/willow/experiments/predictions-2026-10-17/play.py
+          EXPERIMENT_PEAKS: ${{ github.workspace }}/willows-grove/seat/willow/experiments/foreshadow-2026-10-16/peaks.py
+        run: |
+          set -eo pipefail
+          python -m pytest tests -q -rs | tee "$RUNNER_TEMP/the-table.txt"
+          if grep "^SKIPPED" "$RUNNER_TEMP/the-table.txt" | grep -v "world has fewer than 2 seats"; then
+            echo "::error::a test skipped that this job exists to run (only the one-seat world's two may)"
+            exit 1
+          fi
+
+      - name: aetheris5e's combat tests
+        working-directory: die-namic-games/the-table/aetheris5e
+        env:
+          ONESCRIPT_HOME: ${{ github.workspace }}/willow-bot/one-script
+          SAFE_APP_STORE: ${{ github.workspace }}/safe-app-store
+        run: python -m pytest test_combat.py -q -rs
