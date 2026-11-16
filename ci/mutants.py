@@ -110,7 +110,7 @@ def run(files: list[str], per: int | str | None, limit: int) -> int:
             take = cfg["targets"][rel] if per is None else per
             every = mutants(rel)
             chosen = every if take == "all" else every[:take]
-            survived, couldnt = [], []
+            survived, couldnt, killed_by = [], [], {}
             started = time.monotonic()
             for m in chosen:
                 target = copy / m["file"]
@@ -121,6 +121,8 @@ def run(files: list[str], per: int | str | None, limit: int) -> int:
                         pytest, capture_output=True, text=True, timeout=limit, cwd=copy, env=env,
                         check=False,
                     )
+                    killed_by[m["id"]] = [ln for ln in got.stdout.splitlines()
+                                          if ln.startswith(("FAILED", "ERROR"))][:3]  # fmt: skip
                     if got.returncode == 0:
                         survived.append(m)
                     elif got.returncode not in (1, 2):
@@ -143,6 +145,8 @@ def run(files: list[str], per: int | str | None, limit: int) -> int:
             for mid in stale:
                 print(f"  stale {mid}: accepted, but no longer surviving;"
                       " take it out of ci/mutants.json")  # fmt: skip
+                for ln in killed_by.get(mid, []):
+                    print(f"    killed by {ln}")
             bad += len(wrong) + len(stale) + len(couldnt)
     orphan = sorted(set(accepted) - {m["id"] for f in cfg["targets"] for m in mutants(f)})
     for mid in orphan:

@@ -388,7 +388,10 @@ jobs:
               echo
               echo "### $name"
               echo '```'
-              gh api "repos/$GITHUB_REPOSITORY/actions/jobs/$id/logs" > "$RUNNER_TEMP/$id.log" || echo "(its log couldn't be read)"
+              # curl, not gh api: gh refuses to print a log's terminal colour codes
+              curl -sSfL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+                "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/jobs/$id/logs" -o "$RUNNER_TEMP/$id.log" \
+                || echo "(its log couldn't be read)"
               python3 willow/adapters/stdlib/ci-why/ci_why.py "$RUNNER_TEMP/$id.log" || true
               echo '```'
             done < "$RUNNER_TEMP/failed.tsv"
