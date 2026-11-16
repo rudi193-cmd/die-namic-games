@@ -490,6 +490,13 @@ def test_recap_before_anything_says_nothing_is_true_yet(t):
 
 def test_recap_reads_aloud_only_what_the_table_made_true_last_time_first(t):
     t.open()
+    # Brann always answers the riddle, so the prince is freed whatever the
+    # dice do: the recap is what's tested here, not the roll (left to the
+    # dice, he stayed bound now and then, and the test failed with him).
+    f = t.dir / "worlds" / "clockwork-cellar.json"
+    w = json.loads(f.read_text())
+    next(c for c in w["characters"] if c["id"] == "brann")["stats"]["Heart"] = 10
+    f.write_text(json.dumps(w))
     t.session()
     t.session("offer", "pell", VELL, "--as", "guest")
     for subj in t.asked() + [

@@ -91,6 +91,20 @@ def mutants(rel: str) -> list[dict]:
     return sorted(out, key=lambda m: m["id"])
 
 
+def made(rel: str, mid: str) -> str:
+    """The line a break changes, before and after, as this Python makes it:
+    what to compare when a break is judged one way here and another there."""
+    import difflib
+
+    m = next(x for x in mutants(rel) if x["id"] == mid)
+    source = (REPO / rel).read_text(encoding="utf-8")
+    plain = ast.unparse(ast.parse(source)).splitlines()
+    broke = willow_mutants.broken(source, m["point"]).splitlines()
+    changed = [ln.strip() for ln in difflib.unified_diff(plain, broke, lineterm="", n=0)
+               if ln[:1] in "+-" and not ln.startswith(("+++", "---"))]  # fmt: skip
+    return f"{' -> '.join(changed)} (Python {sys.version.split()[0]})"
+
+
 def run(files: list[str], per: int | str | None, limit: int) -> int:
     cfg = config()
     accepted = cfg.get("accepted", {})
@@ -158,6 +172,7 @@ def run(files: list[str], per: int | str | None, limit: int) -> int:
                       " take it out of ci/mutants.json")  # fmt: skip
                 for ln in killed_by.get(mid, []):
                     print(f"    killed by {ln}")
+                print(f"    the break made: {made(rel, mid)}")
             bad += len(wrong) + len(stale) + len(couldnt)
     orphan = sorted(set(accepted) - {m["id"] for f in cfg["targets"] for m in mutants(f)})
     for mid in orphan:
