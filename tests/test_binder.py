@@ -8,6 +8,7 @@ from __future__ import annotations
 import subprocess
 import sys
 from pathlib import Path
+from typing import ClassVar
 
 import pytest
 
@@ -52,6 +53,54 @@ def test_a_page_you_named_comes_first_then_what_your_word_means_then_the_rank():
     assert got[1].why == "what “keeper” usually means here"
     assert got[2].why.startswith("holds ") and "hound" in got[2].why
     assert got[0].where == "monsters/clockwork-hound.md:1" and isinstance(got[0], Found)
+
+
+class Backwards(Counting):
+    """A ranker that serves the pile last first, whatever the question: the
+    order the tiers must overrule."""
+
+    asked: ClassVar[list] = []
+
+    def rank(self, question, top):
+        Backwards.asked.append(top)
+        got = [(c, 1.0, []) for c in reversed(self.pile) if set(question.split()) & set(c["text"].split())]
+        return got[:top]
+
+
+def test_the_tiers_overrule_the_ranking_named_then_meant_then_the_rest():
+    pile = [
+        {"path": "monsters/clockwork-hound.md", "line": 1, "text": "hound"},
+        {"path": "people/cogwen.md", "line": 1, "text": "cogwen hound"},
+        {"path": "sessions/one.md", "line": 1, "text": "hound"},
+        {"path": "sessions/two.md", "line": 1, "text": "hound"},
+    ]
+    got = Binder(pile, Backwards, {"keeper": ["cogwen"]}).ask("keeper hound")
+    assert [f.path for f in got] == [
+        "monsters/clockwork-hound.md", "people/cogwen.md", "sessions/two.md", "sessions/one.md",
+    ]  # fmt: skip
+
+
+def test_a_three_letter_page_name_is_named_and_the_ranking_is_asked_for_twice_top():
+    pile = [{"path": f"sessions/{i}.md", "line": 1, "text": "bob came by"} for i in range(9)]
+    pile.append({"path": "people/bob.md", "line": 1, "text": "bob"})
+    Backwards.asked.clear()
+    got = Binder(pile, Backwards).ask("bob")
+    assert got[0].path == "people/bob.md" and got[0].why == "you named its page"
+    assert len(got) == 6 and Backwards.asked == [12]  # top is 6 unless asked, ranked from 2 x top
+    assert len(Binder(pile, Backwards).ask("bob", top=3)) == 3 and Backwards.asked[-1] == 6
+
+
+def test_a_passage_holding_many_of_your_words_names_the_first_four():
+    pile = [{"path": "notes.md", "line": 1, "text": "ash birch cedar dogwood elm"}]
+    got = Binder(pile, Counting).ask("ash birch cedar dogwood elm")
+    assert got[0].why == "holds ash, birch, cedar, dogwood"
+
+
+def test_a_page_name_with_a_dot_in_it_loses_only_its_extension():
+    pile = [{"path": "notes.md", "line": 1, "text": "wasps nest here"},
+            {"path": "monsters/v1.2-wasps.md", "line": 1, "text": "wasps sting"}]  # fmt: skip
+    got = Binder(pile, Counting).ask("wasps")
+    assert got[0].path == "monsters/v1.2-wasps.md" and got[0].why == "you named its page"
 
 
 def test_words_said_together_are_also_one_word():
@@ -117,3 +166,8 @@ def test_ask_says_where_to_look_or_that_nothing_holds_it_by_the_kernels_codes():
     assert got.returncode == 0 and got.stdout.startswith("monsters/spring-wasps.md:")
     assert run("pancakes").returncode == 42
     assert run().returncode == 2 and run("--top", "many", "hound").returncode == 2
+
+
+def test_ask_with_no_question_prints_how_to_ask():
+    got = run()
+    assert got.returncode == 2 and "python box/ask.py [--table DIR] [--top N] QUESTION..." in got.stderr

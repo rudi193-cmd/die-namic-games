@@ -1,0 +1,154 @@
+{
+  "_what": "The rows willow's report add-ons find in this repo that are no finding, each with why. ci/known.py fails on any row not here, and on any entry here that no row matches. A new entry needs its reason, checked against the line itself.",
+  "secrets-audit": [
+    {
+      "group": "a password typed with its label",
+      "where": "game-lab/README.md",
+      "what": "value not shown",
+      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is two sim file names side by side, no credential"
+    },
+    {
+      "group": "a password typed with its label",
+      "where": "game-lab/rules/uno-official.md",
+      "what": "value not shown",
+      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is two Uno house-rule cards, draw-4 and draw-6, no credential"
+    },
+    {
+      "group": "a password typed with its label",
+      "where": "game-lab/sims/baseline_core.py",
+      "what": "value not shown",
+      "why": "a variable named pw assigned white's backgammon pip count, no password"
+    },
+    {
+      "group": "a password typed with its label",
+      "where": "game-lab/sims/john_baseline.py",
+      "what": "value not shown",
+      "why": "a variable named pw assigned white's backgammon pip count, no password"
+    },
+    {
+      "group": "a password typed with its label",
+      "where": "tests/test_end.py",
+      "what": "value not shown",
+      "count": 2,
+      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is a pathlib join of the sample scan's folder and file name, no credential"
+    },
+    {
+      "group": "a password typed with its label",
+      "where": "the-table/the_table/baseline.py",
+      "what": "value not shown",
+      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is a division in an f-string, wins over rounds, no credential"
+    }
+  ],
+  "ref-check": [
+    {
+      "group": "link",
+      "where": "game-lab/sims/baseline_core.py",
+      "what": "c: not there",
+      "count": 2,
+      "why": "a function call whose argument ref-check read as a link target (a property test applied to a card), not a reference to a file"
+    },
+    {
+      "group": "link",
+      "where": "game-lab/sims/john_baseline.py",
+      "what": "c: not there",
+      "count": 3,
+      "why": "a function call whose argument ref-check read as a link target (a property test applied to a card), not a reference to a file"
+    },
+    {
+      "group": "link",
+      "where": "the-table/tests/test_pools.py",
+      "what": "game.observe(seat: not there",
+      "why": "a function call whose argument ref-check read as a link target (the game's view for the seat to move), not a reference to a file"
+    },
+    {
+      "group": "link",
+      "where": "the-table/the_table/pools.py",
+      "what": "game.observe(seat: not there",
+      "why": "a function call whose argument ref-check read as a link target (the game's view for the seat to move), not a reference to a file"
+    },
+    {
+      "group": "link",
+      "where": "ui/index.html",
+      "what": "${esc(DATA.pages[id])}.html: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/index.html",
+      "what": "${esc(g.card)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/index.src.html",
+      "what": "${esc(DATA.pages[id])}.html: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/index.src.html",
+      "what": "${esc(g.card)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/play-catgrid.html",
+      "what": "${esc(src)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/play-crazy-eights.html",
+      "what": "${esc(src)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/play-dice.html",
+      "what": "${esc(src)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/play-hearts.html",
+      "what": "${esc(src)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/play-liars-dice.html",
+      "what": "${esc(src)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/play-life.html",
+      "what": "${esc(src)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/play-tarot.html",
+      "what": "${esc(src)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/table.html",
+      "what": "${esc(src)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/tables/frame.src.html",
+      "what": "${esc(src)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/tables/frame.src.html",
+      "what": "index.html: not there",
+      "why": "the source each ui/*.html table page is built from; the link is relative to where it is built, ui/, which holds index.html"
+    }
+  ]
+}

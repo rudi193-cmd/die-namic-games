@@ -94,6 +94,12 @@ catalog entries are archived and point here.
   the core's, run from here with a bare `pytest` (`pytest.ini`), as store CI
   and the promotion gate run them. The builds that came over keep their own
   suites.
+- **[ci/](ci/)**: what CI runs beyond the tests, all willow's maintainer
+  add-ons from the pinned willow: the repo held to its known findings
+  (unpinned, agents-md-check, secrets-audit, ref-check, advisories), its
+  code broken on purpose to see the tests notice (mutants), the pip cache
+  keyed on its pins (ci-cache, over [lock/](lock/requirements.txt)), and a
+  red run's failing block pulled into its summary (ci-why).
 - **[promotion.json](promotion.json)**: the attestation the store's gate
   reads, its mechanical pointers filled in. What only a person can state is
   left for them: who verifies it (never its author), its own repo, and that

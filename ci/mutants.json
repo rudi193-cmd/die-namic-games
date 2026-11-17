@@ -1,0 +1,26 @@
+{
+  "_what": "What ci/mutants.py breaks, and the tests that must notice. targets: Die-Namic's own code, a file at a time, each with how many of its breaks a run takes: \"all\", or the first N by id (the box's files, whose suite takes a minute a break). tests: the suite every break runs against, whole, fastest file first so a break is caught soonest (pytest stops at the first failure). accepted: a surviving break's id and why no test could tell it from the code; never a way to quiet one a test should catch.",
+  "limit": 600,
+  "tests": [
+    "tests/test_willow_pin.py",
+    "tests/test_binder.py",
+    "tests/test_games.py",
+    "tests/test_end.py",
+    "tests/test_game_box.py"
+  ],
+  "targets": {
+    "box/willow_pin.py": "all",
+    "die_namic/binder.py": "all",
+    "games/play.py": "all",
+    "box/ask.py": 6,
+    "box/author.py": 6,
+    "box/ideas.py": 6,
+    "box/open_table.py": 6,
+    "box/session.py": 6
+  },
+  "accepted": {
+    "3fe1e297990e": "die_namic/binder.py, a page's name: rsplit('/', 1)[-1] made rsplit('/', 2)[-1]. The last piece after a slash is the same however many splits are made, so no path tells them apart.",
+    "568641153d0f": "die_namic/binder.py, tier(): the last tier 2 made 3. The tiers only sort (0 named, 1 meant, then the rest), and 0, 1, 3 sort as 0, 1, 2 do, so no order tells them apart.",
+    "0caef1fbb9ae": "box/open_table.py, open's count of what waits on the seal: proposal and passed made proposal or passed. open refuses a table already there, so the record it counts is the one it just wrote, where every proposal passed and no other row has a verdict: and and or count the same rows, and no table open can lay tells them apart."
+  }
+}

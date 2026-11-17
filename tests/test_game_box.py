@@ -490,6 +490,13 @@ def test_recap_before_anything_says_nothing_is_true_yet(t):
 
 def test_recap_reads_aloud_only_what_the_table_made_true_last_time_first(t):
     t.open()
+    # Brann always answers the riddle, so the prince is freed whatever the
+    # dice do: the recap is what's tested here, not the roll (left to the
+    # dice, he stayed bound now and then, and the test failed with him).
+    f = t.dir / "worlds" / "clockwork-cellar.json"
+    w = json.loads(f.read_text())
+    next(c for c in w["characters"] if c["id"] == "brann")["stats"]["Heart"] = 10
+    f.write_text(json.dumps(w))
     t.session()
     t.session("offer", "pell", VELL, "--as", "guest")
     for subj in t.asked() + [
@@ -651,3 +658,58 @@ def test_export_canon_writes_only_what_was_sealed_with_its_seal(t):
     )
     again = t.session("export-canon", "--to", to)
     assert again.returncode == 2 and "never written over" in again.stderr
+
+
+# ── what mutants found the tests blind to ────────────────────────────────────
+def test_one_sealed_fact_is_written_as_one_fact(t):
+    t.open()
+    t.session()  # plays to the first ruling and waits on it
+    t.seal(t.asked()[0])
+    to = t.dir / "canon.md"
+    got = t.session("export-canon", "--to", to)
+    assert got.returncode == 0 and got.stdout.strip() == f"wrote {to}: 1 sealed fact"
+
+
+def test_a_table_whose_page_is_gone_isnt_a_box_laid_by_open(t):
+    t.open()
+    (t.dir / "check.md").unlink()
+    got = t.check()
+    assert got.returncode == 2 and "isn't a box laid by open" in got.stderr
+
+
+def test_ideas_with_no_table_say_how_to_ask(tmp_path):
+    got = py(HERE / "ideas.py")
+    assert got.returncode == 2 and "python box/ideas.py --table DIR" in got.stderr
+
+
+def test_ideas_with_no_seed_are_dealt_from_todays(t):
+    import datetime
+
+    t.open()
+    t.night()
+    today = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
+    bare = py(HERE / "ideas.py", "--table", t.dir)
+    seeded = py(HERE / "ideas.py", "--table", t.dir, "--seed", f"ideas {today}")
+    assert bare.returncode == 0 and bare.stdout == seeded.stdout
+
+
+def test_a_capital_is_lowered_only_where_a_word_begins_a_sentence():
+    import ideas
+
+    assert ideas.lower_first("The hound") == "the hound"
+    assert ideas.lower_first("NASA sent it") == "NASA sent it"
+    assert ideas.lower_first("a hound") == "a hound" and ideas.lower_first("") == ""
+
+
+def test_a_world_is_written_as_one_space_indented_json(t):
+    t.open()
+    got = py(HERE / "author.py", t.dir / "stories" / "wasp-nest.md")
+    world = json.loads(got.stdout)
+    assert got.stdout == json.dumps(world, indent=1, ensure_ascii=False) + "\n"
+
+
+def test_a_note_that_ends_at_next_time_is_no_thread(t):
+    t.open()
+    (t.pile / "sessions" / "2026-11-20.md").write_text("We stopped there. Pick it up next time\n")
+    got = py(HERE / "ideas.py", "--table", t.dir, "--seed", "between nights")
+    assert got.returncode == 0, got.stderr  # no thread to deal from it, and no crash looking
