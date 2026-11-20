@@ -179,19 +179,37 @@ def export_canon(box: Path, to: str) -> int:
     return kernel.ALIVE
 
 
+def gone(box: Path, rows: list[dict]) -> dict:
+    """{the seal row of a truth the GM replaced: (what replaced it, the day)},
+    as clash.py keeps "mine stands now"."""
+    import clash  # the heads-up's own reading of the record
+
+    out = {}
+    for old, r in clash.replaced(box, rows).items():
+        what, got = gm.ruling(box, rows, old)
+        if what == "sealed":
+            out[got["n"]] = (r["fact"], r["ts"][:10])
+    return out
+
+
 def canon(box: Path, worlds: Path) -> int:
     rows, breaks = kernel.read(box / "record.jsonl")
     if breaks:
         return fail("the record doesn't verify: " + "; ".join(breaks))
     said = answers(box, rows, worlds)
     tag = {n: fact + (f"  [offered by {by}]" if by else "") for n, _, fact, _, by, _ in said}  # fmt: skip
-    true = [(n, f"  {tag[n]}   ({where}, sealed at row {n})") for n, what, _, where, _, _ in said if what == "sealed"]  # fmt: skip
+    out = gone(box, rows)
+    true = [(n, f"  {tag[n]}   ({where}, sealed at row {n})") for n, what, _, where, _, _ in said if what == "sealed" and n not in out]  # fmt: skip
+    was = [(n, f"  was: {tag[n]}   ({where}, sealed at row {n}; replaced on {out[n][1]} by: {out[n][0]})") for n, what, _, where, _, _ in said if what == "sealed" and n in out]  # fmt: skip
     no = [(n, f"  not: {tag[n]}   ({where}, declined at row {n})") for n, what, _, where, _, _ in said if what == "declined"]  # fmt: skip
     if not true and not no:
         print("nothing is canon at this table yet: nothing has been sealed")
         return kernel.ESCALATE
     print("what this table holds true:")
     print("\n".join(line for _, line in sorted(true)) or "  nothing sealed yet")
+    if was:
+        print("what it replaced:")
+        print("\n".join(line for _, line in sorted(was)))
     if no:
         print("what it said no to:")
         print("\n".join(line for _, line in sorted(no)))
@@ -250,7 +268,8 @@ def previously(box: Path, table: Path) -> int:
         return fail("the record doesn't verify: " + "; ".join(breaks))
     said = answers(box, rows, table / "worlds")
     aloud = {n: fact + (f" (brought by {name})" if by else "") for n, _, fact, _, by, name in said}  # fmt: skip
-    true = [(n, aloud[n]) for n, what, *_ in said if what == "sealed"]
+    out = gone(box, rows)
+    true = [(n, aloud[n]) for n, what, *_ in said if what == "sealed" and n not in out]
     ended = [r for r in rows if r["kind"] == "session"]
     print("# Previously on...\n")
     print("## Read aloud: what the table made true\n")
@@ -288,6 +307,9 @@ def previously(box: Path, table: Path) -> int:
         w = max(len(f"{p}:{i}") for p, i, _ in promises)
         print("Promised on earlier nights:")
         print("\n".join(f"  {f'{p}:{i}':<{w}}  {t}" for p, i, t in promises))
+    if out:
+        print("Replaced:")
+        print("\n".join(f"  - {aloud[n]} (replaced on {day} by: {by})" for n, (by, day) in sorted(out.items())))  # fmt: skip
     no = [aloud[n] for n, what, *_ in said if what == "declined"]
     if no:
         print("Said no to:")

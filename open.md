@@ -18,7 +18,10 @@ of the GM's word, sealed on that yes), read aloud next time as canon. And "Write
 what happens next", offered at the end of a night whose calls were
 answered: the next part keeps its people and place, shows what the table
 made true and said no to, and each moment can wait on a yes or a no from
-last time.
+last time. And the heads-up: before the GM decides a call, or keeps their
+own word, what the table already holds true about the same thing is shown,
+with mine stands now, keep the old one, both are true (and, for the GM's own
+word, let me reword it).
 Everything else on this page is still to build.
 
 ## Why
@@ -236,7 +239,16 @@ Only the GM sees it. The machine never picks a side. The recap reads aloud
 only what stands now, and shows the GM what was replaced, and when.
 
 It has to be right most of the time, or GMs will learn to click past it. So
-it is not a new search: it is the house's own.
+it is not a new search: it is the house's own. **Corrected on 2026-11-20,
+when it was built:** this page first named Jeles's `conflict_scan` for it.
+That is a web search: it looks for two independent sources online that
+refute a claim, and a table's story never leaves the box. The heads-up uses
+willow's `contradictions` rule instead, read from the box's own record: two
+lines are about the same thing when they share at least two of their own
+words, and at least half of the shorter one's. It cannot tell agreeing from
+disagreeing, and needn't: it only asks, and "both are true" is there for
+the pair that agrees. The same words made true again (a story played
+again), and a pair the GM already called both true, are never raised.
 
 ## The dice
 
@@ -318,7 +330,7 @@ first.
 | ideas when stuck, from the box's own words | `box/ideas.py`, willow's `oracle-text` and `random-passage` |
 | the newer word stands after the older, both kept | willow's `decisions` (`--replaces`) |
 | two lines that disagree, neither side picked | willow's `contradictions` (dates and amounts), and newer willow's `kept-clash` |
-| search for what refutes, not what resembles | Jeles's `conflict_scan` |
+| two lines about the same thing, read offline | willow's `contradictions` (`subject`, `same`), pinned; used by `box/clash.py` |
 | a story written by a serious writer, and play brought back to it | story-timeline's `export-story` and `import-canon` |
 | what was promised, owed, lent and still open | willow's `debts`, `lending`, `minutes`, `digest` |
 
@@ -327,11 +339,6 @@ first.
 - **A front door in the browser:** the game-shaped page with the buttons
   above, most likely `browse` with a Die-Namic front page. The plain-terminal
   version, in the same words, is built: `box/play.py`.
-- **The heads-up before deciding:** contradictions in pinned willow see dates
-  and amounts, not story facts. Jeles's `conflict_scan` is the piece to
-  bring in.
-- **"Mine stands now":** a ruling that replaces an earlier one, kept as
-  such, read by the recap.
 - **The writing form in the browser.** The terminal version is built:
   `box/write.py`.
 - **The cup:** table dice committed when the moment is posed and revealed

@@ -38,8 +38,12 @@ own offer, of the kind `gm-word` the story declares, at the moment of the
 character whose turn it was, and sealed on that yes. Enter keeps nothing
 (said aloud only). Leaving at that moment, it is asked first next time.
 
-Not here yet (open.md has them): the cup for the dice, the heads-up before a
-call that clashes with an earlier one, fights, offers.
+Before the GM decides a call, or keeps their own word, box/clash.py looks
+for what the table already holds true about the same thing; if there is
+any, the heads-up comes first: mine stands now, keep the old one, both are
+true, and for the GM's own word, let me reword it.
+
+Not here yet (open.md has them): the cup for the dice, fights, offers.
 
 Exit codes, the kernel's: 0 done; 42 left with a call or the night waiting;
 2 refused.
@@ -67,6 +71,7 @@ except willow_pin.Unpinned as e:
     raise SystemExit(2) from None
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "adapters" / "stdlib" / "game-master"))
+import clash
 import game_master as gm
 import kernel
 import session
@@ -191,13 +196,58 @@ def said_roll(world: dict, rows: list[dict], beat: dict) -> str:
     return f"🎲 {who} tries {beat['stat']}: rolled {faces}{plus} = {beat['total']}. {SAID[beat['band']]}"  # fmt: skip
 
 
-def your_call(box: Path, world: dict, game: dict) -> bool | None:
+CHOICES = {"mine": "Mine stands now", "old": "Keep the old one", "both": "Both are true", "reword": "Let me reword it"}  # fmt: skip
+
+
+def heads_up(met: list[dict], reword: bool) -> str | None:
+    """Before the GM decides: what the table already holds true about the
+    same thing, and their choice ("mine", "old", "both", "reword"); None if
+    they've gone."""
+    print("💡 Before you decide:")
+    for t in met:
+        print(f"   on {t['day']} your table made this true:\n   {t['fact']}")
+    keys = ["mine", "old", "both"] + (["reword"] if reword else [])
+    for i, k in enumerate(keys, 1):
+        print(f"   {i}. {CHOICES[k]}")
+    while True:
+        got = ask("   Which? ")
+        if got is None:
+            return None
+        if got.isdigit() and 1 <= int(got) <= len(keys):
+            return keys[int(got) - 1]
+        print(f"   Type a number from 1 to {len(keys)}.")
+
+
+def standing_by(box: Path, ts: str, choice: str, met: list[dict], subject: str, fact: str) -> None:  # fmt: skip
+    """What the GM's choice keeps, once the new word is sealed."""
+    for old in met:
+        if choice == "mine":
+            clash.replace(box, ts, old, subject, fact)
+        elif choice == "both":
+            clash.keep_both(box, ts, old, subject, fact)
+
+
+def your_call(box: Path, world: dict, game: dict, now: str) -> bool | None:
     """The question the story puts to the GM, asked; the GM's answer made
-    the record's by the kernel. None if the person left it waiting."""
+    the record's by the kernel. When the table already holds something true
+    about the same thing, the heads-up comes first. None if the person left
+    it waiting."""
     a = game["asks"][-1]
     who = names(world).get(a.get("proposed_by"), a.get("proposed_by"))
     print(f"\n✋ Your call, GM. {prompt(world, a)}\n   {who} says:")
     print(f"   {a['fact']}")
+    met = clash.meets(box, a["fact"], a["subject"])
+    if met:
+        choice = heads_up(met, reword=False)
+        if choice is None:
+            return None
+        done = run(KERNEL, "decline" if choice == "old" else "seal", "--box", box, a["subject"])  # fmt: skip
+        if done.returncode != kernel.ALIVE:
+            raise RuntimeError((done.stderr or done.stdout).strip())
+        standing_by(box, now, choice, met, a["subject"], a["fact"])
+        print({"mine": "   It's true now, and the old one is replaced.", "old": "   It didn't happen. The old one stands.",
+               "both": "   It's true now, beside the old one."}[choice])  # fmt: skip
+        return choice != "old"
     answer = yes("   Is that true in your world? (y/n) ")
     if answer is None:
         return None
@@ -252,7 +302,7 @@ def night(table: Path, world: dict, world_file: Path, now: str) -> int:
             if done.returncode == kernel.REFUSED:
                 raise RuntimeError(done.stderr.strip())
             rows, game, _ = gm.current(box, world)
-            if your_call(box, world, game) is None:
+            if your_call(box, world, game, now) is None:
                 print("\nThe call is waiting. Run this again to answer it.")
                 return kernel.ESCALATE
             continue
@@ -261,7 +311,7 @@ def night(table: Path, world: dict, world_file: Path, now: str) -> int:
             "declined",
         ):
             rows, game, _ = gm.current(box, world)
-            if your_call(box, world, {**game, "asks": asked}) is None:
+            if your_call(box, world, {**game, "asks": asked}, now) is None:
                 print("\nThe call is waiting. Run this again to answer it.")
                 return kernel.ESCALATE
             continue
@@ -312,10 +362,22 @@ def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str) -> b
         if not line:
             print("   Said aloud, not kept.")
             return False
+        met = clash.meets(box, line)
+        if met:
+            choice = heads_up(met, reword=True)
+            if choice is None:
+                return None
+            if choice == "reword":
+                continue
+            if choice == "old":
+                print("   Not kept. The old one stands.")
+                return False
+            break
         keep_it = yes("   Is that the rule of the table now? (y/n) ")
         if keep_it is None:
             return None
         if keep_it:
+            choice = ""
             break
     who = beat.get("character")
     done = session.step(box, world_file, now, "offer", who, line, "--as", GM_WORD)
@@ -329,7 +391,9 @@ def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str) -> b
     heard = session.step(box, world_file, now, "settle")
     if heard.returncode == kernel.REFUSED:
         raise RuntimeError(heard.stderr.strip())
-    print("   It's the rule of the table now.")
+    standing_by(box, now, choice, met, subject, line)
+    print({"mine": "   It's the rule of the table now, and the old one is replaced.",
+           "both": "   It's the rule of the table now, beside the old one."}.get(choice, "   It's the rule of the table now."))  # fmt: skip
     return True
 
 
@@ -396,6 +460,11 @@ def previously(table: Path) -> None:
     aloud = got.stdout.split("## For the GM's eyes")[0]
     if "Nothing yet" not in aloud and aloud.strip():
         print(aloud.replace("# Previously on...", "Previously on...").replace("## Read aloud: what the table made true", "(read this out loud)").rstrip())  # fmt: skip
+        print()
+    gm_eyes = got.stdout.split("## For the GM's eyes")[-1]
+    if "\nReplaced:\n" in gm_eyes:
+        print("Just for you, GM, what your table replaced:")
+        print(gm_eyes.split("\nReplaced:\n")[1].split("\nSaid no to:")[0].rstrip())
         print()
     day, lines = session.last_notes(table / "pile")
     if lines and day == latest_night(table):
