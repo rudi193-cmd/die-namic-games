@@ -120,7 +120,9 @@ def answers(
         story = g["open"].get("world")
         where, cast = titles.get(story, story), names.get(story, {})
         said = [(a, "") for a in g["asks"]]
-        said += [(o, o["by"]) for o in g["offers"]]
+        said += [
+            (o, "" if o.get("as") == "gm-word" else o["by"]) for o in g["offers"]
+        ]  # the GM's word is no one's offer
         for a, by in said:
             what, got = gm.ruling(box, rows, a["subject"])
             if what in ("sealed", "declined"):

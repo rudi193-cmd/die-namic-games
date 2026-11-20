@@ -27,8 +27,9 @@ if one of last time's calls came out yes, or no: game-master's own
 to happen whatever was decided, so the next part is never empty.
 
 A moment's outcome left blank is written as "(GM: you say what happens.)",
-so the story plays and the GM says it aloud. Keeping what the GM says on the
-record is still to build (open.md, the GM's moments).
+and the story declares `offers: gm-word`: on the night, play.py rolls, then
+asks the GM what happens, and keeps what they type and say yes to as the
+rule of the table (open.md, the GM's moments).
 
 Nothing is written until the story is done; leaving before then writes
 nothing. A story is never written over one already in the box.
@@ -52,7 +53,7 @@ import play  # the way in: its box, its questions, its night
 
 kernel = play.kernel
 STRENGTHS = ["Brave", "Clever", "Kind"]
-BLANK = "(GM: you say what happens.)"
+BLANK = play.BLANK
 OUTCOMES = (("strong", "If it goes great"), ("weak", "If it sort of works"), ("miss", "If it goes wrong"))  # fmt: skip
 
 
@@ -207,7 +208,12 @@ def markdown(story: dict, sid: str) -> str:
     place = story["place"] if story.get("place_id") else sentence(story["place"])[:-1]
     lines = ["<!-- written with box/write.py -->", f"# {story['title']}", "", f"id: {sid}",
              f"setting: {sentence(story['about'] or 'in ' + story['place'])}",
-             f"stats: {', '.join(story['strengths'])}", "base stat: 1", "", "## Characters", ""]  # fmt: skip
+             f"stats: {', '.join(story['strengths'])}", "base stat: 1"]  # fmt: skip
+    if any(BLANK in m.get("outcomes", {}).values() for m in story["moments"]):
+        lines.append(
+            f"offers: {play.GM_WORD}"
+        )  # a blank moment's line is kept as the GM's word
+    lines += ["", "## Characters", ""]
     for c in story["cast"]:
         stats = ", ".join(f"{k} {v}" for k, v in c.get("stats", {}).items())
         lines.append(f"- {who[c['name']]}: {c['name']} | {c['role']}" + (" | seated" if c["seat"] else "") + (f" | {stats}" if stats else ""))  # fmt: skip

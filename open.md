@@ -12,8 +12,9 @@ and the GM's own note. And the writing path, in a plain terminal:
 `python box/write.py`, or "Write your own" from play: what it's about (or an
 idea dealt from the box's words), four small boxes, the moments in plain
 words, written as the one story file author.py reads, then played. A blank
-outcome is written as "(GM: you say what happens.)", said aloud on the
-night; keeping what the GM says on the record is still to build. And "Write
+outcome is the GM's moment: the box rolls, asks "GM, what happens?", and
+what the GM types and says yes to is kept as the rule of the table (an offer
+of the GM's word, sealed on that yes), read aloud next time as canon. And "Write
 what happens next", offered at the end of a night whose calls were
 answered: the next part keeps its people and place, shows what the table
 made true and said no to, and each moment can wait on a yes or a no from
@@ -326,8 +327,6 @@ first.
 - **A front door in the browser:** the game-shaped page with the buttons
   above, most likely `browse` with a Die-Namic front page. The plain-terminal
   version, in the same words, is built: `box/play.py`.
-- **The GM's moment for a blank outcome:** game-master plays every action
-  moment by itself today and would need to stop and ask.
 - **The heads-up before deciding:** contradictions in pinned willow see dates
   and amounts, not story facts. Jeles's `conflict_scan` is the piece to
   bring in.

@@ -31,8 +31,15 @@ session seal and seals it, and the record is checked.
 "Write your own" goes to box/write.py; and when a night's calls were
 answered, its end offers "Write what happens next", which goes there too.
 
-Not here yet (open.md has them): the cup for the dice, a blank moment handed to the GM, the heads-up before a call that
-clashes with an earlier one, fights, offers.
+A moment written blank ("(GM: you say what happens.)", by write.py) is the
+GM's moment: the roll is said, then "GM, what happens?". What the GM types
+and says yes to is the rule of the table: handed in through game-master's
+own offer, of the kind `gm-word` the story declares, at the moment of the
+character whose turn it was, and sealed on that yes. Enter keeps nothing
+(said aloud only). Leaving at that moment, it is asked first next time.
+
+Not here yet (open.md has them): the cup for the dice, the heads-up before a
+call that clashes with an earlier one, fights, offers.
 
 Exit codes, the kernel's: 0 done; 42 left with a call or the night waiting;
 2 refused.
@@ -68,6 +75,10 @@ KERNEL = ROOT / "kernel.py"
 SEAL_END = ROOT / "adapters" / "stdlib" / "session-seal" / "session_seal.py"
 FIRST = "lantern-fair"  # the story offered when none has been played
 SAID = {"strong": "Great!", "weak": "It sort of works.", "miss": "It goes wrong."}
+BLANK = (
+    "(GM: you say what happens.)"  # an outcome left for the GM, as write.py writes it
+)
+GM_WORD = "gm-word"  # the kind of offer a blank moment's line is kept as
 
 
 def home() -> Path:
@@ -203,6 +214,15 @@ def night(table: Path, world: dict, world_file: Path, now: str) -> int:
     rows, game, err = gm.current(box, world)
     if err and "open first" not in err:
         raise RuntimeError(err)
+    if (
+        not err and waiting_blank(game) and not ended(rows, game)
+    ):  # left at the GM's moment: asked first
+        beat = game["beats"][-1]
+        print(f"\n{world['title']}\n\n{prompt(world, beat)}\n{said_roll(world, rows, beat)}")  # fmt: skip
+        if gm_says(box, world, world_file, beat, now) is None:
+            print("\nThe GM's moment is waiting. Run this again to pick up.")
+            return kernel.ESCALATE
+        rows, game, err = gm.current(box, world)
     if not err and gm.finished(game, world) and not ended(rows, game):
         print(f"\n{world['title']}: played to its end, and the night not ended yet.")
         return end(table, world, game, now)
@@ -251,8 +271,14 @@ def night(table: Path, world: dict, world_file: Path, now: str) -> int:
             raise RuntimeError(done.stderr.strip())
         rows, game, _ = gm.current(box, world)
         for beat in game["beats"][shown:]:
-            if beat["beat_kind"] == "action":
-                print(f"\n{prompt(world, beat)}\n{said_roll(world, rows, beat)}\n{beat['text']}")  # fmt: skip
+            if beat["beat_kind"] != "action":
+                continue
+            print(f"\n{prompt(world, beat)}\n{said_roll(world, rows, beat)}")
+            if beat["text"] != BLANK:
+                print(beat["text"])
+            elif gm_says(box, world, world_file, beat, now) is None:
+                print("\nThe GM's moment is waiting. Run this again to pick up.")
+                return kernel.ESCALATE
         shown = len(game["beats"])
     return end(table, world, game, now)
 
@@ -263,11 +289,61 @@ def ended(rows: list[dict], game: dict) -> bool:
     return any(r["kind"] == "session" and r["to"] >= last for r in rows)
 
 
+def waiting_blank(game: dict) -> bool:
+    """Whether the last moment played was left blank for the GM, and the GM
+    has said nothing for it yet (the person left at that moment)."""
+    beat = game["beats"][-1] if game["beats"] else None
+    if not beat or beat["beat_kind"] != "action" or beat["text"] != BLANK:
+        return False
+    return not any(o["n"] > beat["n"] and o.get("as") == GM_WORD for o in game["offers"])  # fmt: skip
+
+
+def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str) -> bool | None:  # fmt: skip
+    """A moment left blank: the GM says what happens. What they type and say
+    yes to is the rule of the table, kept as an offer of the GM's word, made
+    at the moment of the character whose turn it was, and sealed on that yes.
+    Enter keeps nothing (said aloud only); None if the person left."""
+    while True:
+        line = ask(
+            "✋ GM, what happens? (say it, and type it to keep it; or press Enter) "
+        )
+        if line is None:
+            return None
+        if not line:
+            print("   Said aloud, not kept.")
+            return False
+        keep_it = yes("   Is that the rule of the table now? (y/n) ")
+        if keep_it is None:
+            return None
+        if keep_it:
+            break
+    who = beat.get("character")
+    done = session.step(box, world_file, now, "offer", who, line, "--as", GM_WORD)
+    if done.returncode == kernel.REFUSED:
+        raise RuntimeError(done.stderr.strip())
+    _, game, _ = gm.current(box, world)
+    subject = game["offers"][-1]["subject"]
+    sealed = run(KERNEL, "seal", "--box", box, subject)
+    if sealed.returncode != kernel.ALIVE:
+        raise RuntimeError((sealed.stderr or sealed.stdout).strip())
+    heard = session.step(box, world_file, now, "settle")
+    if heard.returncode == kernel.REFUSED:
+        raise RuntimeError(heard.stderr.strip())
+    print("   It's the rule of the table now.")
+    return True
+
+
+def made_true(box: Path, rows: list[dict], game: dict) -> list[dict]:
+    """The calls and the GM's words this game, each answered, in row order."""
+    out = [a for a in game["asks"] + [o for o in game["offers"] if o.get("as") == GM_WORD]]  # fmt: skip
+    return sorted((a for a in out if gm.ruling(box, rows, a["subject"])[0] in ("sealed", "declined")), key=lambda a: a["n"])  # fmt: skip
+
+
 def end(table: Path, world: dict, game: dict, now: str) -> int:
     """The end of the night: what was made true, a note, and the GM's yes."""
     box = table / "record"
     rows, _ = kernel.read(box / "record.jsonl")
-    true = [a["fact"] for a in game["asks"] if gm.ruling(box, rows, a["subject"])[0] == "sealed"]  # fmt: skip
+    true = [a["fact"] for a in made_true(box, rows, game) if gm.ruling(box, rows, a["subject"])[0] == "sealed"]  # fmt: skip
     print("\n🌙 End of the night")
     if true:
         print("Tonight, your table made true:")
