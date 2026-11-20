@@ -222,6 +222,72 @@ only what stands now, and shows the GM what was replaced, and when.
 It has to be right most of the time, or GMs will learn to click past it. So
 it is not a new search: it is the house's own.
 
+## The dice
+
+Found on 2026-11-20: every roll today is seeded by the hash of the row before
+it, and that hash is public the moment the row is written. Read from the
+record alone, the next d20 was predicted as a 20, and rolled a 20. No roll
+can be forged after the fact, but three doors are open:
+
+- **Prediction:** anyone with the record knows the next roll before it is
+  thrown.
+- **Steering the GM's call:** yes and no write different rows, so they lead
+  to different next rolls. A GM who looks ahead could decide by the dice,
+  not by the story.
+- **Shopping for a roll:** anyone who can add a harmless row first (an ask,
+  an offer, a note) changes the next roll.
+
+Thought through as a real table and a real writing session use dice, there
+are two kinds.
+
+**At the table** the die is thrown after the decision, in the open: before it
+lands nobody knows it, the GM included, and everyone sees it land. A reroll
+costs something (inspiration, a luck point) and is an event of its own. Table
+dice are **unknown until thrown, thrown after the decision, seen by all, and
+kept.**
+
+**In a writing session** (the tables in the DMG, solo journaling, oracles)
+dice are prompts: nobody is an opponent, rerolling is fine, and the same roll
+again is a feature ("roll 37 on the tavern table"; a class working from the
+same draw). Prompt dice are **surprising, free to reroll, and repeatable.**
+Seeding as it is today suits them; `box/ideas.py` and `daily-word` already
+work this way.
+
+| | Table dice (stakes) | Prompt dice (writing, ideas) |
+|---|---|---|
+| could be gamed by | anyone with the record; the GM's call | no one: there is nothing to win |
+| thrown | after the decision, unknown until then | whenever the writer likes |
+| reroll | only as a visible, kept event | freely |
+| repeatable | checkable after, never foreseeable | yes, by seed |
+| how | **the cup**: committed when the moment is posed, revealed when thrown | seeded, as now |
+
+**The cup.** When a moment is posed ("Mira tries to climb"), the box shakes
+the die and sets the cup down: a commitment on the record, the hash of a
+fresh secret. Nobody can see under it, the GM included. After the GM's call,
+the cup is lifted: the roll is the record's tip and that secret, the secret
+is shown, and the check holds it to the commitment made before the decision,
+then plays the roll again as it does now. Nobody sees ahead, no call can be
+steered by the dice, no row can shop for a roll, and every roll is still
+checked after the fact.
+
+At the table, in its own words:
+
+> 🥤 **The die is in the cup.**
+> ✋ **Your call, GM:** *Old Vell's lamp is in the nest, still lit?*
+> **[ Yes, it's true ]**
+> 🎲 **Lift the cup:** Juno rolled 12. **Great!**
+
+**Later:** the GM's screen roll, a roll only the GM sees, and the GM's word
+over the dice ("the dice said miss; I say she makes it") as a kept call of
+its own, never a roll quietly changed.
+
+Table dice are willow's (`play-dice`, the seeding in `game-master`,
+`play-dice5e`) and the one-script's, so the cup is a change in willow, not
+here; `box/fight.py` seeds the same way and follows it. aetheris5e's
+`gm5e.py` already chose fresh randomness for live rolls ("the ledger is the
+honesty guarantee, not reproducibility"); the cup keeps that, and keeps the
+check too.
+
 ## What it builds on
 
 Most of this is already in the house. Before building any of it, look here
@@ -254,6 +320,8 @@ first.
   such, read by the recap.
 - **The writing form:** the four boxes and the moments, writing the story
   format.
+- **The cup:** table dice committed when the moment is posed and revealed
+  after the GM's call, in willow's dice, and in `box/fight.py` after them.
 
 ## Decided
 
@@ -270,3 +338,7 @@ first.
   picks.
 - The governance stays exactly as strict underneath; it is worded as "your
   call" on the surface.
+- **Two kinds of dice.** Table dice go in **the cup**: unknown until thrown,
+  thrown after the GM's call, seen by all, kept. Prompt dice stay seeded:
+  surprising, free to reroll, repeatable.
+- The GM's screen roll, and the GM's word over the dice, come **later**.
