@@ -298,3 +298,24 @@ def test_leaving_at_the_gms_moment_asks_it_first_when_coming_back(home):
     assert "It's the rule of the table now." in again.stdout and again.returncode == 0, again.stdout  # fmt: skip
     gone = run("play.py", home, ["1"])  # the night is ended: nothing waits
     assert "✋ GM, what happens?" not in gone.stdout.split("Which story?")[-1].split("The Garden Egg")[0]  # fmt: skip
+
+
+def test_stuck_offers_the_first_three_different_seeds_ideas_deals_and_only_those(home):
+    """The ideas are ideas.py's own Seeds, as it deals them today: the first
+    three that differ, in its order, and nothing from its other sections."""
+    dealt = subprocess.run([sys.executable, BOX / "ideas.py", "--table", table(home)], capture_output=True, text=True, check=False).stdout  # fmt: skip
+    seeds = [line.strip()[2:] for line in dealt.split("## Seeds")[1].split("\n## ")[0].splitlines() if line.strip().startswith("- ")]  # fmt: skip
+    first = list(dict.fromkeys(seeds))[:3]
+    assert len(first) == 3
+    got = run("write.py", home, [""])
+    offered = got.stdout.split("Stuck? Try one of these, or write your own:\n")[1].split("Which one?")[0]  # fmt: skip
+    assert offered == "".join(f"  {i}. {s}\n" for i, s in enumerate(first, 1)) + "  4. My own idea\n"  # fmt: skip
+
+
+def test_an_idea_dealt_twice_is_offered_once(monkeypatch, tmp_path):
+    sys.path.insert(0, str(BOX))
+    import write
+
+    dealt = "# Ideas\n\n## Seeds (seed 'x')\n\n  - a door\n  - a door\n  - an egg\n  - a fair\n  - a ship\n\n## Set up, never played\n\n  - not this\n"  # fmt: skip
+    monkeypatch.setattr(write.play, "run", lambda *a: subprocess.CompletedProcess(a, 0, dealt, ""))  # fmt: skip
+    assert write.ideas(tmp_path) == ["a door", "an egg", "a fair"]
