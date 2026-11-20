@@ -642,6 +642,13 @@ def test_a_refusal_names_the_story_line_and_the_name_it_might_have_meant(tmp_pat
     assert got.returncode == 2 and says in got.stderr, got.stderr
 
 
+@pytest.mark.parametrize("argv", [[], ["a.md", "b.md"], ["a.md", "--to"]])
+def test_author_without_one_story_prints_how_to_write_one(argv):
+    got = py(HERE / "author.py", *argv)
+    assert got.returncode == 2
+    assert got.stderr.strip() == "python box/author.py STORY.md [--to WORLD.json]"
+
+
 def test_a_story_reads_its_keys_in_any_case_and_star_bullets(tmp_path):
     """A markdown editor capitalises a key and turns `-` into `*`: the world
     made is the same."""
