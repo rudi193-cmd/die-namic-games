@@ -8,12 +8,12 @@ and nothing already in the box is written over."""
 from __future__ import annotations
 
 import json
-import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
+import person
 import pytest
 
 BOX = Path(__file__).resolve().parents[1] / "box"
@@ -42,9 +42,8 @@ FILLED = [
 
 
 def run(script: str, home: Path, typed: list[str], *argv) -> subprocess.CompletedProcess:  # fmt: skip
-    env = {**os.environ, "DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": NOW}
-    text = "".join(f"{t}\n" for t in typed)
-    return subprocess.run([sys.executable, BOX / script, *argv], input=text, capture_output=True, text=True, env=env, check=False)  # fmt: skip
+    """SCRIPT, TYPED a line a question in order, Enter at every roll."""
+    return person.typed_run([BOX / script, *argv], {"DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": NOW}, typed)  # fmt: skip
 
 
 @pytest.fixture(scope="module")
@@ -78,7 +77,10 @@ def test_a_story_written_from_play_is_the_file_author_reads_and_plays(home):
     assert (
         again.returncode == 0 and json.loads(again.stdout) == made
     )  # one file, every door
-    assert "She picks up the egg.\n🎲 Mira tries Kind: rolled " in got.stdout
+    assert (
+        "She picks up the egg.\n  Enter: roll · o: someone brings something in\n> 🎲 Mira tries Kind: rolled "
+        in got.stdout
+    )
     assert "✋ Your call, GM. Is the egg a real dragon?\n   The Groundskeeper says:\n   The egg is a real dragon's." in got.stdout  # fmt: skip
     assert got.stdout.rstrip().endswith("Good night.")
 
@@ -220,15 +222,25 @@ def test_a_night_whose_calls_were_answered_offers_what_happens_next(home):
     assert "when: sealed the-garden-egg::start::m2 is sealed\n" in story
     assert story.count("when:") == 1
     nxt = got.stdout.split("is written: 2 moments.\nPlay it now?")[-1]
-    assert "Mira feeds the hatchling.\n🎲 Mira tries Kind" in nxt  # the table said yes
-    assert "Mira hides the egg.\n🎲 Mira tries Clever" in nxt
+    assert (
+        "Mira feeds the hatchling.\n  Enter: roll · o: someone brings something in\n> 🎲 Mira tries Kind"
+        in nxt
+    )  # the table said yes
+    assert (
+        "Mira hides the egg.\n  Enter: roll · o: someone brings something in\n> 🎲 Mira tries Clever"
+        in nxt
+    )
 
 
 def test_a_moment_that_waits_on_a_yes_isnt_played_after_a_no(home):
     got = night_then_next(home, "n", [*FULL_NEXT, "y", "", "y"])
     assert "And said no to:\n  • The egg is a real dragon's." in got.stdout
     nxt = got.stdout.split("is written: 2 moments.\nPlay it now?")[-1]
-    assert "Mira feeds the hatchling." not in nxt and "Mira hides the egg.\n🎲" in nxt
+    assert (
+        "Mira feeds the hatchling." not in nxt
+        and "Mira hides the egg.\n  Enter: roll · o: someone brings something in\n> 🎲"
+        in nxt
+    )
 
 
 def test_every_moment_waiting_on_last_time_is_asked_for_one_that_doesnt(home):
@@ -294,7 +306,9 @@ def test_leaving_at_the_gms_moment_asks_it_first_when_coming_back(home):
     got = run("play.py", home, ["w", *BLANKS, "y"])
     assert got.returncode == 42 and "The GM's moment is waiting." in got.stdout
     again = run("play.py", home, ["1", "The egg hums.", "y", "", "y"])
-    assert "She picks up the egg.\n🎲 Mira tries Kind" in again.stdout
+    assert (
+        "She picks up the egg.\n🎲 Mira tries Kind" in again.stdout
+    )  # picked up: rolled already
     assert "It's the rule of the table now." in again.stdout and again.returncode == 0, again.stdout  # fmt: skip
     gone = run("play.py", home, ["1"])  # the night is ended: nothing waits
     assert "✋ GM, what happens?" not in gone.stdout.split("Which story?")[-1].split("The Garden Egg")[0]  # fmt: skip

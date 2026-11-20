@@ -43,7 +43,17 @@ for what the table already holds true about the same thing; if there is
 any, the heads-up comes first: mine stands now, keep the old one, both are
 true, and for the GM's own word, let me reword it.
 
-Not here yet (open.md has them): the cup for the dice, fights, offers.
+**The table's turn, before each roll.** Every roll waits: the moment is
+said, then "Enter: roll · o: someone brings something in" (and "· f: a
+fight" in a story fights belong to, Aetheris, whose encounters are
+aetheris5e's). o is game-master's own offer, as the character of whoever
+brings it in, of a kind the story turns on if it names any: the GM is asked
+first (with the heads-up when it meets what the table holds true), and only
+then is it handed in and answered, so leaving midway leaves nothing behind.
+f is a fight played by fight.py onto the record, blow by blow; what it means
+for the story is the GM's to say.
+
+Not here yet (open.md has it): the cup for the dice.
 
 Exit codes, the kernel's: 0 done; 42 left with a call or the night waiting;
 2 refused.
@@ -296,6 +306,9 @@ def night(table: Path, world: dict, world_file: Path, now: str) -> int:
                 print("\n".join(sc["opening"]))
         asked = [a for a in game["asks"] if (a["scene"], a["beat"]) == (sc["id"], b["id"])]  # fmt: skip
         if b["kind"] == "action":
+            if before_roll(table, world, world_file, b, now) is None:
+                print("\nThe story is waiting. Run this again to pick up.")
+                return kernel.ESCALATE
             done = session.step(box, world_file, now, "act", b["suggests"])
         elif not asked:
             done = session.step(box, world_file, now, "ask")
@@ -323,7 +336,7 @@ def night(table: Path, world: dict, world_file: Path, now: str) -> int:
         for beat in game["beats"][shown:]:
             if beat["beat_kind"] != "action":
                 continue
-            print(f"\n{prompt(world, beat)}\n{said_roll(world, rows, beat)}")
+            print(said_roll(world, rows, beat))
             if beat["text"] != BLANK:
                 print(beat["text"])
             elif gm_says(box, world, world_file, beat, now) is None:
@@ -397,9 +410,138 @@ def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str) -> b
     return True
 
 
+FIGHTS = {"aetheris-the-waking-tide"}  # the stories aetheris5e's encounters belong to
+
+
+def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str) -> bool | None:  # fmt: skip
+    """The moment said, and the table's turn before the roll: Enter rolls, o
+    is someone bringing something in, f a fight (in a story fights belong
+    to). True to roll; None if the person left."""
+    print(f"\n{b['prompt']}")
+    fights = world["id"] in FIGHTS
+    hint = "  Enter: roll · o: someone brings something in" + (
+        " · f: a fight" if fights else ""
+    )
+    while True:
+        print(hint)
+        got = ask("> ")
+        if got is None:
+            return None
+        if got == "":
+            return True
+        if got.lower() == "o":
+            if bring_in(table / "record", world, world_file, now) is None:
+                return None
+        elif got.lower() == "f" and fights:
+            if fight(table, now) is None:
+                return None
+        else:
+            print("  Press Enter to roll" + (", o or f." if fights else ", or o."))
+
+
+def pick_one(prompt_: str, options: list[str]) -> int | None:
+    """The number of the option picked, from 0; the first on Enter; None if gone."""
+    for i, o in enumerate(options, 1):
+        print(f"   {i}. {o}")
+    while True:
+        got = ask(prompt_)
+        if got is None:
+            return None
+        if got == "":
+            return 0
+        if got.isdigit() and 1 <= int(got) <= len(options):
+            return int(got) - 1
+        print(f"   Type a number from 1 to {len(options)}.")
+
+
+def bring_in(box: Path, world: dict, world_file: Path, now: str) -> bool | None:
+    """Someone at the table brings something into the story, as their
+    character: game-master's own offer. The GM is asked first (with the
+    heads-up when it meets what the table holds true), and only then is it
+    handed in and answered, so leaving midway leaves nothing half done.
+    True or False for the GM's answer, "" if no one brought anything,
+    None if the person left."""
+    seats = gm.seated(world)
+    k = 0
+    if len(seats) > 1:
+        print("   Who brings it in?")
+        k = pick_one("   Who? ", [c["name"] for c in seats])
+        if k is None:
+            return None
+    who = seats[k]
+    fact = ask(f"   What does {who['name']} bring in? (or press Enter) ")
+    if not fact:
+        return None if fact is None else ""
+    kinds = [x for x in world.get("offers", []) if x != GM_WORD]
+    kind = ""
+    if kinds:
+        print("   What is it?")
+        j = pick_one("   Which? ", kinds + ["Something else"])
+        if j is None:
+            return None
+        kind = kinds[j] if j < len(kinds) else ""
+    print(f"\n✋ Your call, GM. {who['name']} brings this in:\n   {fact}")
+    met = clash.meets(box, fact)
+    if met:
+        choice = heads_up(met, reword=False)
+        if choice is None:
+            return None
+        answer = choice != "old"
+    else:
+        choice = ""
+        answer = yes("   Is that true in your world? (y/n) ")
+        if answer is None:
+            return None
+    done = session.step(box, world_file, now, "offer", who["id"], fact, *(["--as", kind] if kind else []))  # fmt: skip
+    if done.returncode == kernel.REFUSED:
+        raise RuntimeError(done.stderr.strip())
+    _, game, _ = gm.current(box, world)
+    subject = game["offers"][-1]["subject"]
+    answered = run(KERNEL, "seal" if answer else "decline", "--box", box, subject)
+    if answered.returncode != kernel.ALIVE:
+        raise RuntimeError((answered.stderr or answered.stdout).strip())
+    heard = session.step(box, world_file, now, "settle")
+    if heard.returncode == kernel.REFUSED:
+        raise RuntimeError(heard.stderr.strip())
+    if answer:
+        standing_by(box, now, choice, met, subject, fact)
+    print({"mine": "   It's true now, and the old one is replaced.", "both": "   It's true now, beside the old one.",
+           "old": "   It didn't happen. The old one stands."}.get(choice, "   It's true now." if answer else "   It didn't happen."))  # fmt: skip
+    return answer
+
+
+def fight(table: Path, now: str) -> bool | None:
+    """A fight from aetheris5e, played by fight.py onto the record, blow by
+    blow. True once fought, False if it couldn't be, None if the person left."""
+    listed = run(HERE / "fight.py", "list")
+    names = [line.split()[0] for line in listed.stdout.splitlines() if line.strip()]
+    descs = [line.strip().split(None, 1)[1] for line in listed.stdout.splitlines() if line.strip()]  # fmt: skip
+    if listed.returncode != kernel.ALIVE or not names:
+        print("   A fight can't start here: aetheris5e's dice aren't reachable.")
+        return False
+    print("   Which fight?")
+    k = pick_one("   Which? ", descs)
+    if k is None:
+        return None
+    done = run(HERE / "fight.py", "--table", table, "fight", names[k], "--now", now)
+    if done.returncode != kernel.ALIVE:
+        print(f"   The fight couldn't start: {(done.stderr or done.stdout).strip()}")
+        return False
+    blows = done.stdout.rstrip().splitlines()
+    print("\n⚔️  " + "\n".join(blows[:-1]))
+    rows, _ = kernel.read(table / "record" / "record.jsonl")
+    res = next(r for r in reversed(rows) if r["kind"] == "fight-end")["result"]
+    said = {"party": "The party won", "foe": "The party fell", "stalemate": "Neither side fell"}.get(res["outcome"], "It ended")  # fmt: skip
+    standing = ", ".join(res["party_survivors"] + res["foe_survivors"]) or "no one"
+    print(f"⚔️  {said} in {res['rounds']} rounds. Still standing: {standing}.")
+    print("   (What the fight means for the story is yours to say, GM.)")
+    return True
+
+
 def made_true(box: Path, rows: list[dict], game: dict) -> list[dict]:
-    """The calls and the GM's words this game, each answered, in row order."""
-    out = [a for a in game["asks"] + [o for o in game["offers"] if o.get("as") == GM_WORD]]  # fmt: skip
+    """The calls, what was brought in, and the GM's words this game, each
+    answered, in row order."""
+    out = game["asks"] + game["offers"]
     return sorted((a for a in out if gm.ruling(box, rows, a["subject"])[0] in ("sealed", "declined")), key=lambda a: a["n"])  # fmt: skip
 
 

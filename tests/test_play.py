@@ -10,12 +10,12 @@ from __future__ import annotations
 
 import collections
 import json
-import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
+import person
 import pytest
 
 BOX = Path(__file__).resolve().parents[1] / "box"
@@ -29,8 +29,11 @@ NIGHT = "2026-11-20T19:00:00Z"
 
 
 def play(home: Path, typed: str, now: str = NIGHT, *argv) -> subprocess.CompletedProcess:  # fmt: skip
-    env = {**os.environ, "DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": now}
-    return subprocess.run([sys.executable, BOX / "play.py", *argv], input=typed, capture_output=True, text=True, env=env, check=False)  # fmt: skip
+    """play.py, TYPED a line a question in order (Enter at every roll, as a
+    person throws the dice), walked away from when TYPED runs out."""
+    env = {"DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": now}
+    lines = typed.split("\n")[:-1] if typed.endswith("\n") else ([typed] if typed else [])  # fmt: skip
+    return person.typed_run([BOX / "play.py", *argv], env, lines)
 
 
 @pytest.fixture(scope="module")

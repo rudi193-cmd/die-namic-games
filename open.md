@@ -21,7 +21,11 @@ made true and said no to, and each moment can wait on a yes or a no from
 last time. And the heads-up: before the GM decides a call, or keeps their
 own word, what the table already holds true about the same thing is shown,
 with mine stands now, keep the old one, both are true (and, for the GM's own
-word, let me reword it).
+word, let me reword it). And the table's turn before each roll: every roll
+waits for "Enter: roll", where o is someone bringing something into the
+story as their character (the GM asked first, the heads-up too, and only then
+handed in), and f, in a story fights belong to (Aetheris), a fight from
+aetheris5e played onto the record.
 Everything else on this page is still to build.
 
 ## Why
@@ -135,9 +139,10 @@ next night's recap finds it.
 > still lit…
 > **Just for you, GM:** Brann wants to bring a friend.
 
-Kept out of the first five minutes on purpose: fights, 5e stats, house rules,
-the kernel, stories from files. All of it stays one step in, there when
-wanted.
+Kept out of the first five minutes on purpose: 5e stats, house rules, the
+kernel, stories from files. All of it stays one step in, there when wanted.
+Fights and offers are one keypress in: at each roll, "o" brings something
+in and "f" starts a fight, in a story fights belong to; Enter just rolls.
 
 ## Writing a story
 

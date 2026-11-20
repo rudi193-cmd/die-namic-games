@@ -10,7 +10,8 @@
     "tests/test_fight.py",
     "tests/test_play.py",
     "tests/test_write.py",
-    "tests/test_clash.py"
+    "tests/test_clash.py",
+    "tests/test_table_turn.py"
   ],
   "targets": {
     "box/willow_pin.py": "all",

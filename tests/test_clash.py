@@ -11,12 +11,12 @@ again, raises it."""
 from __future__ import annotations
 
 import json
-import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
+import person
 import pytest
 
 BOX = Path(__file__).resolve().parents[1] / "box"
@@ -33,8 +33,7 @@ EGG = [
 
 
 def run(home: Path, typed: list[str], now: str = NOW) -> subprocess.CompletedProcess:
-    env = {**os.environ, "DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": now}
-    return subprocess.run([sys.executable, BOX / "play.py"], input="".join(f"{t}\n" for t in typed), capture_output=True, text=True, env=env, check=False)  # fmt: skip
+    return person.typed_run([BOX / "play.py"], {"DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": now}, typed)  # fmt: skip
 
 
 def asking(fact: str) -> list[str]:
@@ -67,9 +66,8 @@ def rows(home: Path) -> list[dict]:
 
 def next_part(home: Path, part: list[str], then: list[str]) -> subprocess.CompletedProcess:  # fmt: skip
     """What happens next, written from write.py and played; THEN answers it."""
-    env = {**os.environ, "DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": "2026-11-27T19:00:00Z"}  # fmt: skip
-    typed = ["2", *part, "y", *then]
-    return subprocess.run([sys.executable, BOX / "write.py"], input="".join(f"{t}\n" for t in typed), capture_output=True, text=True, env=env, check=False)  # fmt: skip
+    env = {"DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": "2026-11-27T19:00:00Z"}
+    return person.typed_run([BOX / "write.py"], env, ["2", *part, "y", *then])
 
 
 def canon(home: Path) -> str:
