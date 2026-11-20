@@ -53,12 +53,15 @@ played. `game-lab/rules/COMPENDIUM.md` holds advantage and disadvantage
 advantage and inspiration for its simulated lives. For a reroll paid for:
 nothing; the game master's pile holds no passage with the word.
 
-**4. The cup and the screen roll.** Not built anywhere. This repository's
-commit `6bf7126d` states the hole (a roll seeded by a public row can be
-foreseen). Willow pull request 382, opened the same day, builds the half
-that hides the order: one close choice in five is shown with nothing
-recommended. Its prediction is kept with the pick, not committed before
-it, so the cup itself is still to build.
+**4. The cup and the screen roll.** Built, since this page was first
+written. This repository's commit `45d0303b` states the hole (a roll seeded by a
+public row can be foreseen). Willow's `dice-tower`, in pull request 384,
+closes it: `drop` puts a die in the tower with only its hash on the record,
+`out` brings it into the tray and throws from the secret, and `check` holds
+every die out to its drop. Whoever holds the die file can look under it,
+so it is the game master's screen and not yet a roll hidden from the one
+who made it; that is `blind-deal`, still an idea. Not yet reached from the
+play path.
 
 ## The characters
 
@@ -90,7 +93,7 @@ rises.
 
 ## The story
 
-**9. The GM making up a scene.** Near. `box/write.py` (commit `1c9bfdd6`)
+**9. The GM making up a scene.** Near. `box/write.py` (commit `3bee7e5c`)
 "writes the one story file every door writes". A scene made up mid-night
 would be more of that file; nothing appends to it during play.
 
@@ -140,7 +143,7 @@ remembers "every swing in a tamper-evident chain", so who is hurt and whose
 turn it is are on the record already.
 
 **18. Last night's fight on the opening screen.** The words exist. Commit
-`8edcbc23`: "session.py's recap now tells the GM how each fight kept on the
+`49955863`: "session.py's recap now tells the GM how each fight kept on the
 last night ended". The opening screen of `box/play.py` does not show that
 part of the recap. This is the smallest of the eighteen.
 
@@ -148,10 +151,10 @@ part of the recap. This is the smallest of the eighteen.
 
 | | Gaps |
 |---|---|
-| Built somewhere, to be reached from the play path | 12 |
+| Built somewhere, to be reached from the play path | 4, 12 |
 | Near: a piece exists and the join is missing | 2, 5 (things), 7, 9, 10, 17, 18 |
 | A rule or a rule's text only | 1, 3, 6, 8 |
-| Nothing found | 4, 11, 13, 14, 15, 16, and 5 for wounds |
+| Nothing found | 11, 13, 14, 15, 16, and 5 for wounds |
 
 Of open.md's three "first, for a family table": real dice (1) has the law's
 leave and a door to copy, what carries over (5) is half there, and safety
