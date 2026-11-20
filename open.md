@@ -421,6 +421,82 @@ reached from the play path.
 (what carries over). They decide most whether a room of kids can play it,
 and 5 is what makes a fight mean something.
 
+## A home box, in two places, for many families
+
+Talked through on 2026-11-20: the GM's own box at home, played from two
+places (a parent away for the night, the kids at home), and made so that
+lots of families in lots of places can take it up in their own ways. Read
+off willow's cards (what is built, with its promises) and its ideas
+(`adapters/planned.json`, the 228 waiting under willow issue #85, and the
+one-script's IDEAS.md).
+
+**The key stays the GM's.** A home box is laid on the GM's own machine, where
+its key is made and stays. Laid anywhere else (a cloud session, a borrowed
+machine) the key would be that machine's. So a home box comes as a kit the
+GM runs at home: their stories, their binder, and one script that lays the
+box with their key. Only characters go in; nothing about the people at the
+table, and nothing of the family's in any repository.
+
+Nothing below goes online on its own. What is shared travels the way a
+family already moves things: email, a USB stick, a chat message, a synced
+folder.
+
+### Built: the cards that share today
+
+| Card | For a home box |
+|---|---|
+| `share` | the night's sealed canon sent from one box to the other, signed, checkable by them; each hop a row on both records; never the folder, never the key |
+| `many-boxes` | one page across both homes' boxes, every line cited to the box it came from |
+| `diverge` | where two copies part, to the first row |
+| `tip-pin` | where a record ends, written where the box can't reach |
+| `backup`, `restore-drill`, `three-two-one` | copies that are checked, that restore, three of them, one away from home |
+| `words-es`, `-fr`, `-de`, `-pt` and ten more; `accents`; `translate` (a local model, held until sealed) | families in other languages |
+| `print --large`, `reading-level`, `nicknames` | sheets and recaps for kids and grandparents; a story a seven-year-old can read; "the dragon" finds the dragonborn |
+| `braille` | recaps for a player who reads braille |
+| `wake-gate` | asking out loud, nothing before the wake word kept |
+| `browse`, `launcher` | the GM's yes with a click, on their own machine |
+| `static-search`, `rss-out`, `calendar-out` | the story so far as a page with its own search, a feed, game night on the calendar |
+| `stack-share`, `first-run`, `starter-words` | a family's stack written out for another family; a box in one step |
+| `noised-count`, `secure-sum` | totals across families ("how many tables let Bill in?") with no one family's number knowable |
+
+Left out on purpose: `snapshot` (it fetches the web) and `mcp` (an
+assistant's reach into the box), unless a family chooses them.
+
+### Ideas: the add-ons that make it a family's own
+
+Each is a willow add-on to build (willow #85: a draft pull request that
+names it, its card and its promises, its tests), then pinned here like any
+other, so every family's stack can use it, not only this box.
+
+| Idea | What it says | For a home box |
+|---|---|---|
+| `family-box` | one box for a household: each person's own seal, and every answer showing whose | the GM's seal and a co-GM's, in one box |
+| `kids` | a box for a child: answers only from the folder chosen for them, and nothing they can approve | the kids ask "what are my character's stats?"; they never seal |
+| `record-sync` | the record on two devices through any synced folder, the chain checked on each before it's trusted | two places, literally |
+| `grant` | someone else allowed to ask part of the folder, passed on only narrower, never the seal key | the other home, or a friend's family, reading the canon |
+| `witness` | a second person's seal beside yours, for answers that need two to agree | sharing the GM's chair; the big rulings both parents make |
+| `blind-deal` | cards or dice only one seat can read, each share sealed to it, its hash on the record, opened when the hand ends | **the cup, and the GM's screen roll** (The dice, above) |
+| `beacon` | draws seeded by a public randomness beacon (drand) | the cup's online twin, for a table that opts in: dice nobody, GM included, could see ahead |
+| `play-fight5e` | tabletop combat from stat blocks on dice5e's rolls, every attack on the record | what box/fight.py and aetheris5e do, as an add-on: the kids' own stat blocks at any table |
+| `lore` | a world's facts sealed one at a time, a story checked against its canon | the valley's canon; the heads-up's home in willow |
+| `sheet-drift` | a character's numbers differing between two notes, side by side | the kids' sheets across nights and two homes |
+| `table` | one way to sit at any game: whose seat, the moves it may make, one move | who is at the table; joining and leaving |
+| `ink-story` | a branching ink story, every choice made for you from a seed on the record | stories bigger than scenes in order |
+| `speak`, `dictate` | answers read aloud; asking out loud | kids who can't read or type yet; "previously on" read by the box |
+| `kiosk` | a shared machine in a library or classroom: one box, ask only, nobody's key on it | a school club's table |
+| `paper-key` | the key printed as words on paper, typed back to restore | the GM's key kept safe where a family can't lose it |
+| `tatoeba` | a question in one language finding the same idea in another | families across languages |
+
+### The order, for a home box
+
+1. **The kit, and `share`:** a home box laid on the GM's machine with their
+   stories and binder; after a night, one command sends what the table made
+   true to the other box, one receives it. Works with what is built.
+2. **`record-sync` and `kids`:** one record on two devices, checked on
+   each; and the kids' own seat, that asks and never seals.
+3. **`blind-deal` and `witness`:** the cup and the screen roll; and a second
+   seal for the rulings two people make.
+
 ## Decided
 
 - No setup questions: straight to picking a story; a suggested one, or write
