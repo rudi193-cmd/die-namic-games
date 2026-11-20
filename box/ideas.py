@@ -139,7 +139,7 @@ def grammar(table: Path, rows: list[dict]) -> dict:
             threads.append(m.group(1).rstrip(".!?"))
     canon = [lower_first(fact.split("  [offered by")[0].split(":")[0].rstrip("."))
              for _, what, fact, *_ in session.answers(table / "record", rows, table / "worlds") if what == "sealed"]  # fmt: skip
-    g = {"who": sorted(set(who)), "npc": sorted(set(npc)), "place": sorted({p.lower() for p in places}),
+    g = {"who": sorted(set(who)), "npc": sorted(set(npc)), "place": sorted({("the " + p[4:]) if p.startswith("The ") else p for p in places}),
          "monster": monsters, "thread": threads, "canon": canon}  # fmt: skip
     g = {k: v for k, v in g.items() if v}
     origin = []

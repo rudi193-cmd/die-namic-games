@@ -649,12 +649,54 @@ def test_author_without_one_story_prints_how_to_write_one(argv):
     assert got.stderr.strip() == "python box/author.py STORY.md [--to WORLD.json]"
 
 
+HEAD = "# T\nid: t\nsetting: here\nstats: Grit\n"
+
+
+@pytest.mark.parametrize(
+    "text, says",
+    [
+        (HEAD + "base stat: one\n", "line 5: base stat is a number, as 1, not 'one'"),
+        (HEAD + "## Characters\n- Pell: Pell | a | seated\n", "line 6: '- Pell: Pell | a | seated' isn't part of a story here: an id is lower case"),
+        (HEAD + "## Places\n- the yard: Yard\n", "line 6: '- the yard: Yard' isn't part of a story here: an id is lower case, with dashes for spaces"),
+        (HEAD + "## Scene Start: Start @ yard\n", "line 5: '## Scene Start: Start @ yard' isn't part of a story here: a scene is `## Scene id: Title @ place`"),
+        (HEAD + "## Scene start: Start\n", "line 5: '## Scene start: Start' isn't part of a story here: a scene is"),
+        (HEAD + "## Places\n- yard: Yard\n## Scene a: A @ yard\n- strong: s\n", "line 8: '- strong: s' isn't part of a story here: an outcome comes under a beat"),
+        (HEAD + "## Monsters\n", "line 5: '## Monsters' isn't part of a story here: a section is ## Characters, ## Places or"),
+        (HEAD + "Opening, before any scene.\n", "line 5: 'Opening, before any scene.' isn't part of a story here\n"),
+    ],
+)  # fmt: skip
+def test_a_line_that_isnt_a_storys_says_what_it_was_likely_meant_to_be(tmp_path, text, says):  # fmt: skip
+    (tmp_path / "s.md").write_text(text)
+    got = py(HERE / "author.py", tmp_path / "s.md")
+    assert got.returncode == 2 and says in got.stderr, got.stderr
+
+
+@pytest.mark.parametrize("missing", ["places", "characters", "scenes"])
+def test_a_story_without_a_whole_part_is_refused_not_hung(tmp_path, missing):
+    """A refusal no line wrote (world.places must not be empty) climbs to the
+    top of its path and stops there."""
+    text = HEAD + "## Characters\n- pell: Pell | a | seated\n## Places\n- yard: Yard\n"
+    text += "## Scene a: A @ yard\n### Go.\nid: go\nkind: action\nby: pell\nsuggests: Grit\n- strong: s\n- weak: w\n- miss: m\n"  # fmt: skip
+    cut = {"places": "## Places\n- yard: Yard\n", "characters": "## Characters\n- pell: Pell | a | seated\n"}  # fmt: skip
+    text = (
+        text.replace(cut[missing], "") if missing in cut else text.split("## Scene")[0]
+    )
+    (tmp_path / "s.md").write_text(text)
+    got = subprocess.run([sys.executable, HERE / "author.py", tmp_path / "s.md"], capture_output=True, text=True, timeout=30, check=False)  # fmt: skip
+    assert (
+        got.returncode == 2 and f"s.md: world.{missing} must not be empty" in got.stderr
+    ), got.stderr
+
+
 def test_a_story_reads_its_keys_in_any_case_and_star_bullets(tmp_path):
-    """A markdown editor capitalises a key and turns `-` into `*`: the world
-    made is the same."""
+    """A markdown editor capitalises a key, turns `-` into `*`, or a writer
+    cases a section heading their own way: the world made is the same."""
     text = (HERE / "stories" / "wasp-nest.md").read_text()
     loose = re.sub(r"^(id|kind|by|suggests|setting|stats):", lambda m: m.group(1).title() + ":", text, flags=re.MULTILINE)  # fmt: skip
     loose = re.sub(r"^- ", "* ", loose, flags=re.MULTILINE)
+    loose = loose.replace("## Characters", "## characters").replace(
+        "## Places", "## PLACES"
+    )
     assert loose != text and "\nKind: action" in loose and "\n* pell:" in loose
     (tmp_path / "a.md").write_text(text)
     (tmp_path / "b.md").write_text(loose)
@@ -769,6 +811,20 @@ def test_a_capital_is_lowered_only_where_a_word_begins_a_sentence():
     assert ideas.lower_first("The hound") == "the hound"
     assert ideas.lower_first("NASA sent it") == "NASA sent it"
     assert ideas.lower_first("a hound") == "a hound" and ideas.lower_first("") == ""
+
+
+def test_a_place_keeps_its_name_mid_sentence_but_its_the(t):
+    """ "At Cogwen's workshop", never "At cogwen's workshop": only a place's
+    leading The is lowered, as a person's is."""
+    import ideas
+
+    t.open()
+    (t.dir / "worlds" / "wasp-nest.json").write_text(
+        py(HERE / "author.py", t.dir / "stories" / "wasp-nest.md").stdout
+    )
+    rows = kernel.read(t.box / "record.jsonl")[0]
+    places = ideas.grammar(t.dir, rows)["place"]
+    assert "Cogwen's workshop" in places and "the cellar ceiling" in places
 
 
 def test_a_world_is_written_as_one_space_indented_json(t):

@@ -47,7 +47,9 @@ The shape, in order:
 A refusal names the line in the story, wherever it was found: a key that
 isn't a story's, or a name game-master can't find (a stat, a seated
 character, a place, an earlier beat), with the nearest name it might have
-meant. Keys may be written in any case, and a list item with `*` or `-`.
+meant; a line that isn't a story's at all says what it looks meant to
+be (an id with capitals, a scene without its place). Keys and section
+headings may be written in any case, and a list item with `*` or `-`.
 
 Exit codes, the kernel's: 0 made; 2 refused.
 """
@@ -123,6 +125,20 @@ def when_of(text: str, at: int) -> dict:
     )
 
 
+def why_not(line: str, section: str) -> str:
+    """What a line that isn't part of a story was most likely meant to be."""
+    ids = "an id is lower case, with dashes for spaces, as old-vell"
+    if line.lower().startswith("## scene"):
+        return f": a scene is `## Scene id: Title @ place`, and {ids}"
+    if OUTCOME.match(line):
+        return ": an outcome comes under a beat (### The prompt)"
+    if re.match(r"^[-*] [^:]+:", line) and section in ("characters", "places"):
+        return f": {ids}"
+    if line.startswith("## "):
+        return ": a section is ## Characters, ## Places or ## Scene id: Title @ place"
+    return ""
+
+
 def read(text: str, lines: dict | None = None) -> dict:
     """The world a story's markdown writes, or StoryError naming the line.
 
@@ -138,7 +154,7 @@ def read(text: str, lines: dict | None = None) -> dict:
             continue
         if line.startswith("# ") and section == "head" and "title" not in world:
             world["title"] = line[2:].strip()
-        elif line in ("## Characters", "## Places"):
+        elif line.lower() in ("## characters", "## places"):
             section, scene, beat = line[3:].lower(), None, None
         elif m := SCENE.match(line):
             scene = {"id": m.group(1), "title": m.group(2), "place": m.group(3), "opening": [], "beats": []}  # fmt: skip
@@ -172,6 +188,8 @@ def read(text: str, lines: dict | None = None) -> dict:
                         f"line {at}: {key!r} isn't a story's: {', '.join(head)}"
                     )
                 lines[f"world.{head[key]}"] = at
+                if key == "base stat" and not re.fullmatch(r"-?\d+", value):
+                    raise StoryError(f"line {at}: base stat is a number, as 1, not {value!r}")  # fmt: skip
                 world[head[key]] = listed(value) if key in ("stats", "offers") else int(value) if key == "base stat" else value  # fmt: skip
             else:
                 fields = {
@@ -189,10 +207,10 @@ def read(text: str, lines: dict | None = None) -> dict:
                     beat.setdefault("proposes", {})["proposed_by" if key == "proposed by" else "fact"] = value  # fmt: skip
                 else:
                     raise StoryError(f"line {at}: {key!r} isn't a beat's: id, kind, by, suggests, when, proposed by, fact")  # fmt: skip
-        elif scene is not None and beat is None:
+        elif scene is not None and beat is None and not OUTCOME.match(line):
             scene["opening"].append(line)
         else:
-            raise StoryError(f"line {at}: {line[:60]!r} isn't part of a story here")
+            raise StoryError(f"line {at}: {line[:60]!r} isn't part of a story here{why_not(line, section)}")  # fmt: skip
     world.setdefault("base_stat", 1)
     return world
 
@@ -205,7 +223,8 @@ def line_of(why: str, lines: dict) -> int | None:
     while path:
         if path in lines:
             return lines[path]
-        path = re.sub(r"(\.[a-z_]+|\[\d+\])$", "", path)
+        up = re.sub(r"(\.[a-z_]+|\[\d+\])$", "", path)
+        path = "" if up == path else up
     return None
 
 
