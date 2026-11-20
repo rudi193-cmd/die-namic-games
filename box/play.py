@@ -28,8 +28,9 @@ the binder, in the GM's own words, under sessions/ by the date, where the
 recap reads the GM's notes. Then "That's our night?": a yes hands in the
 session seal and seals it, and the record is checked.
 
-Not here yet (open.md has them): writing your own story, the cup for the
-dice, a blank moment handed to the GM, the heads-up before a call that
+"Write your own" goes to box/write.py.
+
+Not here yet (open.md has them): the cup for the dice, a blank moment handed to the GM, the heads-up before a call that
 clashes with an earlier one, fights, offers.
 
 Exit codes, the kernel's: 0 done; 42 left with a call or the night waiting;
@@ -153,9 +154,7 @@ def pick(table: Path, rows: list[dict]) -> tuple[dict, Path] | None:
         if got == "" and not played:
             return offer[0], offer[1]
         if got.lower() == "w":
-            print("  Writing your own is coming next. For now, a story can be written")
-            print("  as a text file: see box/stories/wasp-nest.md, then box/author.py.")
-            continue
+            return "write"
         if got.isdigit() and 1 <= int(got) <= len(found):
             w, f, _ = found[int(got) - 1]
             return w, f
@@ -164,6 +163,11 @@ def pick(table: Path, rows: list[dict]) -> tuple[dict, Path] | None:
 
 def names(world: dict) -> dict:
     return {c["id"]: c["name"] for c in world["characters"]}
+
+
+def prompt(world: dict, row: dict) -> str:
+    """The moment's own words, as the story has them, for a beat or an ask."""
+    return next((b["prompt"] for sc, b in gm.flat(world) if (sc["id"], b["id"]) == (row.get("scene"), row.get("beat"))), "")  # fmt: skip
 
 
 def said_roll(world: dict, rows: list[dict], beat: dict) -> str:
@@ -180,7 +184,7 @@ def your_call(box: Path, world: dict, game: dict) -> bool | None:
     the record's by the kernel. None if the person left it waiting."""
     a = game["asks"][-1]
     who = names(world).get(a.get("proposed_by"), a.get("proposed_by"))
-    print(f"\n✋ Your call, GM. {who} says:")
+    print(f"\n✋ Your call, GM. {prompt(world, a)}\n   {who} says:")
     print(f"   {a['fact']}")
     answer = yes("   Is that true in your world? (y/n) ")
     if answer is None:
@@ -217,7 +221,7 @@ def night(table: Path, world: dict, world_file: Path, now: str) -> int:
         if sc["id"] != scene:
             scene = sc["id"]
             print(f"\n-- {sc['title']} --")
-            if not any(x["scene"] == sc["id"] for x in game["beats"]):
+            if sc["opening"] and not any(x["scene"] == sc["id"] for x in game["beats"]):
                 print("\n".join(sc["opening"]))
         asked = [a for a in game["asks"] if (a["scene"], a["beat"]) == (sc["id"], b["id"])]  # fmt: skip
         if b["kind"] == "action":
@@ -247,7 +251,7 @@ def night(table: Path, world: dict, world_file: Path, now: str) -> int:
         rows, game, _ = gm.current(box, world)
         for beat in game["beats"][shown:]:
             if beat["beat_kind"] == "action":
-                print(f"\n{said_roll(world, rows, beat)}\n{beat['text']}")
+                print(f"\n{prompt(world, beat)}\n{said_roll(world, rows, beat)}\n{beat['text']}")  # fmt: skip
         shown = len(game["beats"])
     return end(table, world, game, now)
 
@@ -338,6 +342,10 @@ def main(argv: list[str]) -> int:
         picked = pick(table, rows)
         if picked is None:
             return kernel.ESCALATE
+        if picked == "write":
+            import write
+
+            return write.compose(table, now)
         return night(table, picked[0], picked[1], now)
     except RuntimeError as e:
         print(f"\nSomething went wrong: {e}", file=sys.stderr)

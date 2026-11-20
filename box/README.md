@@ -35,6 +35,7 @@ refuses one whose files differ.
 | [open_table.py](open_table.py) | the box's code: lays a box, and runs its prep sheet and its check | the kernel and the add-ons above |
 | [session.py](session.py) | the GM's bookkeeping, done by code: plays a story as far as it goes without the GM, and says what the table made true | game-master |
 | [play.py](play.py) | the way in: no setup, straight to the stories; a night played in plain words ("rolled 12. Great!", "Your call, GM"), ended with a note and the GM's yes; next time opens on "Previously on..." ([../open.md](../open.md)) | session.py, game-master, the kernel |
+| [write.py](write.py) | write your own: what it's about (or an idea from the box's words), four small boxes, then the moments in plain words; it writes the story file author.py reads and the world game-master checks, then plays it | author.py, ideas.py, play.py |
 | [fight.py](fight.py) | a 5e fight from the-table's [aetheris5e](../the-table/aetheris5e/), blow by blow on the record: initiative, attacks against AC, crits, the six stat blocks and the four encounters, its dice seeded by the row before; `check` plays every fight again and refuses one edited after the fact | aetheris5e's engine, with willow-bot's one-script for its dice, and the kernel |
 
 ## Laying the box

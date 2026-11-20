@@ -125,9 +125,10 @@ def test_next_time_it_opens_on_previously_and_the_gms_own_note(home):
     assert "Pick up where you left off" in rest
 
 
-def test_write_your_own_says_it_is_coming(home):
+def test_write_your_own_opens_the_writer(home):
     got = play(home, "w\n")
-    assert "Writing your own is coming next." in got.stdout and not answers(home)
+    assert "✏️  Let's write a story." in got.stdout and "Nothing was written." in got.stdout  # fmt: skip
+    assert got.returncode == 42 and not answers(home)
 
 
 def test_a_number_that_isnt_a_story_is_asked_again(home):

@@ -8,7 +8,13 @@ the design, talked through on 2026-11-20.
 opens on the stories with no setup, offers The Lantern Fair when nothing has
 been played, plays it with rolls and "Your call, GM" in these words, ends the
 night with a note and the GM's yes, and opens next time on "Previously on..."
-and the GM's own note. Everything else on this page is still to build.
+and the GM's own note. And the writing path, in a plain terminal:
+`python box/write.py`, or "Write your own" from play: what it's about (or an
+idea dealt from the box's words), four small boxes, the moments in plain
+words, written as the one story file author.py reads, then played. A blank
+outcome is written as "(GM: you say what happens.)", said aloud on the
+night; keeping what the GM says on the record is still to build.
+Everything else on this page is still to build.
 
 ## Why
 
@@ -323,8 +329,10 @@ first.
   bring in.
 - **"Mine stands now":** a ruling that replaces an earlier one, kept as
   such, read by the recap.
-- **The writing form:** the four boxes and the moments, writing the story
-  format.
+- **The writing form in the browser.** The terminal version is built:
+  `box/write.py`.
+- **The story growing from play:** "Write what happens next", a next chapter
+  that starts from what the table made true.
 - **The cup:** table dice committed when the moment is posed and revealed
   after the GM's call, in willow's dice, and in `box/fight.py` after them.
 
