@@ -86,7 +86,9 @@ def test_a_whole_night_each_call_answered_once_and_ended_on_the_gms_yes(home):
     assert answers(home) == collections.Counter({("seal", s): 1 for s in asked + ends})  # fmt: skip
     assert got.stdout.count("It's true now.") == 2
     assert "🌙 End of the night\nTonight, your table made true:\n  • " in got.stdout
-    assert got.stdout.rstrip().endswith("Saved and checked: nothing can be changed after the fact. Good night.")  # fmt: skip
+    assert "Saved and checked: nothing can be changed after the fact.\n" in got.stdout
+    assert "🌱 Your story grew. Write what happens next? (y/n)" in got.stdout
+    assert got.stdout.rstrip().endswith("Good night.")  # not now: no one typed yes
     page = home / "table" / "pile" / "sessions" / "2026-11-20.md"
     assert page.read_text() == "# 2026-11-20\n\nBrann wants to bring a friend\n"
     assert subprocess.run([sys.executable, willow_pin.root() / "kernel.py", "verify", "--box", home / "table" / "record"], capture_output=True, check=False).returncode == 0  # fmt: skip

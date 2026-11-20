@@ -17,6 +17,15 @@ The ideas offered when stuck are dealt from the box's own words by ideas.py.
 No model is asked: suggestions from a model are off unless the writer asks,
 and this doesn't ask.
 
+**What happens next.** A story whose table has answered a call can go on:
+the end of a night offers it, and this asks "a new story, or what happens
+next in…". The next part keeps everyone from last time (the same ids, who
+plays them, their strengths), the same place unless said, and shows what
+the table made true and said no to. Each moment can always happen, or only
+if one of last time's calls came out yes, or no: game-master's own
+`when: sealed story::scene::beat is sealed` (or `declined`). One moment has
+to happen whatever was decided, so the next part is never empty.
+
 A moment's outcome left blank is written as "(GM: you say what happens.)",
 so the story plays and the GM says it aloud. Keeping what the GM says on the
 record is still to build (open.md, the GM's moments).
@@ -113,13 +122,21 @@ def ask_story(table: Path) -> dict:
             about = dealt[pick] if pick < len(dealt) else must("What's it about? ", "A sentence is enough.")  # fmt: skip
     title = must("\nWhat's it called? ", "A story needs a name.")
     place = must("Where does it happen? ", "Somewhere for it to happen: a garden, a ship, a kitchen.")  # fmt: skip
-    cast = []
     print("\nWho's in it? (a name, then a few words: Mira, a kid who likes bugs)")
+    cast = ask_cast([], "  The first one: ")
+    given = said(f"\nWhat are your heroes good at? (press Enter for {', '.join(STRENGTHS)}) ")  # fmt: skip
+    strengths = [s.strip().title() for s in given.split(",") if s.strip()] or STRENGTHS
+    story = {"about": about, "title": title, "place": place, "cast": cast, "strengths": strengths, "moments": []}  # fmt: skip
+    return ask_moments(story, [])
+
+
+def ask_cast(cast: list[dict], first: str) -> list[dict]:
+    """People added to CAST until Enter, each with whether the table plays them."""
     while True:
-        who = said("  Someone: " if cast else "  The first one: ")
+        who = said(first if not cast else "  Someone: ")
         if not who:
             if any(c["seat"] for c in cast):
-                break
+                return cast
             print("  Someone at the table needs to play someone.")
             continue
         name, _, role = (p.strip() for p in who.partition(","))
@@ -131,16 +148,28 @@ def ask_story(table: Path) -> dict:
             raise Left
         cast.append({"name": name, "role": role, "seat": seat})
         print("  (press Enter when that's everyone)")
-    given = said(f"\nWhat are your heroes good at? (press Enter for {', '.join(STRENGTHS)}) ")  # fmt: skip
-    strengths = [s.strip().title() for s in given.split(",") if s.strip()] or STRENGTHS
-    story = {"about": about, "title": title, "place": place, "cast": cast, "strengths": strengths, "moments": []}  # fmt: skip
+
+
+def ask_moments(story: dict, calls: list[dict]) -> dict:
+    """The moments, one at a time; with CALLS (last time's), each may wait on one."""
     while True:
         kinds = ["Someone tries something", "A question for the GM"] + (["That's the story"] if story["moments"] else [])  # fmt: skip
         print("\nWhat happens next?" if story["moments"] else "\nWhat happens first?")
         kind = choose("Which? ", kinds)
         if kind == 2:
+            if calls and all(m.get("when") for m in story["moments"]):
+                print("  Every moment waits on last time; add one that happens whatever was decided.")  # fmt: skip
+                continue
             return story
-        story["moments"].append(ask_try(story) if kind == 0 else ask_question(story))
+        moment = ask_try(story) if kind == 0 else ask_question(story)
+        if calls:
+            print("Does this always happen, or only if…?")
+            ifs = [None] + [
+                (c["key"], v) for c in calls for v in ("sealed", "declined")
+            ]
+            said_ = ["Always"] + [f"Only if the table said {'yes' if v == 'sealed' else 'no'} to: {c['fact']}" for c in calls for v in ("sealed", "declined")]  # fmt: skip
+            moment["when"] = ifs[choose("Which? ", said_)]
+        story["moments"].append(moment)
 
 
 def ask_try(story: dict) -> dict:
@@ -172,18 +201,22 @@ def sentence(text: str) -> str:
 
 def markdown(story: dict, sid: str) -> str:
     """The story file, in the shape author.py reads."""
-    ids: set = set()
-    who = {c["name"]: slug(c["name"], ids) for c in story["cast"]}
-    pid = slug(story["place"], ids)
+    ids: set = {c["id"] for c in story["cast"] if c.get("id")} | ({story["place_id"]} if story.get("place_id") else set())  # fmt: skip
+    who = {c["name"]: c.get("id") or slug(c["name"], ids) for c in story["cast"]}
+    pid = story.get("place_id") or slug(story["place"], ids)
+    place = story["place"] if story.get("place_id") else sentence(story["place"])[:-1]
     lines = ["<!-- written with box/write.py -->", f"# {story['title']}", "", f"id: {sid}",
              f"setting: {sentence(story['about'] or 'in ' + story['place'])}",
              f"stats: {', '.join(story['strengths'])}", "base stat: 1", "", "## Characters", ""]  # fmt: skip
     for c in story["cast"]:
-        lines.append(f"- {who[c['name']]}: {c['name']} | {c['role']}" + (" | seated" if c["seat"] else ""))  # fmt: skip
-    lines += ["", "## Places", "", f"- {pid}: {sentence(story['place'])[:-1]}", ""]
-    lines += [f"## Scene start: {sentence(story['place'])[:-1]} @ {pid}", ""]
+        stats = ", ".join(f"{k} {v}" for k, v in c.get("stats", {}).items())
+        lines.append(f"- {who[c['name']]}: {c['name']} | {c['role']}" + (" | seated" if c["seat"] else "") + (f" | {stats}" if stats else ""))  # fmt: skip
+    lines += ["", "## Places", "", f"- {pid}: {place}", ""]
+    lines += [f"## Scene start: {place} @ {pid}", ""]
     for i, m in enumerate(story["moments"], 1):
         lines += [f"### {m['prompt']}", "", f"id: m{i}", f"kind: {m['kind']}"]
+        if m.get("when"):
+            lines.append(f"when: sealed {m['when'][0]} is {m['when'][1]}")
         if m["kind"] == "action":
             lines += [f"by: {who[m['by']]}", f"suggests: {m['suggests']}", ""]
             lines += [f"- {k}: {m['outcomes'][k]}" for k, _ in OUTCOMES]
@@ -193,9 +226,65 @@ def markdown(story: dict, sid: str) -> str:
     return "\n".join(lines)
 
 
-def write(table: Path) -> tuple[dict, Path]:
-    """A story asked for, written into the box, and its world made: (world, file)."""
-    story = ask_story(table)
+def calls(table: Path, world_id: str) -> list[dict]:
+    """The calls the GM answered in a story, each as it last stood:
+    {key: story::scene::beat, fact, verdict: sealed or declined}."""
+    box = table / "record"
+    rows, _ = kernel.read(box / "record.jsonl")
+    out: dict = {}
+    for g in play.gm.games(rows):
+        if g["open"].get("world") != world_id:
+            continue
+        for a in g["asks"]:
+            what, _ = play.gm.ruling(box, rows, a["subject"])
+            if what in ("sealed", "declined"):
+                out[f"{world_id}::{a['scene']}::{a['beat']}"] = {"fact": a["fact"], "verdict": what}  # fmt: skip
+    return [{"key": k, **v} for k, v in out.items()]
+
+
+def grown(table: Path) -> list[dict]:
+    """The stories whose table has answered a call: the ones that can go on."""
+    out = []
+    for f in sorted((table / "worlds").glob("*.json")):
+        try:
+            w = play.gm.load_world(f)
+        except play.gm.WorldError:
+            continue
+        if calls(table, w["id"]):
+            out.append(w)
+    return out
+
+
+def ask_next(table: Path, world: dict) -> dict:
+    """What happens next in WORLD: its people and strengths carried over,
+    and each moment free to wait on how last time's calls came out."""
+    said_ = calls(table, world["id"])
+    print(f"✏️  What happens next in {world['title']}.\n")
+    yes_ = [c["fact"] for c in said_ if c["verdict"] == "sealed"]
+    no_ = [c["fact"] for c in said_ if c["verdict"] == "declined"]
+    if yes_:
+        print(
+            "Last time, your table made true:\n" + "\n".join(f"  • {f}" for f in yes_)
+        )
+    if no_:
+        print("And said no to:\n" + "\n".join(f"  • {f}" for f in no_))
+    title = said(f"\nWhat's this part called? (press Enter for {world['title']}: What Happens Next) ", f"{world['title']}: What Happens Next")  # fmt: skip
+    last = {p["id"]: p["name"] for p in world["places"]}
+    here = world["scenes"][-1]["place"]
+    where = said(f"Where does it happen now? (press Enter for {last[here].lower()}) ")
+    about = said("What's it about now? (a sentence, or press Enter) ")
+    cast = [{"id": c["id"], "name": c["name"], "role": c["role"], "seat": c["seat"], "stats": c["stats"]} for c in world["characters"]]  # fmt: skip
+    print(f"\nEveryone from last time is here: {', '.join(c['name'] for c in cast)}.")
+    print("Anyone new? (a name, then a few words; press Enter if not)")
+    ask_cast(cast, "  Someone: ")
+    story = {"about": about or f"What happens next, after {world['title']}", "title": title,
+             "place": where or last[here], "place_id": None if where else here,
+             "cast": cast, "strengths": list(world["stats"]), "moments": []}  # fmt: skip
+    return ask_moments(story, said_)
+
+
+def write(table: Path, story: dict) -> tuple[dict, Path]:
+    """STORY written into the box, and its world made: (world, file)."""
     taken = {p.stem for p in (table / "worlds").glob("*.json")} | {p.stem for p in (table / "stories").glob("*.md")}  # fmt: skip
     sid = slug(story["title"], set(taken))
     text = markdown(story, sid)
@@ -211,10 +300,19 @@ def write(table: Path) -> tuple[dict, Path]:
     return world, made
 
 
-def compose(table: Path, now: str) -> int:
-    """Write a story, then play it if the writer wants to."""
+def compose(table: Path, now: str, after: dict | None = None) -> int:
+    """Write a story (what happens next in AFTER, when given; else a choice of
+    a new one or what happens next in one the table has answered calls in),
+    then play it if the writer wants to."""
     try:
-        world, made = write(table)
+        if after is None:
+            going = grown(table)
+            if going:
+                print("What would you like to write?")
+                pick = choose("Which? ", ["A new story"] + [f"What happens next in {w['title']}" for w in going])  # fmt: skip
+                after = going[pick - 1] if pick else None
+        story = ask_next(table, after) if after else ask_story(table)
+        world, made = write(table, story)
     except Left:
         print("Nothing was written. Run this again to start a story.")
         return kernel.ESCALATE

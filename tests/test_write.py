@@ -152,3 +152,82 @@ def test_the_story_needs_a_moment_before_it_can_end(home):
 def test_it_takes_no_arguments(home):
     got = run("write.py", home, [], "story.md")
     assert got.returncode == 2 and got.stderr.strip() == "python box/write.py"
+
+
+NEXT = [
+    "",
+    "",
+    "",  # its name, the same place, what it's about
+    "Pip, a baby dragon",
+    "n",
+    "",  # someone new, then that's everyone
+    "1",
+    "Mira feeds the hatchling.",
+    "3",
+    "Pip purrs like a kettle.",
+    "",
+    "Pip sneezes fire.",
+    "2",  # only if yes
+    "1",
+    "Mira hides the egg.",
+    "2",
+    "He walks right past.",
+    "He stops.",
+    "",
+    "1",  # always
+    "3",  # that's the story
+]
+
+
+def night_then_next(home: Path, answer: str, then: list[str]) -> subprocess.CompletedProcess:  # fmt: skip
+    """The egg written and played, the GM's ANSWER to its call, the night
+    ended, and what happens next written by THEN."""
+    return run("play.py", home, ["w", *EGG, "y", answer, "", "y", "y", *then])
+
+
+def test_a_night_whose_calls_were_answered_offers_what_happens_next(home):
+    got = night_then_next(home, "y", [*NEXT, "y", "", "y"])
+    assert got.returncode == 0, got.stderr
+    assert "🌱 Your story grew. Write what happens next? (y/n)" in got.stdout
+    assert "Last time, your table made true:\n  • The egg is a real dragon's." in got.stdout  # fmt: skip
+    assert "Everyone from last time is here: Mira, The Groundskeeper." in got.stdout
+    story = (
+        table(home) / "stories" / "the-garden-egg-what-happens-next.md"
+    ).read_text()
+    assert "# The Garden Egg: What Happens Next\n" in story
+    assert "- mira: Mira | a kid who likes bugs | seated\n" in story  # the same ids, carried  # fmt: skip
+    assert "- pip: Pip | a baby dragon\n" in story
+    assert "- the-school-garden: The school garden\n" in story
+    assert "when: sealed the-garden-egg::start::m2 is sealed\n" in story
+    assert story.count("when:") == 1
+    nxt = got.stdout.split("is written: 2 moments.\nPlay it now?")[-1]
+    assert "Mira feeds the hatchling.\n🎲 Mira tries Kind" in nxt  # the table said yes
+    assert "Mira hides the egg.\n🎲 Mira tries Clever" in nxt
+
+
+def test_a_moment_that_waits_on_a_yes_isnt_played_after_a_no(home):
+    got = night_then_next(home, "n", [*NEXT, "y", "", "y"])
+    assert "And said no to:\n  • The egg is a real dragon's." in got.stdout
+    nxt = got.stdout.split("is written: 2 moments.\nPlay it now?")[-1]
+    assert "Mira feeds the hatchling." not in nxt and "Mira hides the egg.\n🎲" in nxt
+
+
+def test_every_moment_waiting_on_last_time_is_asked_for_one_that_doesnt(home):
+    waits = list(NEXT)
+    waits[19] = "3"  # the second moment: only if no
+    got = night_then_next(home, "y", [*waits, "1", "Mira waves.", "1", "Hi.", "Hm.", "Oh.", "1", "3", "n"])  # fmt: skip
+    assert "Every moment waits on last time; add one that happens whatever was decided." in got.stdout  # fmt: skip
+    assert got.returncode == 0, got.stderr
+
+
+def test_write_offers_what_happens_next_in_a_story_that_has_answered_calls(home):
+    night_then_next(home, "y", [])  # left at the offer's first question
+    got = run("write.py", home, ["2", *NEXT, "n"])
+    assert "What would you like to write?\n  1. A new story\n  2. What happens next in The Garden Egg\n" in got.stdout  # fmt: skip
+    assert got.returncode == 0 and (table(home) / "worlds" / "the-garden-egg-what-happens-next.json").is_file()  # fmt: skip
+
+
+def test_a_night_with_no_answered_call_ends_without_the_offer(home):
+    got = run("play.py", home, ["w", *EGG[:9], "1", "She picks up the egg.", "3", "a", "b", "c", "3", "y", "", "y"])  # fmt: skip
+    assert got.returncode == 0, got.stderr
+    assert "Your story grew" not in got.stdout and got.stdout.rstrip().endswith("Good night.")  # fmt: skip

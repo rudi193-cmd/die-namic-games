@@ -28,7 +28,8 @@ the binder, in the GM's own words, under sessions/ by the date, where the
 recap reads the GM's notes. Then "That's our night?": a yes hands in the
 session seal and seals it, and the record is checked.
 
-"Write your own" goes to box/write.py.
+"Write your own" goes to box/write.py; and when a night's calls were
+answered, its end offers "Write what happens next", which goes there too.
 
 Not here yet (open.md has them): the cup for the dice, a blank moment handed to the GM, the heads-up before a call that
 clashes with an earlier one, fights, offers.
@@ -291,7 +292,14 @@ def end(table: Path, world: dict, game: dict, now: str) -> int:
     held = run(KERNEL, "verify", "--box", box)
     if held.returncode != kernel.ALIVE:
         raise RuntimeError((held.stderr or held.stdout).strip())
-    print("Saved and checked: nothing can be changed after the fact. Good night.")
+    print("Saved and checked: nothing can be changed after the fact.")
+    answered = [a for a in game["asks"] if gm.ruling(box, rows, a["subject"])[0] in ("sealed", "declined")]  # fmt: skip
+    if answered and yes("\n🌱 Your story grew. Write what happens next? (y/n) "):
+        import write
+
+        print()
+        return write.compose(table, now, after=world)
+    print("Good night.")
     return kernel.ALIVE
 
 

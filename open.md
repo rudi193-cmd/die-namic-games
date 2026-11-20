@@ -13,7 +13,11 @@ and the GM's own note. And the writing path, in a plain terminal:
 idea dealt from the box's words), four small boxes, the moments in plain
 words, written as the one story file author.py reads, then played. A blank
 outcome is written as "(GM: you say what happens.)", said aloud on the
-night; keeping what the GM says on the record is still to build.
+night; keeping what the GM says on the record is still to build. And "Write
+what happens next", offered at the end of a night whose calls were
+answered: the next part keeps its people and place, shows what the table
+made true and said no to, and each moment can wait on a yes or a no from
+last time.
 Everything else on this page is still to build.
 
 ## Why
@@ -331,8 +335,6 @@ first.
   such, read by the recap.
 - **The writing form in the browser.** The terminal version is built:
   `box/write.py`.
-- **The story growing from play:** "Write what happens next", a next chapter
-  that starts from what the table made true.
 - **The cup:** table dice committed when the moment is posed and revealed
   after the GM's call, in willow's dice, and in `box/fight.py` after them.
 
