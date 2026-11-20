@@ -1,0 +1,272 @@
+# Opening Die-Namic
+
+How Die-Namic should open for someone who has never seen any of it: a parent,
+a teacher, a kid at the table, someone who has never typed a command. This is
+the design, talked through on 2026-11-20. Nothing on this page is built yet;
+what it builds on is.
+
+## Why
+
+Willow's governance is done and it holds: the record, the seal, the key that
+is only the person's, the machine that proposes and never decides. The next
+proof is that all of it can work **without being seen**, so that anyone can
+take a stack from willow and make it theirs.
+
+Willow's demos already show many stacks doing many things over one kernel
+and one law. Die-Namic should be the one that is **easiest to walk into**: a
+game is something anyone can sit down to, at any age. If the most
+approachable stack runs the full governance underneath, unchanged, no stack
+has a reason to be hard to walk into.
+
+**The test for every change:** can someone who has never seen this sit down
+and play a night without help?
+
+## The rule underneath
+
+The governance stays exactly as strict. Only its words and its doors change.
+
+- Nothing is true at the table until the game master says so.
+- A player, a script or a model may suggest; only the GM's yes makes it so.
+- Every roll is honest, every night can be checked, and nothing can be
+  changed after the fact.
+- Nothing about the people at the table is written down. The seats are the
+  story's characters.
+
+What the GM sees is table language. What the record keeps is the seal, signed
+with the GM's key, as it is now.
+
+## The words
+
+| Under the hood | At the table |
+|---|---|
+| a proposal waiting on the seal | **your call** |
+| seal | **yes, it's true** |
+| decline | **no, it didn't happen** |
+| sealed canon | **what your table made true** |
+| session seal | **end of the night: that's our night** |
+| `proposal:069360c5…` (a hash) | a button, or a short name |
+| beat | a moment |
+| action beat | someone tries something |
+| decision beat | a question for the GM |
+| strong / weak / miss | it goes great / it sort of works / it goes wrong |
+| `when:` | only if… |
+| seated | someone at the table plays them |
+| stats | what your heroes are good at |
+
+"Suggested" and "your call" keep the one thing that matters: the GM decides.
+Words like "saved" or "accepted" would blur it, and are not used.
+
+The kernel's own names (seal, proposal, row, the record) stay where they are:
+in the kernel, the record, willow's law and the code. They are precise, and
+the law rests on them.
+
+## The first five minutes
+
+No setup questions. Opening Die-Namic goes straight to a story.
+
+**If the GM has stories** (their own, or ones played before):
+
+> **Pick up where you left off**
+> 🏮 The Lantern Fair: last played Thursday · *Previously on…*
+> ⚙️ The Clockwork Cellar
+> ✏️ Write a new one
+
+**If there are none:**
+
+> **Let's start a story.**
+> 🏮 **Try this one:** *The Lantern Fair*, a night market and a missing light.
+> Short and gentle, good for a first night. **[ Play it ]**
+> *Or pick another:* ⚙️ The Clockwork Cellar · 🌊 Aetheris · 🐝 The Wasp Nest
+> ✏️ **Write your own:** a few lines is enough to start
+
+One tap and they are playing. Without asking:
+
+- The box sets itself up the first time a story is opened: the record, the
+  key (kept outside the box), the binder.
+- The table is named for itself (the date, or the story); it can be renamed
+  later.
+- The house rules wait in a "for later" pile and never block a first game.
+
+**Playing.** The table hears the story and the dice; only the GM sees the
+buttons.
+
+> 🎲 **Juno tries Wit**: rolled 12. **Great!**
+> *She finds the nest, and every spring is woven into it like straw.*
+>
+> ✋ **Your call, GM:** *Old Vell's lamp is in the nest, and it's still lit.*
+> Is that true in your world?
+> **[ Yes, it's true ]**  **[ No, it didn't happen ]**
+
+**Ending the night.**
+
+> 🌙 **End of the night**
+> Tonight, your table made true:
+> • Old Vell's lamp is in the nest, still lit.
+> • Cogwen is building a clockwork friend.
+> Anything to remember for next time? → *Brann wants to bring a friend*
+> **[ That's our night ✓ ]**
+> *Saved and checked: nothing can be changed after the fact.*
+
+That one button is the session seal. The note goes into the binder, so the
+next night's recap finds it.
+
+**Next time, the first thing they see:**
+
+> **Previously on…** *(read this out loud)*: Old Vell's lamp is in the nest,
+> still lit…
+> **Just for you, GM:** Brann wants to bring a friend.
+
+Kept out of the first five minutes on purpose: fights, 5e stats, house rules,
+the kernel, stories from files. All of it stays one step in, there when
+wanted.
+
+## Writing a story
+
+Writing a story is the same move as playing one: the helper suggests, the
+writer decides. The writer is the GM of their own story.
+
+**1. What's it about?** One line, or none.
+
+> What's it about? → *"a kid who finds a dragon egg in the school garden"*
+> *Stuck? Try one of these:* 🥚 something hatches · 🗝️ a door that wasn't
+> there yesterday · 🎪 the fair comes to town
+
+The ideas are dealt from the box's own words. **Model suggestions are off**
+unless the writer asks for them.
+
+**2. Four small boxes.**
+
+> **What's it called?** → *The Garden Egg*
+> **Where does it happen?** → *the school garden*
+> **Who's in it?** → *Mira, a kid who likes bugs* · *[ + someone else ]*
+> (each: ☐ someone at the table plays them · ☐ the GM plays them)
+> **What are your heroes good at?** → *Brave, Clever, Kind* (filled in;
+> change them if you like)
+
+The ids are made from the names. Nobody types `old-vell`.
+
+**3. What happens?** One moment at a time, two kinds:
+
+> 🎲 **Someone tries something.** Who? → *Mira* · What? → *She picks up the
+> egg.* · Using? → *Kind*
+> **If it goes great:** *It's warm, and something inside taps back.*
+> **If it sort of works:** *It's warm, and it cracks a little. Uh oh.*
+> **If it goes wrong:** *The groundskeeper sees her.*
+> *(Leave one blank and the GM makes it up on the night.)*
+
+> ❓ **A question for the GM.** *Is the egg a real dragon?* → if yes:
+> *"The egg is a real dragon's."*
+
+**[ + another moment ]**  **[ + only if… ]**
+
+**4. Play it.** The button lights up as soon as there is a title, a place,
+one character someone plays, and one moment. Everything else has a default.
+A story is never refused with a line number here; what's missing is said
+where it is: *"This moment needs what happens if it goes wrong, or leave it
+for the GM."*
+
+**5. The story grows from play.**
+
+> 🌱 **Your story grew.** Tonight your table made true: *the egg is a real
+> dragon's.* **[ Write what happens next ]**
+
+**Three doors, one story file:**
+
+| Who | Door | What it is |
+|---|---|---|
+| a first-timer, a kid, a parent | the boxes and moments above | a form that writes the story format |
+| someone who likes typing | a plain text file in the story format | `box/author.py` |
+| a serious writer | story-timeline, the SAFE App Store's writer's workbench | its `export-story` feeds author.py; `import-canon` brings play back |
+
+## The GM's moments
+
+**A blank outcome is fine.** The box rolls, says how it went, and hands the
+moment to the GM:
+
+> 🎲 **Mira tries Kind**: rolled 8. **It sort of works.**
+> ✋ **GM, what happens?** *(say it, or type a line)*
+
+The roll still matters: it gives the GM something to build on. This is the
+thesis from ai-game-master: the machine carries the dice and the memory, the
+person does the part that was worth doing.
+
+**What the GM types and says yes to is the rule of the table at that
+moment.** It is canon, dated, on the record.
+
+## When the GM's word meets an earlier one
+
+The GM's word is the word, so two true things can meet: "Old Vell's lamp is
+lost" on one night, "Old Vell never had a lamp" on another. Each was true
+when it was said.
+
+The heads-up comes **in the moment, before the GM decides**, so the decision
+is an informed one:
+
+> ✋ **GM, what happens?** → *"Old Vell never had a lamp. It was always
+> Cogwen's."*
+> 💡 **Before you decide:** on Nov 14 your table made this true:
+> *"Old Vell's lost lamp is in the nest, and it's still lit."*
+> **[ Mine stands now ]** · **[ Keep the old one ]** · **[ Both are true ]**
+> · **[ Let me reword it ]**
+
+- **Mine stands now:** the new word is the rule from tonight; the old one is
+  kept, marked as replaced. Nothing is erased.
+- **Keep the old one:** the new line is dropped, and play goes on.
+- **Both are true:** they don't clash after all; the pair isn't raised
+  again.
+- **Let me reword it:** the GM makes it fit.
+
+Only the GM sees it. The machine never picks a side. The recap reads aloud
+only what stands now, and shows the GM what was replaced, and when.
+
+It has to be right most of the time, or GMs will learn to click past it. So
+it is not a new search: it is the house's own.
+
+## What it builds on
+
+Most of this is already in the house. Before building any of it, look here
+first.
+
+| Need | Already there |
+|---|---|
+| the box, the record, the story, the rolls, the recap, the canon | `box/` (open_table, session, author, ideas, fight) and willow's game-master |
+| approve with a click, signed with the GM's key, on their own machine | willow's `browse` |
+| set up in one step | willow's `first-run` |
+| a note for next time into the binder | willow's `capture` |
+| ideas when stuck, from the box's own words | `box/ideas.py`, willow's `oracle-text` and `random-passage` |
+| the newer word stands after the older, both kept | willow's `decisions` (`--replaces`) |
+| two lines that disagree, neither side picked | willow's `contradictions` (dates and amounts), and newer willow's `kept-clash` |
+| search for what refutes, not what resembles | Jeles's `conflict_scan` |
+| a story written by a serious writer, and play brought back to it | story-timeline's `export-story` and `import-canon` |
+| what was promised, owed, lent and still open | willow's `debts`, `lending`, `minutes`, `digest` |
+
+## What is missing
+
+- **A front door:** the game-shaped page that opens straight to a story, with
+  the buttons above. Most likely `browse` with a Die-Namic front page; a
+  plain-terminal version in the same words could come first.
+- **The GM's moment for a blank outcome:** game-master plays every action
+  moment by itself today and would need to stop and ask.
+- **The heads-up before deciding:** contradictions in pinned willow see dates
+  and amounts, not story facts. Jeles's `conflict_scan` is the piece to
+  bring in.
+- **"Mine stands now":** a ruling that replaces an earlier one, kept as
+  such, read by the recap.
+- **The writing form:** the four boxes and the moments, writing the story
+  format.
+
+## Decided
+
+- No setup questions: straight to picking a story; a suggested one, or write
+  your own, when there are none.
+- Writing: four small boxes, moments in plain words, heroes good at **Brave,
+  Clever, Kind** by default.
+- Model suggestions **off** unless the writer asks.
+- A **blank outcome is fine:** the box rolls, the GM says what happens.
+- What the GM types and says yes to **is the rule of the table** at that
+  moment.
+- An earlier word that clashes is raised **in the moment, before the GM
+  decides**, with four choices; only the GM sees it, and the machine never
+  picks.
+- The governance stays exactly as strict underneath; it is worded as "your
+  call" on the surface.
