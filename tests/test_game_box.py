@@ -17,9 +17,7 @@ HERE = Path(__file__).resolve().parents[1] / "box"  # the box these tests test
 sys.path.insert(0, str(HERE))
 import willow_pin
 
-ROOT = (
-    willow_pin.root()
-)  # willow, where its pieces live, held to willow.pin.json
+ROOT = willow_pin.root()  # willow, where its pieces live, held to willow.pin.json
 sys.path.insert(0, str(ROOT))
 import kernel
 
@@ -593,6 +591,48 @@ def test_a_story_game_master_wouldnt_play_is_refused_with_its_reason(tmp_path):
     assert got.returncode == 2 and "'Charm' is not a stat" in got.stderr
 
 
+@pytest.mark.parametrize(
+    "old, new, says",
+    [
+        ("suggests: Wit", "suggests: wit", "line 46: scenes[0].beats[1].suggests 'wit' is not a stat; did you mean 'Wit'?"),
+        ("suggests: Wit", "suggests: Charm", "line 46: scenes[0].beats[1].suggests 'Charm' is not a stat\n"),
+        ("by: juno", "by: jun", "line 45: scenes[0].beats[1].by 'jun' is not a seated character; did you mean 'juno'?"),
+        ("by: juno", "by: cogwen", "line 45: scenes[0].beats[1].by 'cogwen' is not a seated character\n"),
+        ("Wit 2, Weird", "Wits 2, Weird", "line 13: characters[1].stats names 'Wits', not one of the stats; did you mean 'Wit'?"),
+        ("@ the-cellar-ceiling", "@ the-celler-ceiling", "line 24: scenes[0].place 'the-celler-ceiling' is not one of the places; did you mean 'the-cellar-ceiling'?"),
+        ("::climb is weak", "::clmb is weak", "line 58: scenes[0].beats[2].when.beat 'up-into-the-ceiling::clmb' is not an earlier beat, as scene::beat; did you mean 'up-into-the-ceiling::climb'?"),
+        ("::climb is weak", "::wasps is weak", "line 58: scenes[0].beats[2].when.beat 'up-into-the-ceiling::wasps' is not an earlier beat, as scene::beat\n"),
+        ("offered guest is", "offered guests is", "line 93: scenes[1].beats[1].when.offered 'guests' is not one of world.offers; did you mean 'guest'?"),
+        ("kind: decision\nproposed by: old-vell", "kind: decisoin\nproposed by: old-vell", "line 67: scenes[0].beats[3].kind 'decisoin': this reads 'action' and 'decision' beats only; did you mean 'decision'?"),
+        ("- miss: The beam", "- mess: The beam", "line 50: \"- mess: The beam"),
+        ("- miss: The beam she's on is a spring too. Down she comes.", "", "line 41: scenes[0].beats[1].outcomes is missing ['miss']"),
+    ],
+)  # fmt: skip
+def test_a_refusal_names_the_story_line_and_the_name_it_might_have_meant(tmp_path, old, new, says):  # fmt: skip
+    """What game-master refuses is put back on the line it was written on, with
+    the nearest name it could have meant, and none when none is near: a writer
+    reads their story, not the world it makes."""
+    text = (HERE / "stories" / "wasp-nest.md").read_text()
+    assert text.count(old) == 1, old
+    (tmp_path / "s.md").write_text(text.replace(old, new))
+    got = py(HERE / "author.py", tmp_path / "s.md")
+    assert got.returncode == 2 and says in got.stderr, got.stderr
+
+
+def test_a_story_reads_its_keys_in_any_case_and_star_bullets(tmp_path):
+    """A markdown editor capitalises a key and turns `-` into `*`: the world
+    made is the same."""
+    text = (HERE / "stories" / "wasp-nest.md").read_text()
+    loose = re.sub(r"^(id|kind|by|suggests|setting|stats):", lambda m: m.group(1).title() + ":", text, flags=re.M)  # fmt: skip
+    loose = re.sub(r"^- ", "* ", loose, flags=re.M)
+    assert loose != text and "\nKind: action" in loose and "\n* pell:" in loose
+    (tmp_path / "a.md").write_text(text)
+    (tmp_path / "b.md").write_text(loose)
+    a, b = py(HERE / "author.py", tmp_path / "a.md"), py(HERE / "author.py", tmp_path / "b.md")  # fmt: skip
+    assert a.returncode == b.returncode == 0, b.stderr
+    assert json.loads(a.stdout) == json.loads(b.stdout)
+
+
 @pytest.mark.parametrize("name", ["aetheris", "hasbeen", "ironworks"])
 def test_the_tables_own_worlds_play_in_the_box(t, name):
     """The three worlds the-table authored in the store, as they are."""
@@ -710,6 +750,10 @@ def test_a_world_is_written_as_one_space_indented_json(t):
 
 def test_a_note_that_ends_at_next_time_is_no_thread(t):
     t.open()
-    (t.pile / "sessions" / "2026-11-20.md").write_text("We stopped there. Pick it up next time\n")
+    (t.pile / "sessions" / "2026-11-20.md").write_text(
+        "We stopped there. Pick it up next time\n"
+    )
     got = py(HERE / "ideas.py", "--table", t.dir, "--seed", "between nights")
-    assert got.returncode == 0, got.stderr  # no thread to deal from it, and no crash looking
+    assert got.returncode == 0, (
+        got.stderr
+    )  # no thread to deal from it, and no crash looking
