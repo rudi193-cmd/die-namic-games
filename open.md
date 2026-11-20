@@ -2,8 +2,13 @@
 
 How Die-Namic should open for someone who has never seen any of it: a parent,
 a teacher, a kid at the table, someone who has never typed a command. This is
-the design, talked through on 2026-11-20. Nothing on this page is built yet;
-what it builds on is.
+the design, talked through on 2026-11-20.
+
+**Built so far:** the play path, in a plain terminal: `python box/play.py`
+opens on the stories with no setup, offers The Lantern Fair when nothing has
+been played, plays it with rolls and "Your call, GM" in these words, ends the
+night with a note and the GM's yes, and opens next time on "Previously on..."
+and the GM's own note. Everything else on this page is still to build.
 
 ## Why
 
@@ -308,9 +313,9 @@ first.
 
 ## What is missing
 
-- **A front door:** the game-shaped page that opens straight to a story, with
-  the buttons above. Most likely `browse` with a Die-Namic front page; a
-  plain-terminal version in the same words could come first.
+- **A front door in the browser:** the game-shaped page with the buttons
+  above, most likely `browse` with a Die-Namic front page. The plain-terminal
+  version, in the same words, is built: `box/play.py`.
 - **The GM's moment for a blank outcome:** game-master plays every action
   moment by itself today and would need to stop and ask.
 - **The heads-up before deciding:** contradictions in pinned willow see dates

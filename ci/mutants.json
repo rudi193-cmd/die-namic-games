@@ -7,7 +7,8 @@
     "tests/test_games.py",
     "tests/test_end.py",
     "tests/test_game_box.py",
-    "tests/test_fight.py"
+    "tests/test_fight.py",
+    "tests/test_play.py"
   ],
   "targets": {
     "box/willow_pin.py": "all",
@@ -16,6 +17,7 @@
     "box/ask.py": 6,
     "box/author.py": 6,
     "box/fight.py": 6,
+    "box/play.py": 6,
     "box/ideas.py": 6,
     "box/open_table.py": 6,
     "box/session.py": 6

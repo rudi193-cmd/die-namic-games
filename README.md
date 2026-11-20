@@ -17,6 +17,7 @@ add-ons where they live, pinned by commit and by each file's SHA-256
 and catgrid: put a safe-app-store checkout beside this one (or set
 `SAFE_APP_STORE`).
 
+    python box/play.py                       # the way in: pick a story and play it
     pytest                                   # Die-Namic's own tests (tests/)
     python box/ask.py "what are the dog's stats"
     python games/play.py play-checkers --table DIR new
