@@ -497,6 +497,34 @@ other, so every family's stack can use it, not only this box.
 3. **`blind-deal` and `witness`:** the cup and the screen roll; and a second
    seal for the rulings two people make.
 
+### What a stupid night at home showed
+
+On 2026-11-20 a home kit was laid on a throwaway box and everything was
+piled onto one evening: liar's dice, the daily word, tarot, a horoscope and
+the quiz before dinner; a rules argument settled by sealing two games
+mid-argument; a story night with a guest brought in, a fight asked for
+where none belonged, a wrong key pressed, and the GM's own word clashing
+with a truth made twenty minutes before; fights; checkers; the night's
+canon sent to a second house with `share`; the next morning's recap. The
+demo GM sealed; the box and its key were deleted after.
+
+**What held, unchanged:** the heads-up inside one night, a truth replaced
+and the recap reading only what stands, `share` between two houses (sent,
+received, holds), rules sealed and asked word for word, every game played
+again from the record, and the chain (102 rows, 7 sealed).
+
+**What the night showed, and the shape each idea takes from it:**
+
+| Idea | What happened | Its shape |
+|---|---|---|
+| `kids` | A child's question, "how does it end?", was answered from `gm-only/`, the campaign's secret act, word for word. The daily word and the quiz draw from the same pile. | **Buildable on what exists:** a second box over the binder's folders without `gm-only/` (`kernel.py init --from NAME=FOLDER ...`), with a key that seals nothing. Tried: nothing secret came back, and the rules still answered. The add-on lays that box for the family, and points the games that draw from a pile at it. **First, because it's the one that leaked.** |
+| `blind-deal` | `show` laid all four liar's-dice hands open: everyone saw everyone's dice. | Each seat's dice sealed to that seat, only their hash on the record, opened at the call. The cup and the screen roll are the same mechanism. |
+| `table` | Characters bid and called; the record says north and east. No game knows who is at the table. | One map from a story's characters to a game's seats, used by every game. |
+| `record-sync` | The other house received the canon and it checks, but its own play screen doesn't show it: it came as rows, not "previously on". | What another house made true joins the recap, each line saying which house. |
+| `sheet-drift` | Two characters with one name (a kid's own and a hero card's) and different numbers: the box serves one and never says there is another. | Two sheets of one name, side by side for the GM; neither picked. |
+| `play-fight5e` | The kids' fights ran from a script beside the box, not from their binder pages. | A fight read from the binder's own pages (a character, a monster), every blow on the record. |
+| `witness` | Not reached: the night had one GM. | Two seals where today there's one, for the rulings two people make. |
+
 ## Decided
 
 - No setup questions: straight to picking a story; a suggested one, or write
