@@ -349,6 +349,78 @@ first.
 - **The cup:** table dice committed when the moment is posed and revealed
   after the GM's call, in willow's dice, and in `box/fight.py` after them.
 
+## What a real table does that isn't in yet
+
+Gathered on 2026-11-20, after a whole journey was played end to end on a
+fresh box (three nights: a story written and played, what happens next with
+the heads-up, Aetheris with a fight) and held against how people actually
+play. *(Underneath)* marks what willow or the box can already do, not yet
+reached from the play path.
+
+**At the roll**
+
+1. **Players rolling their own dice.** At a real table a kid throws a real
+   d6 and says the number. There is no way to type in a physical roll, and
+   for the youngest players it matters most. Its honesty is the table
+   watching, not a seed: a roll typed in is kept as said, and as such.
+2. **The player choosing how.** Aetheris says "Declare how you meet it",
+   but the story fixes the stat. Letting the player say "I talk my way
+   through" is how most tables play. *(Underneath: game-master's `act`
+   takes any stat.)*
+3. **Helping, and paying for a reroll.** "I hold the ladder for her" as +1;
+   a luck point spent to throw again, kept as its own event.
+4. **The cup, the screen roll, and the GM's word over the dice:** in The
+   dice, above.
+
+**The characters**
+
+5. **What happens to them carries over.** Sena falls in every fight and is
+   whole the next moment; the writ lost to the black water is never lost.
+   Wounds, things carried and spent strength have to last, between moments
+   and between nights. *(Underneath, in part: willow's `debts`, `lending`,
+   `log-kit`.)*
+6. **Who is at the table.** One player or five; a friend for one night;
+   someone leaving. The seats are fixed by the story, and every fight brings
+   the same three.
+7. **A sheet the player can see:** what their hero is good at, carries, and
+   has been through.
+8. **Growing:** getting better at things over the nights, and rewards.
+
+**The story**
+
+9. **The GM making up a scene.** Kids go where the story never planned. A
+   story is its scenes in order; the GM can say one line (a blank moment),
+   not open a new place or moment.
+10. **Fights that change the story.** Won or lost, the next moment is the
+    same. *(Nearest so far: a blank moment, and the GM's word.)*
+11. **Time pressing:** the tide rising, the fair closing at midnight, a
+    count the table can see.
+12. **A replaced truth no longer unlocking.** Found in the journey: "Mira
+    feeds the hatchling" (only if the egg is a real dragon's) played after
+    the egg was made a painted stone. game-master's "only if" reads the
+    first seal and knows nothing of the replacement; the fix is in willow.
+
+**The people**
+
+13. **Safety, first of all at a kids' table.** Agreeing beforehand what is
+    off the table, and a way to stop a scene with no reason asked (lines
+    and veils; the X-card). There is nothing for it yet.
+14. **Undoing a slip.** A "y" pressed by mistake can only be turned back
+    by a later "mine stands now".
+15. **Sharing the GM's chair:** a co-GM, or a kid running a night.
+
+**What the table sees**
+
+16. **The shared view:** pictures, a map, a handout, the dice landing where
+    everyone can see. That is the browser door.
+17. **A board in a fight:** who's hurt, who's stunned, whose turn.
+18. **Last night's fight on the opening screen.** Found in the journey: the
+    recap says "Fights last time", but the screen the GM opens on doesn't.
+
+**First, for a family table:** 1 (real dice typed in), 13 (safety) and 5
+(what carries over). They decide most whether a room of kids can play it,
+and 5 is what makes a fight mean something.
+
 ## Decided
 
 - No setup questions: straight to picking a story; a suggested one, or write
