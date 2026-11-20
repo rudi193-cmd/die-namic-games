@@ -593,7 +593,6 @@ def keep(table: Path, note: str, now: str) -> None:
     head = "" if page.exists() else f"# {day}\n\n"
     with page.open("a", encoding="utf-8") as f:
         f.write(f"{head}{note}\n")
-    run(KERNEL, "scan", "--box", table / "record")
 
 
 def previously(table: Path) -> None:
