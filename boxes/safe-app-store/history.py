@@ -1,6 +1,6 @@
-"""utety_history.py: UTETY's branches and pull requests, as pages a box can read. Python 3.9+.
+"""history.py: a repository's branches and pull requests, as pages a box can read. Python 3.9+.
 
-    python boxes/safe-app-store/utety_history.py REPO MAIN OUT
+    python boxes/safe-app-store/history.py REPO MAIN OUT
 
 A box over a repository's tree at one commit holds what was merged, not why,
 nor what never was. This writes, from a checkout whose branches are fetched
@@ -79,12 +79,14 @@ def main_(argv: list[str]) -> int:
         print(f"refused: {out} is already there", file=sys.stderr)
         return 2
     branches, prs = refs(repo, "refs/remotes/origin"), refs(repo, "refs/remotes/pr")
+    url = git(repo, "remote", "get-url", "origin").strip()
+    name = url.rstrip("/").removesuffix(".git").rsplit("/", 1)[-1] or repo.name
     if not branches:
         print("refused: no branches fetched (git fetch origin '+refs/heads/*:refs/remotes/origin/*')", file=sys.stderr)  # fmt: skip
         return 2
     out.mkdir(parents=True)
     done = merges(repo, main)
-    page = [f"# UTETY's pull requests\n\nAs main at {main[:7]} has them: {len(prs)} pull requests.\n"]  # fmt: skip
+    page = [f"# {name}'s pull requests\n\nAs main at {main[:7]} has them: {len(prs)} pull requests.\n"]  # fmt: skip
     for r in sorted(prs, key=lambda r: int(r.split("/")[-1])):
         n, head = int(r.split("/")[-1]), git(repo, "rev-parse", r).strip()
         if n in done:
@@ -96,7 +98,7 @@ def main_(argv: list[str]) -> int:
         page += [f"## PR #{n}: {title}\n", f"{state}; its head {head[:7]}.\n"]
         page += [c + "\n" for c in commits(repo, span)]
     (out / "prs.md").write_text("\n".join(page), encoding="utf-8")
-    page = [f"# UTETY's branches\n\nAs main at {main[:7]} has them: {len(branches)} branches.\n"]  # fmt: skip
+    page = [f"# {name}'s branches\n\nAs main at {main[:7]} has them: {len(branches)} branches.\n"]  # fmt: skip
     for r in sorted(branches):
         name, ahead = r.removeprefix("origin/"), int(git(repo, "rev-list", "--count", f"{main}..{r}"))  # fmt: skip
         base = git(repo, "merge-base", main, r).strip()[:7]
@@ -105,7 +107,7 @@ def main_(argv: list[str]) -> int:
                 f"## {name}\n\nmerged into main: every commit of it is there.\n"
             )
             continue
-        page += [f"## {name}\n", f"{ahead} commits ahead of main, never merged; it left main at {base}. Its files that differ are at branches/{name.replace('/', '-')}/.\n"]  # fmt: skip
+        page += [f"## {name}\n", f"{ahead} commit{"" if ahead == 1 else "s"} ahead of main, never merged; it left main at {base}. Its files that differ are at branches/{name.replace('/', '-')}/.\n"]  # fmt: skip
         page += [c + "\n" for c in commits(repo, f"{main}..{r}")]
         files = git(
             repo, "diff", "--name-only", "--diff-filter=AM", f"{main}...{r}"

@@ -14,7 +14,7 @@ The family's own stack is beside the box's other pages, at
 
 | Box | Its pile | Rebuild |
 |---|---|---|
-| [safe-app-store/](safe-app-store/) | the SAFE App Store at `ac07125`, without `apps/nasa-archive` (293 MB and 2,394 of its 4,362 files, a corpus the rest of the store isn't read by): 1,967 files; and beside it [UTETY](https://github.com/hornbook-knowledge/utety) at `56662d1`, the engine utety-chat runs on, with its 19 pull requests and 15 branches as pages (`utety_history.py`): 2,029 files | `bash boxes/safe-app-store/rebuild.sh SCRATCH`, with the store beside die-namic-games or at `SAFE_APP_STORE`, and UTETY at `../hornbook-knowledge/utety` or `UTETY` (left out, and said, without it); about 140 s |
+| [safe-app-store/](safe-app-store/) | the SAFE App Store at `ac07125`, without `apps/nasa-archive` (293 MB and 2,394 of its 4,362 files, a corpus the rest of the store isn't read by): 1,967 files; and beside it [UTETY](https://github.com/hornbook-knowledge/utety) at `56662d1`, the engine utety-chat runs on, and [terpsi-music](https://github.com/rudi193-cmd/terpsi-music) at `c1285af`, the youth music program's design, each with its pull requests and branches as pages (`history.py`; 19 and 15, 25 and 4): 2,368 files | `bash boxes/safe-app-store/rebuild.sh SCRATCH`, with the store beside die-namic-games or at `SAFE_APP_STORE`, UTETY at `../hornbook-knowledge/utety` or `UTETY`, terpsi-music at `../terpsi-music` or `TERPSI` (each left out, and said, without it); about 5 minutes |
 | [session-2026-11-20/](session-2026-11-20/) | what the session of 2026-11-20 made, at `db37b51`, the last commit before this folder: open.md, README.md, box/README.md, every commit's own message as `tonight.md`, and the journey played end to end on a fresh box (`journey.txt`) | `bash boxes/session-2026-11-20/rebuild.sh SCRATCH`; about a second |
 
 Each folder holds `stack.md` (the wants, as proposals: cut any, add your
@@ -51,6 +51,19 @@ by PR #14 eleven days later. The store's `apps/oakenscrolls-office/NOTICE:4`
 calls UTETY MIT; it is Apache-2.0. Asked about consent in its own words
 ("b7 consent gate authoritative model"), the box serves the pull request; in
 ours, the store's other consent pages crowd it out.
+
+**terpsi-music, beside the store**, is where two of the store's rules came
+from: the decision boot's "absence surfaces as `unknown`, never as a result"
+(its `CLAUDE.md` §13) and homestead's `L1`–`L5` rungs (its
+`docs/SENSITIVITY.md`). It answers its own first question (`README.md:10`: how
+little can the server be permitted to know, such that its full compromise is
+survivable) and where §18 is. Its history: three branches never merged. One
+landed reworked as `1d3eb7c`, and one's craft fix as `d89d6a1` without its
+conformance record. `claude/highway-labor-sentence-xeksoj` holds five fixes to
+guards that could not fail (a check bounded so zero passed it, FAIL branches
+nothing could reach, a guard that mirrored §6 by hand), none of them on main.
+And §18 still heads its blockers "one closed, three open", and the README
+"four items block a first commit", though all four are struck closed.
 
 **The session** answers each thing it decided with the passage that decided
 it: the dice and the cup, why the heads-up isn't conflict_scan (open.md's

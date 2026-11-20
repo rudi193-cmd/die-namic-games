@@ -79,8 +79,31 @@ Want 14: "What did the audits say to do first?" The gaps, ranked, wherever
 they're filed.
 - all-passages -- --box {box} --top 5 "no child has used early stage gaps"
 
+## what terpsi-music holds
+
+terpsi-music is laid in beside the store too, at `terpsi-music/`: the design
+for a youth music program's records, where the store's sensitivity rungs and
+its "absence is unknown" rule came from.
+
+Want 15: "What is terpsi-music, and what can its server know?" The question
+everything in it follows from.
+- all-passages -- --box {box} --top 5 "how little server permitted know compromise survivable"
+
+Want 16: "What are the rungs?" L1 to L5, and where the store took them.
+- all-passages -- --box {box} --top 5 "sensitivity rungs l1 l5"
+
+Want 17: "Why is absence never a result?" Its CLAUDE.md §13, and every
+store page that keeps it.
+- all-passages -- --box {box} --top 5 "absence surfaces unknown never result"
+
+Want 18: "What blocks its first commit?" §18, the open list.
+- all-passages -- --box {box} --top 5 "block first commit decisions open list"
+
+Want 19: "What's on its branches that main doesn't have?"
+- all-passages -- --box {box} --top 5 "terpsi commits ahead main never merged"
+
 ## what waits
 
-Want 15: "Is the box all right?" Files it can't read, readers out of date,
+Want 20: "Is the box all right?" Files it can't read, readers out of date,
 when its record was last checked.
 - box-health -- --box {box}

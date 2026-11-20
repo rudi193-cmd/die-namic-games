@@ -28,6 +28,16 @@
 14 all-passages: exit 0, 1 line
 15 all-passages: started (6191a1d3)
 15 all-passages: exit 0, 1 line
-16 box-health: started (5a644aca)
-16 box-health: exit 42, 12 lines, mass 9, populated, flagged
-done: 1 of 16 steps flagged
+16 all-passages: started (5b5b5953)
+16 all-passages: exit 0, 1 line
+17 all-passages: started (f469fa56)
+17 all-passages: exit 0, 1 line
+18 all-passages: started (382e6af6)
+18 all-passages: exit 0, 1 line
+19 all-passages: started (c328ad84)
+19 all-passages: exit 0, 1 line
+20 all-passages: started (5d2e71e1)
+20 all-passages: exit 0, 1 line
+21 box-health: started (5a644aca)
+21 box-health: exit 42, 12 lines, mass 9, populated, flagged
+done: 1 of 21 steps flagged
