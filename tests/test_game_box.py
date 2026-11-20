@@ -512,6 +512,8 @@ def test_recap_reads_aloud_only_what_the_table_made_true_last_time_first(t):
     last, rest = aloud.split("Last time:")[1].split("This time, so far:")
     assert "The red button is bait" in last and VELL in last
     assert "Prince Aldric is free" in rest
+    # read aloud, an offer is the character's, by name, never a seat's id
+    assert f"{VELL} (brought by Pell)" in last and "[offered by" not in aloud
     for secret in (
         "Weakness",
         "smoke",
@@ -523,6 +525,27 @@ def test_recap_reads_aloud_only_what_the_table_made_true_last_time_first(t):
         "sessions/2026-10-24.md:5  Brann wanted to bring a friend. I said next time."
         in gm_only
     )
+    # a promise in tonight's notes is shown once, with them; older ones after
+    assert gm_only.count("sessions/2026-11-14.md:5") == 1
+    notes, earlier = gm_only.split("Promised on earlier nights:")
+    assert "2026-11-14.md:5" in notes and "2026-10-24.md:5" in earlier
+
+
+def test_recap_says_so_when_last_time_made_nothing_new_true(t):
+    """Nights in order, and a quiet night said aloud, not skipped: what was
+    made true before it is "before that", never "last time"."""
+    t.open()
+    t.session()
+    for subj in t.asked():
+        t.seal(subj)
+    end = [STDLIB / "session-seal" / "session_seal.py", "--box", t.box]
+    assert py(*end, *NOW).returncode == 42  # night one, the button sealed
+    t.session("offer", "pell", VELL)  # night two: offered, never answered
+    assert py(*end, "--now", "2026-11-21T10:00:00Z").returncode == 42
+    aloud = t.session("recap").stdout.split("## For the GM's eyes")[0]
+    before, last = aloud.split("Before that:")[1].split("Last time:")
+    assert "The red button is bait" in before
+    assert last.strip() == "Nothing new was made true." and VELL not in aloud
 
 
 # ── between sessions ─────────────────────────────────────────────────────────
@@ -623,8 +646,8 @@ def test_a_story_reads_its_keys_in_any_case_and_star_bullets(tmp_path):
     """A markdown editor capitalises a key and turns `-` into `*`: the world
     made is the same."""
     text = (HERE / "stories" / "wasp-nest.md").read_text()
-    loose = re.sub(r"^(id|kind|by|suggests|setting|stats):", lambda m: m.group(1).title() + ":", text, flags=re.M)  # fmt: skip
-    loose = re.sub(r"^- ", "* ", loose, flags=re.M)
+    loose = re.sub(r"^(id|kind|by|suggests|setting|stats):", lambda m: m.group(1).title() + ":", text, flags=re.MULTILINE)  # fmt: skip
+    loose = re.sub(r"^- ", "* ", loose, flags=re.MULTILINE)
     assert loose != text and "\nKind: action" in loose and "\n* pell:" in loose
     (tmp_path / "a.md").write_text(text)
     (tmp_path / "b.md").write_text(loose)

@@ -141,13 +141,16 @@ for print. A check for OCR damage is an idea on willow's list, `ocr-noise`.
 For the start of the next session. It has two parts:
 
 - **Read aloud.** Only what the table made true, the sealed canon, so
-  nothing the table hasn't heard is said: last time first, then before that,
-  then anything sealed tonight so far. A session ends where its session seal
-  says, so the end of the night's seal is what makes "last time". An offer
-  says whose it was: `[offered by pell]`.
+  nothing the table hasn't heard is said, in the order it happened: before
+  that, last time, then anything sealed tonight so far. A session ends where
+  its session seal says, so the end of the night's seal is what makes "last
+  time", and a night that sealed nothing says so: "Nothing new was made
+  true." An offer is credited to its character by name, as it would be said
+  at the table: `(brought by Pell)`.
 - **For the GM's eyes.** The latest night's notes, typed or scanned, each
-  line cited; every promise made for next time; and what the table said no
-  to. The binder is the GM's, so none of it is read aloud.
+  line cited; the promises for next time made on earlier nights (tonight's
+  are in its notes, shown once); and what the table said no to. The binder
+  is the GM's, so none of it is read aloud.
 
 ## Between sessions
 
