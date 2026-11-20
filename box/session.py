@@ -33,8 +33,8 @@ in the order it happened, before that, last time (a session ends where its
 session seal says), then tonight so far, so nothing the table hasn't heard
 is said; an offer is credited to its character by name. Its second part is
 for the GM's eyes: the notes of the latest night, typed or scanned, each
-line cited, the promises for next time made on earlier nights, and what was
-said no to.
+line cited, how each fight fight.py kept that night ended, the promises for
+next time made on earlier nights, and what was said no to.
 
 `export-canon` is the play growing the world: every fact the GM sealed,
 as markdown, each with its seal (the proposal's hash and row) and where in
@@ -227,6 +227,21 @@ def promised(pile: Path) -> list[tuple[str, int, str]]:
     return out
 
 
+def fights(rows: list[dict], session: dict | None) -> list[str]:
+    """Each fight box/fight.py kept in SESSION (every one, with no session
+    ended), as how it ended: the machine's, so never read aloud."""
+    lo, hi = (session["from"], session["to"]) if session else (0, len(rows))
+    ends = {r.get("fight"): r.get("result", {}) for r in rows if r["kind"] == "fight-end"}  # fmt: skip
+    out = []
+    for r in rows:
+        if r["kind"] == "fight-open" and lo <= r["n"] <= hi and r["n"] in ends:
+            res = ends[r["n"]]
+            standing = ", ".join(res.get("party_survivors", []) + res.get("foe_survivors", [])) or "no one"  # fmt: skip
+            said = {"party": "the party won", "foe": "the party fell", "stalemate": "neither side fell"}.get(res.get("outcome"), f"it ended {res.get('outcome')!r}")  # fmt: skip
+            out.append(f"  {r.get('desc') or r.get('encounter')}: {said} in {res.get('rounds')} rounds; standing: {standing}   (row {r['n']})")  # fmt: skip
+    return out
+
+
 def previously(box: Path, table: Path) -> int:
     rows, breaks = kernel.read(box / "record.jsonl")
     if breaks:
@@ -261,6 +276,10 @@ def previously(box: Path, table: Path) -> int:
         w = max(len(f"{p}:{i}") for p, i, _ in lines)
         print(f"Your notes from {day}:")
         print("\n".join(f"  {f'{p}:{i}':<{w}}  {t}" for p, i, t in lines))
+    fought = fights(rows, ended[-1] if ended else None)
+    if fought:
+        print("Fights last time:" if ended else "Fights so far:")
+        print("\n".join(fought))
     shown = {(p, i) for p, i, _ in lines}
     promises = [x for x in promised(table / "pile") if x[:2] not in shown]
     if promises:

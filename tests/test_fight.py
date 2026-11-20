@@ -178,3 +178,64 @@ def test_a_bad_command_line_prints_how_to_fight(table, argv):
 def test_a_table_with_no_record_prints_how_to_fight(tmp_path):
     got = py(BOX / "fight.py", "--table", tmp_path, "check")
     assert got.returncode == 2 and "python box/fight.py --table DIR check" in got.stderr
+
+
+def end_night(table: Path, now: str = "2026-11-20T23:00:00Z") -> None:
+    """The night ended: a session seal handed in over it (never sealed here)."""
+    seal = (
+        willow_pin.root() / "adapters" / "stdlib" / "session-seal" / "session_seal.py"
+    )
+    assert py(seal, "--box", table / "record", "--now", now).returncode == 42
+
+
+def gm_eyes(table: Path) -> tuple[str, str]:
+    got = py(BOX / "session.py", "--table", table, "recap")
+    assert got.returncode in (0, 42), got.stderr
+    return tuple(got.stdout.split("## For the GM's eyes"))
+
+
+def test_the_recap_tells_the_gm_how_last_nights_fights_ended_never_aloud(table):
+    assert fight(table, "fight", "raiders").returncode == 0
+    end = rows(table)[-1]["result"]
+    end_night(table)
+    aloud, gm = gm_eyes(table)
+    said = {"party": "the party won", "foe": "the party fell"}[end["outcome"]]
+    line = f"  the party ambushed by 4 Scorched Belt Raiders: {said} in {end['rounds']} rounds; standing: "
+    assert f"Fights last time:\n{line}" in gm
+    assert "Raider" not in aloud and "Fights" not in aloud  # a fight isn't canon
+
+
+def test_a_fight_before_any_night_ended_is_so_far_and_older_ones_drop_off(table):
+    fight(table, "fight", "warden")
+    assert (
+        "Fights so far:\n  the full party vs a Mind-Forge Warden" in gm_eyes(table)[1]
+    )
+    end_night(table)
+    roll = py(BOX.parent / "games" / "play.py", "play-dice5e", "--table", table, "roll", "1d20")  # fmt: skip
+    assert roll.returncode == 0, roll.stderr
+    end_night(table, "2026-11-27T23:00:00Z")  # a second night: a roll, no fight
+    assert "Fights" not in gm_eyes(table)[1]
+
+
+def test_the_tables_check_plays_its_fights_again(table):
+    assert "## the fights" not in py(BOX / "open_table.py", "check", "--table", table).stdout  # fmt: skip
+    fight(table, "fight", "bruiser")
+    ok = py(BOX / "open_table.py", "check", "--table", table)
+    assert "## the fights\n1 fight on the record; every blow holds." in ok.stdout, (
+        ok.stderr
+    )
+    assert ok.returncode != 2
+
+    def edit(old):
+        hit = next(
+            r for r in old if r["kind"] == "fight-blow" and " hits " in r["note"]
+        )
+        hit["note"] = hit["note"].replace(" hits ", " misses ", 1)
+        return old
+
+    forge(table, edit)
+    bad = py(BOX / "open_table.py", "check", "--table", table)
+    assert (
+        bad.returncode == 2
+        and "refused: the fights: refused: fight at row" in bad.stderr
+    ), bad.stderr

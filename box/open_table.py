@@ -35,8 +35,9 @@ seal handed in over it all, a checked backup and a pin of where the record
 ends, each run kept in DIR/end/NNN; and last, what the table holds true.
 
 `check` runs the table's own check page,
-check.md: every game on the record played again from its first row. Each
-then has the kernel verify the chain.
+check.md: every game on the record played again from its first row, and
+every fight fight.py kept, when there are any. Each then has the kernel
+verify the chain.
 
 This never seals, declines or reads the key, and writes the record only
 through the kernel and the add-ons.
@@ -56,9 +57,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import willow_pin
 
-ROOT = (
-    willow_pin.root()
-)  # willow, where its pieces live, held to willow.pin.json
+ROOT = willow_pin.root()  # willow, where its pieces live, held to willow.pin.json
 sys.path.insert(0, str(ROOT))
 import kernel
 
@@ -67,6 +66,7 @@ WORDS = HERE / "gm-words.txt"
 WORLDS = HERE / "worlds"
 PAGES = {"prep": HERE / "gm-stack.md", "end": HERE / "gm-end.md", "check": HERE / "check.md"}  # fmt: skip
 SESSION = HERE / "session.py"
+FIGHT = HERE / "fight.py"
 STDLIB = ROOT / "adapters" / "stdlib"
 RULES = STDLIB / "rules" / "rules.py"
 GM = STDLIB / "game-master" / "game_master.py"
@@ -153,6 +153,12 @@ def cmd_page(table: Path, which: str) -> int:
     print(chain.stdout.rstrip())
     if chain.returncode != kernel.ALIVE:
         return fail(f"the chain: {(chain.stderr or chain.stdout).strip()}")
+    rows, _ = kernel.read(box / "record.jsonl")
+    if which == "check" and any(r["kind"] == "fight-open" for r in rows):
+        fights = run(str(FIGHT), "--table", str(table), "check")
+        print("\n## the fights\n" + (fights.stdout or fights.stderr).rstrip())
+        if fights.returncode != kernel.ALIVE:
+            return fail(f"the fights: {fights.stderr.strip()}")
     if which == "end":  # what the table made true, to close the night on
         canon = run(str(SESSION), "--table", str(table), "canon")
         print("\n## what the table holds true\n" + canon.stdout.rstrip())

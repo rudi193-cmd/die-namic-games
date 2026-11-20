@@ -31,7 +31,7 @@ refuses one whose files differ.
 | [stories/](stories/), [author.py](author.py) | stories written in story-timeline, the writer's workbench in the SAFE App Store, and exported as markdown: [the wasp nest](stories/wasp-nest.md), the cellar's next chapter | author.py makes them worlds; game-master checks and plays them |
 | [worlds/](worlds/) | the box's two stories, every name a character: [the lantern fair](worlds/lantern-fair.json), and [the clockwork cellar](worlds/clockwork-cellar.json), a boss room that turns on its dice; and the three the-table authored in the store, [Aetheris](worlds/aetheris.json), [Hasbeen](worlds/hasbeen.json) and [Ironworks](worlds/ironworks.json), as they are | [game-master](https://github.com/willow-memory/Willow/tree/dd1e406d66d07fd6397e41880da831e74bbe9696/adapters/stdlib/game-master/), rolling with [play-dice](https://github.com/willow-memory/Willow/tree/dd1e406d66d07fd6397e41880da831e74bbe9696/adapters/stdlib/play-dice/) |
 | checkers, a logic grid | games played straight onto the record | [play-checkers](https://github.com/willow-memory/Willow/tree/dd1e406d66d07fd6397e41880da831e74bbe9696/adapters/stdlib/play-checkers/), [play-catgrid](https://github.com/willow-memory/Willow/tree/dd1e406d66d07fd6397e41880da831e74bbe9696/adapters/stdlib/play-catgrid/) |
-| [check.md](check.md) | the table's own check: every game played again, every house rule's standing | stack |
+| [check.md](check.md) | the table's own check: every game played again, every house rule's standing, and (by `open_table.py check`) every fight [fight.py](fight.py) kept | stack, and fight.py |
 | [open_table.py](open_table.py) | the box's code: lays a box, and runs its prep sheet and its check | the kernel and the add-ons above |
 | [session.py](session.py) | the GM's bookkeeping, done by code: plays a story as far as it goes without the GM, and says what the table made true | game-master |
 | [fight.py](fight.py) | a 5e fight from the-table's [aetheris5e](../the-table/aetheris5e/), blow by blow on the record: initiative, attacks against AC, crits, the six stat blocks and the four encounters, its dice seeded by the row before; `check` plays every fight again and refuses one edited after the fact | aetheris5e's engine, with willow-bot's one-script for its dice, and the kernel |
@@ -149,7 +149,9 @@ For the start of the next session. It has two parts:
   true." An offer is credited to its character by name, as it would be said
   at the table: `(brought by Pell)`.
 - **For the GM's eyes.** The latest night's notes, typed or scanned, each
-  line cited; the promises for next time made on earlier nights (tonight's
+  line cited; how each fight [fight.py](fight.py) kept that night ended
+  (the machine's record, so never read aloud: what a lost fight means is the
+  GM's to say); the promises for next time made on earlier nights (tonight's
   are in its notes, shown once); and what the table said no to. The binder
   is the GM's, so none of it is read aloud.
 
