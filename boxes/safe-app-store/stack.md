@@ -35,8 +35,52 @@ Want 6: "Where did Die-Namic come from?" The first line that names it, and
 the playground it was lifted out of.
 - first-mention -- --box {box} "die-namic"
 
+## what UTETY holds
+
+UTETY (hornbook-knowledge/utety) is laid in beside the store, at
+`hornbook-utety/`: the engine utety-chat runs on. The campus, its catalog
+and its professors are the store's; the learner and the lessons are UTETY's.
+
+Want 7: "What is UTETY, and what does it keep off the network?" Its own
+front page, and the one place anything leaves the device.
+- all-passages -- --box {box} --top 5 "utety local first student data device"
+
+Want 8: "What are its ground rules?" Sourced or it doesn't teach; feedback
+on the work, never the learner; consent for under-13.
+- all-passages -- --box {box} --top 5 "feedback work never learner praise"
+
+Want 9: "How does it know a child has learned something?" Mastery, as BKT
+infers it, and what the store borrowed from it.
+- all-passages -- --box {box} --top 5 "bkt mastery inference"
+
+Want 10: "Who has to say yes before a child under 13 uses it?" The gate a
+session waits on, and the age gate still to build.
+- all-passages -- --box {box} --top 5 "consent child under 13 grant"
+
+Want 11: "Where does the store lean on UTETY?" The first line that names
+it, then every page that borrows its pattern.
+- first-mention -- --box {box} "utety/core"
+- all-passages -- --box {box} --top 5 "utety core mastery vendoring pattern"
+
+## UTETY's branches and pull requests
+
+At `hornbook-utety/history/`, when the checkout has them fetched: each pull
+request with every commit's message, each branch merged or ahead.
+
+Want 12: "What's on a branch that never reached main?" Each branch ahead,
+and what its commits say they did.
+- all-passages -- --box {box} --top 5 "commits ahead main never merged"
+
+Want 13: "Why does a session wait on a guardian's grant?" The pull request
+that built the gate, in its own words.
+- all-passages -- --box {box} --top 5 "b7 consent gate authoritative model"
+
+Want 14: "What did the audits say to do first?" The gaps, ranked, wherever
+they're filed.
+- all-passages -- --box {box} --top 5 "no child has used early stage gaps"
+
 ## what waits
 
-Want 7: "Is the box all right?" Files it can't read, readers out of date,
+Want 15: "Is the box all right?" Files it can't read, readers out of date,
 when its record was last checked.
 - box-health -- --box {box}
