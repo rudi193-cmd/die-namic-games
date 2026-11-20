@@ -83,6 +83,7 @@ def test_a_fight_is_kept_blow_by_blow_and_checks(table):
     res = end["result"]
     assert f"{res['outcome'].upper()} in {res['rounds']} rounds" in got.stdout
     assert {r["who"] for r in kept} == {"fight"}
+    assert {r["ts"] for r in kept} == {NOW[1]}  # the time given, not the clock's
     assert not [
         r for r in rows(table) if r["kind"] in ("seal", "decline")
     ]  # it seals nothing
@@ -239,3 +240,19 @@ def test_the_tables_check_plays_its_fights_again(table):
         bad.returncode == 2
         and "refused: the fights: refused: fight at row" in bad.stderr
     ), bad.stderr
+
+
+def test_a_fights_dice_are_its_seed_read_as_hex(table):
+    """The rule a fight is replayed by, by hand or by check: random.Random of
+    the seed read as a hexadecimal number, the engine and stat blocks as
+    aetheris5e has them."""
+    import random
+
+    import fight as f
+
+    combat, statblocks = f.engine()
+    seed = "00ff" * 16
+    blows, res = f.play("raiders", seed)
+    kept = f.Kept()
+    again = combat.Combat(statblocks.build_encounter("raiders"), random.Random(int(seed, 16)), sink=kept).run()  # fmt: skip
+    assert blows == kept.blows and res == json.loads(json.dumps(again))
