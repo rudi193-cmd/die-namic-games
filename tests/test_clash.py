@@ -155,3 +155,14 @@ def test_the_gms_own_word_can_replace_or_be_let_go(home):
         "It's the rule of the table now, and the old one is replaced." in stood.stdout
     )
     assert f"what it replaced:\n  was: {OLD}" in canon(home)
+
+
+def test_a_seal_the_kernel_refuses_is_said_in_the_kernels_words(home):
+    """When the kernel refuses (here, a proposal the box never took), what
+    it said is what's raised, never an empty reason."""
+    sys.path.insert(0, str(BOX))
+    import clash
+
+    with pytest.raises(RuntimeError) as got:
+        clash.seal(home / "table" / "record", "proposal:" + "0" * 64)
+    assert "is not a proposal in this box" in str(got.value), str(got.value)
