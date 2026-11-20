@@ -1,0 +1,15 @@
+01 all-passages: started (1be8da65)
+01 all-passages: exit 0, 1 line
+02 all-passages: started (cddb464a)
+02 all-passages: exit 0, 1 line
+03 all-passages: started (bf0c2e36)
+03 all-passages: exit 0, 1 line
+04 first-mention: started (d959b9ab)
+04 first-mention: exit 0, 2 lines
+05 all-passages: started (76aac70e)
+05 all-passages: exit 0, 1 line
+06 first-mention: started (d2635caa)
+06 first-mention: exit 0, 2 lines
+07 box-health: started (5a644aca)
+07 box-health: exit 42, 12 lines, mass 9, populated, flagged
+done: 1 of 7 steps flagged

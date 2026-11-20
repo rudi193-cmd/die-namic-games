@@ -377,6 +377,36 @@ def test_prep_runs_the_thirteen_steps_and_every_week_has_its_own_run(t):
     assert "the chain holds" in page
 
 
+def test_family_night_runs_its_seven_steps_each_night_in_a_folder_of_its_own(t):
+    """The family's page: what was promised, what waits, every story and roll
+    played again, a copy kept and the record's end pinned; it seals nothing."""
+    t.open()
+    t.night()
+    seals = sum(r["kind"] == "seal" for r in t.rows())
+    for night in ("001", "002"):
+        got = py(HERE / "open_table.py", "family", "--table", t.dir)
+        assert got.returncode == 42, got.stderr  # the house rules wait on the seal
+        run = t.dir / "family" / night
+        log = (run / "00-stack.txt").read_text()
+        assert log.rstrip().endswith("done: 2 of 7 steps flagged"), (
+            log
+        )  # digest and box-health: the rules
+        assert "03 game-master: exit 0" in log and "04 play-dice: exit 0" in log
+        assert json.loads((run / "pin.json").read_text())
+        assert list(run.glob("willow-backup-*.zip"))
+    assert "Next time: where the springs go." in got.stdout
+    assert "the chain holds" in got.stdout
+    assert sum(r["kind"] == "seal" for r in t.rows()) == seals  # it seals nothing
+
+
+def test_a_box_laid_before_family_night_gets_the_page_on_first_use(t):
+    t.open()
+    (t.dir / "family-night.md").unlink()
+    got = py(HERE / "open_table.py", "family", "--table", t.dir)
+    assert got.returncode == 42, got.stderr
+    assert (t.dir / "family-night.md").read_text() == (HERE / "family-night.md").read_text()  # fmt: skip
+
+
 def test_prep_flags_a_week_missed(t):
     """gaps' 0 is a gap found: the page flags it, and a clean run it doesn't.
     A weekly log's gap is more than three weeks with no session notes."""

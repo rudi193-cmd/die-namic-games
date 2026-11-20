@@ -1,0 +1,6 @@
+# The store's words: how its readers ask, then the words its pages use.
+# The kernel reads every question through this list.
+
+shop = store, provision
+promote = promotion, promoted
+maker = author

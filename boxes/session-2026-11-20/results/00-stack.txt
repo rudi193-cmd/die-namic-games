@@ -1,0 +1,21 @@
+01 all-passages: started (f780b89f)
+01 all-passages: exit 0, 1 line
+02 all-passages: started (5b794c4b)
+02 all-passages: exit 0, 1 line
+03 all-passages: started (ef22a564)
+03 all-passages: exit 0, 1 line
+04 all-passages: started (19b695f6)
+04 all-passages: exit 0, 1 line
+05 first-mention: started (1209c519)
+05 first-mention: exit 0, 2 lines
+06 first-mention: started (74f987a9)
+06 first-mention: exit 0, 2 lines
+07 all-passages: started (ef7569e1)
+07 all-passages: exit 0, 1 line
+08 all-passages: started (2f3bebe7)
+08 all-passages: exit 0, 1 line
+09 all-passages: started (5fdaa24d)
+09 all-passages: exit 0, 1 line
+10 box-health: started (5a644aca)
+10 box-health: exit 42, 8 lines, mass 6, populated, flagged
+done: 1 of 10 steps flagged

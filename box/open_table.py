@@ -4,6 +4,7 @@
     python box/open_table.py prep  --table DIR
     python box/open_table.py end   --table DIR
     python box/open_table.py check --table DIR
+    python box/open_table.py family --table DIR
 
 The box is the game master's binder. `open` lays a fresh one in DIR, which
 must not exist yet:
@@ -36,8 +37,11 @@ ends, each run kept in DIR/end/NNN; and last, what the table holds true.
 
 `check` runs the table's own check page,
 check.md: every game on the record played again from its first row, and
-every fight fight.py kept, when there are any. Each then has the kernel
-verify the chain.
+every fight fight.py kept, when there are any. `family` runs
+family-night.md, the page for a family's own table (box/play.py's): before
+the night, what was promised and what waits; after it, every story and roll
+played again, a copy kept and the record's end pinned, each run in
+DIR/family/NNN. Each then has the kernel verify the chain.
 
 This never seals, declines or reads the key, and writes the record only
 through the kernel and the add-ons.
@@ -64,7 +68,7 @@ import kernel
 BINDER = HERE / "binder"
 WORDS = HERE / "gm-words.txt"
 WORLDS = HERE / "worlds"
-PAGES = {"prep": HERE / "gm-stack.md", "end": HERE / "gm-end.md", "check": HERE / "check.md"}  # fmt: skip
+PAGES = {"prep": HERE / "gm-stack.md", "end": HERE / "gm-end.md", "check": HERE / "check.md", "family": HERE / "family-night.md"}  # fmt: skip
 SESSION = HERE / "session.py"
 FIGHT = HERE / "fight.py"
 STDLIB = ROOT / "adapters" / "stdlib"
@@ -135,12 +139,16 @@ def cmd_open(table: Path, key: Path, now: str) -> int:
 
 def cmd_page(table: Path, which: str) -> int:
     box, page = table / "record", table / PAGES[which].name
+    if which == "family" and (box / "kernel.json").exists() and not page.exists():
+        # a box laid before this page was: it's copied in, the box's own from now on
+        shutil.copy(PAGES[which], page)
     if not (box / "kernel.json").exists() or not page.exists():
         return fail(f"{table} isn't a box laid by open")
     keep = []
     if which in (
         "prep",
         "end",
+        "family",
     ):  # each run kept in a folder of its own, for the steps that write
         runs = table / which
         runs.mkdir(exist_ok=True)
@@ -172,7 +180,13 @@ def main(argv: list[str]) -> int:
             opts[a] = next(it, "")
         else:
             args.append(a)
-    if not opts.get("--table") or args not in (["open"], ["prep"], ["end"], ["check"]):
+    if not opts.get("--table") or args not in (
+        ["open"],
+        ["prep"],
+        ["end"],
+        ["check"],
+        ["family"],
+    ):
         print(__doc__.split("\n\n")[1], file=sys.stderr)
         return kernel.REFUSED
     table = Path(opts["--table"])
