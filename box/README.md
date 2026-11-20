@@ -34,6 +34,7 @@ refuses one whose files differ.
 | [check.md](check.md) | the table's own check: every game played again, every house rule's standing | stack |
 | [open_table.py](open_table.py) | the box's code: lays a box, and runs its prep sheet and its check | the kernel and the add-ons above |
 | [session.py](session.py) | the GM's bookkeeping, done by code: plays a story as far as it goes without the GM, and says what the table made true | game-master |
+| [fight.py](fight.py) | a 5e fight from the-table's [aetheris5e](../the-table/aetheris5e/), blow by blow on the record: initiative, attacks against AC, crits, the six stat blocks and the four encounters, its dice seeded by the row before; `check` plays every fight again and refuses one edited after the fact | aetheris5e's engine, with willow-bot's one-script for its dice, and the kernel |
 
 ## Laying the box
 
