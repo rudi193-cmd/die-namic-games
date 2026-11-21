@@ -908,3 +908,23 @@ attack bonus and damage are. Not built; nothing in `box/` calls dndwright.
 **Decision for the maintainer:** build that adapter as a spike (a short
 module with a test, outside the play path), or leave aetheris5e's fights as
 they are and keep dndwright as the reference for rules.
+
+### Round 6: the spike (2026-11-21)
+
+`spikes/dndwright/` (outside `tests/`, nothing in `box/` imports it; see its
+README): a fight on three story characters (Tamsin, Oro, a goblin) run by
+dndwright on a list of faces handed in, every blow a row, and a `check` that
+replays the rows' own faces and finds an edited hit point or a changed die.
+**7 tests pass, lint clean.** Held: dice come only from outside (out of faces
+raises, a face off the die is refused); same faces give the same fight; a crit
+doubles the damage dice. **Not done:** the tower (the next step is to fill the
+faces from willow's `dice-tower`, one drop per roll), the kernel's record and
+seal, a person choosing the target, conditions and death saves, our sheets.
+The wider `tests/` shows 23 failures in the fight tests with or without the
+spike: `box/fight.py` needs `ONESCRIPT_HOME`, which this session lacks, so
+those were not run green here.
+
+**Open question the spike leaves:** on the tower, a die is dropped for a stated
+roll (`2d6`) before it is thrown, so a fight drops many small dice, one per
+attack and per damage; how that reads on the record, and whether a round's
+dice can be dropped together, is for willow's dice-tower to say.

@@ -121,6 +121,11 @@ dm` and `dm = ...` was refused).
   plain numbers (modifiers, AC, hit points), which aetheris5e's stat blocks
   already are. Decision waiting: a spike adapter, or leave aetheris5e as is.
 
+- **Round 6, the spike:** `spikes/dndwright/` runs a fight on story characters
+  with dndwright on supplied faces, every blow a row, replay finds an edit;
+  7 tests. Next: faces from the tower. Wider suite: 23 fight-test failures
+  here from a missing `ONESCRIPT_HOME`, not from the spike.
+
 ## Not done, and why
 
 - **Tavern (t11z)**: `t11z/tavern` is refused to the session, both through
