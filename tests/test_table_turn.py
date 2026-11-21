@@ -20,9 +20,12 @@ import person
 import pytest
 
 BOX = Path(__file__).resolve().parents[1] / "box"
+sys.path.insert(0, str(BOX))
+import willow_pin
+
 NOW = "2026-11-20T19:00:00Z"
 VELL = "Old Vell from the lantern fair comes down the stair."
-HINT = "  Enter: roll · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside\n> "
+HINT = "  Enter: roll · h: how · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside\n> "
 
 
 def table_turn(home: Path, steps: list, every: dict | None = None, now: str = NOW):
@@ -61,7 +64,7 @@ def test_each_roll_waits_for_enter_and_a_word_that_isnt_one_is_asked_again(home)
     assert (
         out.count(HINT) >= 2 and "f: a fight" not in out
     )  # the lantern fair has no fights
-    assert "  Press Enter to roll, o, s, u or x.\n" in out and not left
+    assert "  Press Enter to roll, h, o, s, u or x.\n" in out and not left
     first = out.split(HINT)[0]
     assert "🎲" not in first  # nothing rolled before the first Enter
 
@@ -147,7 +150,7 @@ def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
 
 def test_no_fight_where_it_doesnt_belong(home):
     _code, out, _left = table_turn(home, [("Which story?", ""), (">", "f")])
-    assert "Press Enter to roll, o, s, u or x." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
+    assert "Press Enter to roll, h, o, s, u or x." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
 
 
 LAMP = (
@@ -274,3 +277,23 @@ def test_what_carries_over_is_said_on_the_opening_screen_until_healed(home):
     table_turn(home, healed)  # picked up: the call it waited on, then the next roll
     _code, out, _left = table_turn(home, [])
     assert "  - Tamsin carries a rope\n" in out and "Oro is still hurt" not in out
+
+
+def test_h_lets_the_player_choose_how_with_each_ways_chances(home):
+    steps = [("Which story?", ""), (">", "h"), ("How?", "3"), (">", "")]
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert "   How does Tamsin meet it?\n   1. Grit +2 (strong 42%, weak 42%, miss 17%) — the story's\n" in out  # fmt: skip
+    assert "   3. Heart +1 (strong 28%, weak 44%, miss 28%)\n" in out
+    assert "   Tamsin meets it with Heart.\n" in out and "🎲 Tamsin tries Heart: rolled " in out  # fmt: skip
+    beat = next(r for r in rows(home) if r["kind"] == "table-beat")
+    assert (beat["stat"], beat["bonus"]) == ("Heart", 1)
+    held = subprocess.run([sys.executable, willow_pin.root() / "adapters" / "stdlib" / "game-master" / "game_master.py", "--box", home / "table" / "record", "check", "--world", home / "table" / "worlds" / "lantern-fair.json"], capture_output=True, text=True, check=False)  # fmt: skip
+    assert held.returncode == 0, (
+        held.stdout + held.stderr
+    )  # the story's own check takes any of its stats
+
+
+def test_enter_at_how_keeps_the_storys_way(home):
+    _code, out, _left = table_turn(home, [("Which story?", ""), (">", "h"), ("How?", ""), (">", "")])  # fmt: skip
+    assert "   Tamsin meets it with Grit.\n" in out and "🎲 Tamsin tries Grit:" in out

@@ -367,8 +367,12 @@ reached from the play path.
    but the story fixes the stat. Letting the player say "I talk my way
    through" is how most tables play. *(Underneath: game-master's `act`
    takes any stat.)*
+   **Built:** h at a roll, the menu the-table's `menu.py` makes of legal
+   moves, shown to a person: each of the story's stats with the
+   character's bonus and its exact chances, the story's way first.
 3. **Helping, and paying for a reroll.** "I hold the ladder for her" as +1;
-   a luck point spent to throw again, kept as its own event.
+   a luck point spent to throw again, kept as its own event. *(Not here: game-master's check holds a beat's total to the roll
+   plus the stat, so a +1 for help is a willow change first.)*
 4. **The cup, the screen roll, and the GM's word over the dice:** in The
    dice, above.
 

@@ -52,7 +52,9 @@ first (with the heads-up when it meets what the table holds true), and only
 then is it handed in and answered, so leaving midway leaves nothing behind.
 f is a fight played by fight.py onto the record, blow by blow; what it means
 for the story is the GM's to say.
-u undoes a yes pressed by mistake: the last thing made true tonight, taken
+h is how the character meets it: the story's stats, each with the
+character's bonus and its exact chances (2d6 counted, as play-odds would),
+the story's own first; game-master's act takes any of them. u undoes a yes pressed by mistake: the last thing made true tonight, taken
 back on the GM's y. Nothing takes a seal back; a replacement whose new word
 is nothing stands over it (clash.py's take_back, the "mine stands now"
 shape, as willow's decisions keep a replaced row), so the old yes stays on
@@ -335,10 +337,11 @@ def night(table: Path, world: dict, world_file: Path, now: str) -> int:
                 print(opening(table, "\n".join(sc["opening"])))
         asked = [a for a in game["asks"] if (a["scene"], a["beat"]) == (sc["id"], b["id"])]  # fmt: skip
         if b["kind"] == "action":
-            if before_roll(table, world, world_file, b, now, game) is None:
+            how = before_roll(table, world, world_file, b, now, game)
+            if how is None:
                 print("\nThe story is waiting. Run this again to pick up.")
                 return kernel.ESCALATE
-            done = session.step(box, world_file, now, "act", b["suggests"])
+            done = session.step(box, world_file, now, "act", how)
         elif not asked:
             done = session.step(box, world_file, now, "ask")
             if done.returncode == kernel.REFUSED:
@@ -548,7 +551,8 @@ FIGHTS = {"aetheris-the-waking-tide"}  # the stories aetheris5e's encounters bel
 def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, game: dict) -> bool | None:  # fmt: skip
     """The moment said, and the table's turn before the roll: Enter rolls, o
     is someone bringing something in, f a fight (in a story fights belong
-    to). True to roll; None if the person left."""
+    to), h how the character meets it. The stat to roll with (the story's,
+    unless the player chose another); None if the person left."""
     lines, veils = safety.read(table)
     line, veil = safety.touches(lines, b["prompt"]), safety.touches(veils, b["prompt"])
     if line:
@@ -559,8 +563,9 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
         if veil:
             print(f"   🌫 ({veil}: it happens off-screen.)")
     fights = world["id"] in FIGHTS
+    how = b["suggests"]
     hint = (
-        "  Enter: roll · o: someone brings something in"
+        "  Enter: roll · h: how · o: someone brings something in"
         + (" · f: a fight" if fights else "")
         + " · s: sheets · u: undo a yes · x: set it aside"
     )
@@ -570,8 +575,13 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
         if got is None:
             return None
         if got == "":
-            return True
-        if got.lower() == "o":
+            return how
+        if got.lower() == "h":
+            picked = choose_how(world, game, b, how)
+            if picked is None:
+                return None
+            how = picked
+        elif got.lower() == "o":
             if bring_in(table / "record", world, world_file, now) is None:
                 return None
         elif got.lower() == "f" and fights:
@@ -588,12 +598,34 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
             if not line:
                 aside(table, now, game)
             print("   Set aside. Nobody needs to say why. The dice still roll, and the GM says what happens instead.")  # fmt: skip
-            return True
+            return how
         else:
             print(
                 "  Press Enter to roll"
-                + (", o, f, s, u or x." if fights else ", o, s, u or x.")
+                + (", h, o, f, s, u or x." if fights else ", h, o, s, u or x.")
             )
+
+
+def chances(bonus: int) -> str:
+    """Two d6 plus BONUS, as how often each band comes up, counted exactly."""
+    sums = [a + b + bonus for a in range(1, 7) for b in range(1, 7)]
+    per = {k: sum(1 for s in sums if gm.band_of(s) == k) for k in ("strong", "weak", "miss")}  # fmt: skip
+    return ", ".join(f"{k} {round(100 * n / 36)}%" for k, n in per.items())
+
+
+def choose_how(world: dict, game: dict, b: dict, how: str) -> str | None:
+    """The player says how their character meets it: each of the story's
+    stats, with the character's bonus and its chances, the story's own way
+    first (game-master's act takes any of them). None if the person left."""
+    char = gm.now_in(world, game)[2]
+    order = [b["suggests"]] + [s for s in world["stats"] if s != b["suggests"]]
+    labels = [f"{s} {gm.stat_of(world, char, s):+d} ({chances(gm.stat_of(world, char, s))})" + (" — the story's" if s == b["suggests"] else "") for s in order]  # fmt: skip
+    print(f"   How does {char['name']} meet it?")
+    k = pick_one("   How? ", labels)
+    if k is None:
+        return None
+    print(f"   {char['name']} meets it with {order[k]}.")
+    return order[k]
 
 
 def pick_one(prompt_: str, options: list[str]) -> int | None:
