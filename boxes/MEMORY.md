@@ -82,6 +82,18 @@ dm` and `dm = ...` was refused).
   - Want 2 and 5 are the strongest answers; want 4 (a fight resolved) mostly
     reached class data, not the resolving code: ask the source for it.
 
+- **The three next steps, done 2026-11-21** (full notes in
+  [../open.md](../open.md), "Open records"):
+  - WITNESS_INTEGRITY.md read: a structural filter (scenes no on-stage NPC
+    witnessed never reach the model) and a behavioural one (facts split in the
+    prompt, advice only). The structural one is the `kids` fix's shape.
+  - dndwright run: `DiceEngine(rng=...)` takes a `random.Random`, so typed
+    faces can drive it through a small subclass; `apply_damage` is pure; needs
+    `pydantic` and `pyyaml` (a `deps` add-on).
+  - Exhaustion written as `box/exhaustion.py` in both SRD editions: dndwright
+    is 5.1, srd_5e is 5.2. Not wired into play (item 3 first).
+- **Which edition the box plays** is an open decision the engines forced.
+
 ## Not done, and why
 
 - **Tavern (t11z)**: `t11z/tavern` is refused to the session, both through

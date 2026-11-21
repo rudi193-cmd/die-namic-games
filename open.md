@@ -400,7 +400,10 @@ reached from the play path.
    reads what carried over aloud. Read as willow's `lending` reads a loan
    (every line stays; a return listed under it) and `livestock` an
    animal's treatments. Not yet: a wound that changes a roll, and spent
-   strength.
+   strength. *(2026-11-21: the rule for one wound, exhaustion, is written as
+   a pure module, `box/exhaustion.py`, in both SRD editions; it is not wired
+   into a roll, because that is item 3's willow change first. See "Open
+   records" at the bottom.)*
 6. **Who is at the table.** One player or five; a friend for one night;
    someone leaving. The seats are fixed by the story, and every fight brings
    the same three.
@@ -634,3 +637,67 @@ Questions to settle before building anything:
   generator (see "The dice").
 - How this sits beside aetheris5e's fights, and the open point that the
   fight is fought by its own party, not the story's characters.
+
+## Open records: the survey of the eight, against what is open and built
+
+*A living section: update it, don't rewrite it. First written 2026-11-21 from
+[boxes/pot/results-eight/](boxes/pot/results-eight/) (eight open GM projects
+and rules engines, 27 questions each; hits are evidence to read, not proof) and
+[boxes/MEMORY.md](boxes/MEMORY.md), its twin.*
+
+**Built here, and nothing like it in any of the eight:** typed real dice (1),
+the tower and the cup (4), lines, veils, x and p (13), taking back a yes (14),
+the GM's yes under a seal, carry-over as rows (5).
+
+**Open, and what the eight add:**
+
+| Open | What they add | State |
+|---|---|---|
+| 5 (rest): a wound that changes a roll | the rule is in two engines, in two editions that disagree (below) | rule written, `box/exhaustion.py`, 14 tests; **not wired**: blocked by 3 |
+| 3 and 12 | nothing found; advantage/disadvantage hits everywhere, so help as advantage is one shape to try | open, willow first |
+| 8 growing | class data by level in dndwright (`classes.json`), srd_5e, OpenCombatEngine (ADR 0054) | unread beyond the hit |
+| 9 a scene made up | taleweaver, narrativeengine-p are built on it, with a person confirming (`core/prompts.py:513`) | unread |
+| 4 (rest): screen roll | the tower hides a roll from everyone; a screen roll is the same, opened by the GM only | open |
+| 16, 17 (map) | narrativeengine-p's world-map mod (MIT) | unread |
+| 6, 11, 15 | not surveyed | open |
+
+**Read in full on 2026-11-21 (the three next steps):**
+
+1. **narrativeengine-p `mobile/docs/WITNESS_INTEGRITY.md`.** Two layers. A
+   *structural* one: scenes are filtered at retrieval by `npcsWitnessed`, and
+   a scene no on-stage NPC witnessed is never put in the model's context, so
+   it cannot be leaked. A *behavioural* one: a register of diverged facts
+   with `knownBy`, sent whole in one system message, so the split is advice
+   the model is trusted to follow. Its own text says so ("advisory rather
+   than structurally isolating"). **For the `kids` leak** (a child's question
+   answered from `gm-only/`): the structural layer is the shape that held
+   there too (a second box over the binder's folders without `gm-only/`); the
+   behavioural one is the shape that would have leaked. Same conclusion,
+   reached by them in prose and by us in an incident.
+2. **dndwright's dice and combat (run, not just read).** `DiceEngine(rng=...)`
+   takes any `random.Random`; a subclass whose `randint` hands out the faces a
+   table said, in order, and refuses when it is out, made a 2d6 of 4 and 6 and
+   an attack of 13 +5 = 18 against AC 16 a hit. So **typed dice can drive its
+   rolls, with a small adapter.** Its `apply_damage` is a pure function of a
+   frozen state (8 hp, 3 temp, 10 damage gives 1). It needs `pydantic>=2.5`
+   and `pyyaml>=6.0`, so it would be a `deps` add-on, pinned, with a licence
+   on its card, not a stdlib one. Not yet checked: that a fight can be run on
+   the *story's* characters rather than aetheris5e's own party; the state is
+   a plain value, which is hopeful.
+3. **Exhaustion, written** (`box/exhaustion.py`, `tests/test_exhaustion.py`).
+   The two engines disagree: **dndwright's catalog is the SRD 5.1 rule**
+   (cumulative: disadvantage on ability checks, speed halved, disadvantage on
+   attacks and saves, hit point maximum halved, speed 0, death) and
+   **srd_5e's is 5.2** (-2 on every d20 per level, -5 feet, death at 6). The
+   module keeps both, named, never mixed. *The box still has to say which
+   edition it plays;* open question, not decided.
+
+**Decisions this raises (not made):** which SRD edition the box plays (the
+engines split on it, and so would fights); whether an outside engine is a
+`deps` add-on or a port; and whether a wound's change to a roll waits on item 3
+or is shown to the GM as advice meanwhile.
+
+**Notes for later updates.** Tavern (t11z) was unreadable from the session;
+jurnalis-engine has no licence file; the survey's hit rule over-counts, read
+the passages. When a want here is built or closed, change its row and say
+when.
