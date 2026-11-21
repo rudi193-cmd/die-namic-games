@@ -50,8 +50,9 @@ aetheris5e's). o is game-master's own offer, as the character of whoever
 brings it in, of a kind the story turns on if it names any: the GM is asked
 first (with the heads-up when it meets what the table holds true), and only
 then is it handed in and answered, so leaving midway leaves nothing behind.
-f is a fight played by fight.py onto the record, blow by blow; what it means
-for the story is the GM's to say.
+f is a fight played by fight.py onto the record, blow by blow, then drawn
+as a board (box/board.py: who's hurt, who's down, whose turn); what it
+means for the story is the GM's to say.
 h is how the character meets it: the story's stats, each with the
 character's bonus and its exact chances (2d6 counted, as play-odds would),
 the story's own first; game-master's act takes any of them. u undoes a yes pressed by mistake: the last thing made true tonight, taken
@@ -720,6 +721,9 @@ def fight(table: Path, now: str) -> bool | None:
         return False
     blows = done.stdout.rstrip().splitlines()
     print("\n⚔️  " + "\n".join(blows[:-1]))
+    shown = run(HERE / "fight.py", "--table", table, "board")
+    if shown.returncode == kernel.ALIVE:
+        print("\n" + shown.stdout.rstrip() + "\n")
     rows, _ = kernel.read(table / "record" / "record.jsonl")
     res = next(r for r in reversed(rows) if r["kind"] == "fight-end")["result"]
     said = {"party": "The party won", "foe": "The party fell", "stalemate": "Neither side fell"}.get(res["outcome"], "It ended")  # fmt: skip

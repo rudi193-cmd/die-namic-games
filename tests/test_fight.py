@@ -174,7 +174,7 @@ def test_the_encounters_are_listed():
 def test_a_bad_command_line_prints_how_to_fight(table, argv):
     got = py(BOX / "fight.py", *[a.format(t=table) for a in argv])
     assert got.returncode == 2
-    assert got.stderr.strip() == "python box/fight.py list\n    python box/fight.py --table DIR fight ENCOUNTER [--now TS]\n    python box/fight.py --table DIR check"  # fmt: skip
+    assert got.stderr.strip() == "python box/fight.py list\n    python box/fight.py --table DIR fight ENCOUNTER [--now TS]\n    python box/fight.py --table DIR check\n    python box/fight.py --table DIR board [--fight ROW] [--round N]"  # fmt: skip
 
 
 def test_a_table_with_no_record_prints_how_to_fight(tmp_path):
@@ -271,3 +271,48 @@ def test_the_opening_screen_tells_the_gm_how_last_nights_fights_ended(table):
     assert (
         "(row" not in head and "Just for you, GM, how last time's fights ended" in head
     )
+
+
+def board(table: Path, *argv) -> subprocess.CompletedProcess:
+    return py(BOX / "fight.py", "--table", table, "board", *argv)
+
+
+def test_the_board_at_the_end_is_what_the_fights_end_says(table):
+    assert fight(table, "fight", "raiders").returncode == 0
+    end = rows(table)[-1]["result"]
+    got = board(table)
+    assert got.returncode == 0, got.stderr
+    said = {"party": "the party won", "foe": "the party fell"}[end["outcome"]]
+    assert got.stdout.startswith(f"⚔️  the party ambushed by 4 Scorched Belt Raiders, round {end['rounds']} of {end['rounds']}: {said}\n")  # fmt: skip
+    standing = set(end["party_survivors"] + end["foe_survivors"])
+    for name in ["Sena Koll", "Tide-touched Scout", "Warforged"] + [f"Scorched Belt Raider #{i}" for i in range(1, 5)]:  # fmt: skip
+        mark = next(
+            x for x in got.stdout.splitlines() if x.strip().startswith(name + " ")
+        )
+        assert ("✖ down" in mark) == (name not in standing), mark
+    assert "▶" not in got.stdout  # it's over: no one's turn
+
+
+def test_the_board_after_a_round_is_the_fight_as_it_stood_then(table):
+    assert fight(table, "fight", "raiders").returncode == 0
+    end = rows(table)[-1]["result"]
+    got = board(table, "--round", "1")
+    assert got.returncode == 0 and f", round 1 of {end['rounds']}\n" in got.stdout
+    assert (": the party" not in got.stdout.splitlines()[0]) == (end["rounds"] > 1)
+    assert ("▶" in got.stdout) == (end["rounds"] > 1)  # whose turn, mid-fight
+
+
+def test_the_board_needs_no_dice_only_the_rows(table):
+    assert fight(table, "fight", "raiders").returncode == 0
+    env = {k: v for k, v in os.environ.items() if k != "ONESCRIPT_HOME"}
+    got = subprocess.run([sys.executable, BOX / "fight.py", "--table", table, "board"], capture_output=True, text=True, env=env, check=False)  # fmt: skip
+    assert got.returncode == 0 and "The party" in got.stdout
+
+
+def test_a_board_it_cant_draw_is_refused(table):
+    assert board(table).stderr == "refused: no fight on the record\n"
+    assert fight(table, "fight", "raiders").returncode == 0
+    at = next(r["n"] for r in rows(table) if r["kind"] == "fight-open")
+    assert board(table, "--fight", "1").stderr == f"refused: row 1 doesn't open a fight; fights open at rows {at}\n"  # fmt: skip
+    assert board(table, "--round", "x").returncode == 2
+    assert board(table, "--fight", str(at)).returncode == 0

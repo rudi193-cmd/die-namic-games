@@ -440,7 +440,11 @@ reached from the play path.
 
 16. **The shared view:** pictures, a map, a handout, the dice landing where
     everyone can see. That is the browser door.
-17. **A board in a fight:** who's hurt, who's stunned, whose turn.
+17. **A board in a fight:** who's hurt, who's stunned, whose turn. **Built:**
+    box/board.py draws a fight from its rows alone, at its end (after
+    every fight in play) or at any round (`fight.py board --round N`):
+    each fighter's hit points as a bar, who's down, stunned or blinded,
+    and whose turn is next. Not yet: a map of where they stand.
 18. **Last night's fight on the opening screen.** Found in the journey: the
     recap says "Fights last time", but the screen the GM opens on doesn't.
     **Built:** the opening screen tells the GM how each of last night's

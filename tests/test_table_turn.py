@@ -144,6 +144,10 @@ def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
     said = {"party": "The party won", "foe": "The party fell"}[end["outcome"]]
     assert f"⚔️  {said} in {end['rounds']} rounds. Still standing: " in out
     assert "(What the fight means for the story is yours to say, GM.)\n  Enter: roll" in out  # fmt: skip
+    assert (
+        "\n  The party\n    Sena Koll " in out and "\n  Their side\n" in out
+    )  # the board, after
+    assert out.index("  Their side") < out.index(f"⚔️  {said} in")
     held = subprocess.run([sys.executable, BOX / "fight.py", "--table", home / "table", "check"], capture_output=True, text=True, check=False)  # fmt: skip
     assert held.returncode == 0 and held.stdout.startswith("1 fight on the record")
 

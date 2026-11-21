@@ -3,6 +3,7 @@
     python box/fight.py list
     python box/fight.py --table DIR fight ENCOUNTER [--now TS]
     python box/fight.py --table DIR check
+    python box/fight.py --table DIR board [--fight ROW] [--round N]
 
 the-table's aetheris5e has the fight: initiative, attacks against AC,
 crits, resistances, recharging specials, the six stat blocks and the four
@@ -23,6 +24,11 @@ the GM's to say.
 aetheris5e's dice come from the one-script (willow-bot's), with the MIT
 `dice` library its requirements name: set ONESCRIPT_HOME, or check
 willow-bot out beside die-namic-games.
+
+`board` draws a fight from its rows (box/board.py): each fighter's hit
+points as a bar, who's down, stunned or blinded, the round, and whose turn
+is next; the last fight on the record unless --fight names its open row,
+as it ended unless --round says which round to stop at.
 
 Exit codes, the kernel's: 0 done; 2 refused.
 """
@@ -125,6 +131,24 @@ def check(box: Path) -> int:
     return kernel.ALIVE
 
 
+def board_of(box: Path, fight_at: str, upto: str) -> int:
+    import board
+
+    rows, breaks = kernel.read(box / "record.jsonl")
+    if breaks:
+        return refused("the record doesn't verify: " + "; ".join(breaks))
+    opened = [r["n"] for r in rows if r["kind"] == OPEN]
+    if not opened:
+        return refused("no fight on the record")
+    if (fight_at and not fight_at.isdigit()) or (upto and not upto.isdigit()):
+        return refused("--fight and --round are numbers")
+    at = int(fight_at) if fight_at else opened[-1]
+    if at not in opened:
+        return refused(f"row {at} doesn't open a fight; fights open at rows {', '.join(map(str, opened))}")  # fmt: skip
+    print(board.draw(board.state(rows, at, int(upto) if upto else None)))
+    return kernel.ALIVE
+
+
 def refused(why: str) -> int:
     print(f"refused: {why}", file=sys.stderr)
     return kernel.REFUSED
@@ -133,7 +157,7 @@ def refused(why: str) -> int:
 def main(argv: list[str]) -> int:
     opts, args, it = {}, [], iter(argv)
     for a in it:
-        if a in ("--table", "--now"):
+        if a in ("--table", "--now", "--fight", "--round"):
             opts[a] = next(it, "")
         else:
             args.append(a)
@@ -143,11 +167,13 @@ def main(argv: list[str]) -> int:
             print(f"  {name:<10} {e['desc']}")
         return kernel.ALIVE
     box = Path(opts.get("--table", "")) / "record"
-    if not opts.get("--table") or not (box / "record.jsonl").is_file() or args[:1] not in (["fight"], ["check"]) or len(args) != (2 if args[0] == "fight" else 1):  # fmt: skip
+    if not opts.get("--table") or not (box / "record.jsonl").is_file() or args[:1] not in (["fight"], ["check"], ["board"]) or len(args) != (2 if args[0] == "fight" else 1):  # fmt: skip
         print(__doc__.split("\n\n")[1], file=sys.stderr)
         return kernel.REFUSED
     if args == ["check"]:
         return check(box)
+    if args == ["board"]:
+        return board_of(box, opts.get("--fight", ""), opts.get("--round", ""))
     return fight(box, args[1], opts.get("--now") or kernel.now())
 
 
