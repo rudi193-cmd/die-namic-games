@@ -25,7 +25,7 @@ import willow_pin
 
 NOW = "2026-11-20T19:00:00Z"
 VELL = "Old Vell from the lantern fair comes down the stair."
-HINT = "  Enter: roll · h: how · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside\n> "
+HINT = "  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside\n> "
 
 
 def table_turn(home: Path, steps: list, every: dict | None = None, now: str = NOW):
@@ -64,7 +64,11 @@ def test_each_roll_waits_for_enter_and_a_word_that_isnt_one_is_asked_again(home)
     assert (
         out.count(HINT) >= 2 and "f: a fight" not in out
     )  # the lantern fair has no fights
-    assert "  Press Enter to roll, h, o, s, u or x.\n" in out and not left
+    assert (
+        "  Press Enter to roll, type your two dice (like 4 6), or h, o, s, u or x.\n"
+        in out
+        and not left
+    )
     first = out.split(HINT)[0]
     assert "🎲" not in first  # nothing rolled before the first Enter
 
@@ -154,7 +158,7 @@ def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
 
 def test_no_fight_where_it_doesnt_belong(home):
     _code, out, _left = table_turn(home, [("Which story?", ""), (">", "f")])
-    assert "Press Enter to roll, h, o, s, u or x." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
+    assert "Press Enter to roll, type your two dice (like 4 6), or h, o, s, u or x." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
 
 
 LAMP = (
@@ -301,3 +305,71 @@ def test_h_lets_the_player_choose_how_with_each_ways_chances(home):
 def test_enter_at_how_keeps_the_storys_way(home):
     _code, out, _left = table_turn(home, [("Which story?", ""), (">", "h"), ("How?", ""), (">", "")])  # fmt: skip
     assert "   Tamsin meets it with Grit.\n" in out and "🎲 Tamsin tries Grit:" in out
+
+
+def checks(home: Path) -> list[subprocess.CompletedProcess]:
+    adds = willow_pin.root() / "adapters" / "stdlib"
+    box = home / "table" / "record"
+    out = []
+    for a in ("game-master/game_master.py", "play-dice/play_dice.py", "dice-tower/dice_tower.py"):  # fmt: skip
+        out.append(subprocess.run([sys.executable, adds / a, "--box", box, "check"], capture_output=True, text=True, check=False))  # fmt: skip
+    return out
+
+
+def test_the_dice_are_in_the_tower_before_anything_is_written_and_come_out_on_the_roll(home):  # fmt: skip
+    steps = [*LADDER, (">", "")]  # the moment posed, something brought in, then Enter
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert "Tamsin climbs to the dark stall's hook.\n🥤 The dice are in the tower. Nobody knows them yet, not even the GM.\n" in out  # fmt: skip
+    kinds = [r["kind"] for r in rows(home)]
+    drop, offer, out_ = kinds.index("tower-drop"), kinds.index("table-offer"), kinds.index("tower-out")  # fmt: skip
+    assert (
+        drop < offer < out_ and kinds[out_ + 1] == "table-beat"
+    )  # dropped first, out on the roll
+    beat = rows(home)[out_ + 1]
+    assert (
+        beat["roll_row"] == rows(home)[out_]["n"] and "roll" not in kinds
+    )  # no seeded roll at all
+    die = next((home / "table" / "tower").iterdir())
+    assert die.stat().st_mode & 0o777 == 0o600 and not str(die).startswith(str(home / "table" / "record"))  # fmt: skip
+    assert all(c.returncode == 0 for c in checks(home)), [
+        c.stderr for c in checks(home)
+    ]
+
+
+def test_dice_thrown_at_the_table_are_typed_in_and_kept_as_said(home):
+    steps = [("Which story?", ""), (">", "4 5"), (">", "6,6"), ("(y/n)", "y")]
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert "🎲 Tamsin tries Grit: rolled 4 + 5 (your dice), +2 Grit = 11. Great!\n" in out  # fmt: skip
+    assert "🎲 Oro tries Wit: rolled 6 + 6 (your dice), +2 Wit = 14. Great!\n" in out
+    said = [r for r in rows(home) if r["kind"] == "roll"]
+    assert [(r["generator"], r["faces"]) for r in said] == [("said", [[4, 5]]), ("said", [[6, 6]])]  # fmt: skip
+    beats = [r for r in rows(home) if r["kind"] == "table-beat" and r["beat_kind"] == "action"]  # fmt: skip
+    assert [b["roll_row"] for b in beats[:2]] == [r["n"] for r in said]
+    held = checks(home)
+    assert all(c.returncode == 0 for c in held), [c.stderr for c in held]
+    assert "2 of them said, kept as said." in held[1].stdout
+    assert "still inside" not in held[2].stdout  # the tower's unused dice came out
+
+
+def test_a_die_that_isnt_one_is_asked_again_and_enter_still_rolls(home):
+    steps = [("Which story?", ""), (">", "7 2"), (">", "")]
+    _code, out, left = table_turn(home, steps)
+    assert not left and "  A die shows 1 to 6: type the two dice, like 4 6.\n" in out
+    assert "(your dice)" not in out and any(r["kind"] == "tower-out" for r in rows(home))  # fmt: skip
+
+
+def test_a_moment_asked_for_its_dice_again_finds_them_still_in_the_tower(home, capsys):  # fmt: skip
+    import play
+
+    game = {"open": {"n": 1}, "beats": []}
+    first = play.in_tower(home / "table", game, NOW)
+    again = play.in_tower(home / "table", game, NOW)  # a night picked up again
+    assert first == again and capsys.readouterr().out.count("🥤") == 1
+    drops = [r for r in rows(home) if r["kind"] == "tower-drop"]
+    assert len(drops) == 1 and drops[0]["for"] == "moment 1"
+    nxt = play.in_tower(home / "table", {**game, "beats": [{}]}, NOW)
+    assert (
+        nxt != first and len([r for r in rows(home) if r["kind"] == "tower-drop"]) == 2
+    )

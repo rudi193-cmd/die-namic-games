@@ -75,7 +75,14 @@ A family's lines and veils are a page they write once, pile/our-lines.md
 what happens instead; one that touches a veil happens off-screen. No page,
 nothing changes.
 
-Not here yet (open.md has it): the cup for the dice.
+**The dice.** When a moment is posed its dice are dropped in willow's
+dice-tower (in_tower): only their hash goes on the record, the secret to a
+file in the table's tower/ folder, outside it, so no row written before the
+roll (an offer, a call, a sheet) can change them, and nobody reads them
+first, the GM included. Enter brings them out as the roll (game-master's
+act --tower). Or the table throws real dice and types the two faces ("4 6"):
+game-master's act --said keeps them as said, marked "(your dice)", and the
+tower's unused dice come out so none is left inside.
 
 Exit codes, the kernel's: 0 done; 42 left with a call or the night waiting;
 2 refused.
@@ -84,6 +91,7 @@ Exit codes, the kernel's: 0 done; 42 left with a call or the night waiting;
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -111,6 +119,7 @@ import safety
 import session
 
 KERNEL = ROOT / "kernel.py"
+TOWER = ROOT / "adapters" / "stdlib" / "dice-tower" / "dice_tower.py"
 SEAL_END = ROOT / "adapters" / "stdlib" / "session-seal" / "session_seal.py"
 FIRST = "lantern-fair"  # the story offered when none has been played
 SAID = {"strong": "Great!", "weak": "It sort of works.", "miss": "It goes wrong."}
@@ -227,7 +236,8 @@ def said_roll(world: dict, rows: list[dict], beat: dict) -> str:
     faces = " + ".join(str(x) for f in roll.get("faces", []) for x in f)
     plus = f", +{beat['bonus']} {beat['stat']}" if beat.get("bonus") else ""
     who = names(world).get(beat.get("character"), beat.get("character"))
-    return f"🎲 {who} tries {beat['stat']}: rolled {faces}{plus} = {beat['total']}. {SAID[beat['band']]}"  # fmt: skip
+    yours = " (your dice)" if roll.get("generator") == "said" else ""
+    return f"🎲 {who} tries {beat['stat']}: rolled {faces}{yours}{plus} = {beat['total']}. {SAID[beat['band']]}"  # fmt: skip
 
 
 CHOICES = {"mine": "Mine stands now", "old": "Keep the old one", "both": "Both are true", "reword": "Let me reword it"}  # fmt: skip
@@ -338,11 +348,16 @@ def night(table: Path, world: dict, world_file: Path, now: str) -> int:
                 print(opening(table, "\n".join(sc["opening"])))
         asked = [a for a in game["asks"] if (a["scene"], a["beat"]) == (sc["id"], b["id"])]  # fmt: skip
         if b["kind"] == "action":
-            how = before_roll(table, world, world_file, b, now, game)
-            if how is None:
+            got = before_roll(table, world, world_file, b, now, game)
+            if got is None:
                 print("\nThe story is waiting. Run this again to pick up.")
                 return kernel.ESCALATE
-            done = session.step(box, world_file, now, "act", how)
+            how, faces, die = got
+            if faces:  # the table threw its own: the tower's die comes out unused
+                run(TOWER, "--box", box, "out", "--die", die, "--now", now)
+                done = session.step(box, world_file, now, "act", how, "--said", faces)
+            else:
+                done = session.step(box, world_file, now, "act", how, "--tower", die)
         elif not asked:
             done = session.step(box, world_file, now, "ask")
             if done.returncode == kernel.REFUSED:
@@ -549,11 +564,12 @@ def opening(table: Path, text: str) -> str:
 FIGHTS = {"aetheris-the-waking-tide"}  # the stories aetheris5e's encounters belong to
 
 
-def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, game: dict) -> bool | None:  # fmt: skip
-    """The moment said, and the table's turn before the roll: Enter rolls, o
-    is someone bringing something in, f a fight (in a story fights belong
-    to), h how the character meets it. The stat to roll with (the story's,
-    unless the player chose another); None if the person left."""
+def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, game: dict) -> tuple | None:  # fmt: skip
+    """The moment said, the dice dropped in the tower, and the table's turn
+    before the roll: Enter brings them out, two faces typed are the table's
+    own dice, o is someone bringing something in, f a fight (in a story
+    fights belong to), h how the character meets it. (the stat to roll with,
+    the faces typed or "", the die in the tower); None if the person left."""
     lines, veils = safety.read(table)
     line, veil = safety.touches(lines, b["prompt"]), safety.touches(veils, b["prompt"])
     if line:
@@ -563,10 +579,12 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
         print(f"\n{b['prompt']}")
         if veil:
             print(f"   🌫 ({veil}: it happens off-screen.)")
+    die = in_tower(table, game, now)
     fights = world["id"] in FIGHTS
     how = b["suggests"]
     hint = (
-        "  Enter: roll · h: how · o: someone brings something in"
+        "  Enter: roll, or type the two dice you threw (like 4 6)\n"
+        + "  h: how · o: someone brings something in"
         + (" · f: a fight" if fights else "")
         + " · s: sheets · u: undo a yes · x: set it aside"
     )
@@ -576,7 +594,13 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
         if got is None:
             return None
         if got == "":
-            return how
+            return how, "", die
+        threw = DICE.fullmatch(got)
+        if threw:
+            return how, f"{threw[1]},{threw[2]}", die
+        if re.fullmatch(r"\s*\d+\s*[ ,]\s*\d+\s*", got):
+            print("  A die shows 1 to 6: type the two dice, like 4 6.")
+            continue
         if got.lower() == "h":
             picked = choose_how(world, game, b, how)
             if picked is None:
@@ -599,12 +623,34 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
             if not line:
                 aside(table, now, game)
             print("   Set aside. Nobody needs to say why. The dice still roll, and the GM says what happens instead.")  # fmt: skip
-            return how
+            return how, "", die
         else:
             print(
-                "  Press Enter to roll"
-                + (", h, o, f, s, u or x." if fights else ", h, o, s, u or x.")
+                "  Press Enter to roll, type your two dice (like 4 6), or "
+                + ("h, o, f, s, u or x." if fights else "h, o, s, u or x.")
             )
+
+
+DICE = re.compile(
+    r"\s*([1-6])\s*[ ,]\s*([1-6])\s*"
+)  # two real d6, as the table read them
+
+
+def in_tower(table: Path, game: dict, now: str) -> str:
+    """The die for this moment, dropped in willow's dice-tower when the moment
+    is posed: only its hash goes on the record, the secret to a file outside
+    it (the table's tower/ folder), so no row written before the roll (an
+    offer, a call, a note) can change it and nobody can read it first. A
+    night picked up again finds the die it left in the tower."""
+    folder = table / "tower"
+    folder.mkdir(mode=0o700, exist_ok=True)
+    die = folder / f"story-{game['open']['n']}-moment-{len(game['beats']) + 1}.die"
+    if not die.exists():
+        done = run(TOWER, "--box", table / "record", "drop", "--dice", "2d6", "--to", die, "--for", f"moment {len(game['beats']) + 1}")  # fmt: skip
+        if done.returncode != kernel.ALIVE:
+            raise RuntimeError((done.stderr or done.stdout).strip())
+        print("🥤 The dice are in the tower. Nobody knows them yet, not even the GM.")
+    return str(die)
 
 
 def chances(bonus: int) -> str:

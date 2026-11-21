@@ -363,6 +363,9 @@ reached from the play path.
    d6 and says the number. There is no way to type in a physical roll, and
    for the youngest players it matters most. Its honesty is the table
    watching, not a seed: a roll typed in is kept as said, and as such.
+   **Built:** type the two dice at the roll ("4 6"); willow's play-dice
+   `said` keeps them, marked "(your dice)", and game-master's check holds
+   them as said.
 2. **The player choosing how.** Aetheris says "Declare how you meet it",
    but the story fixes the stat. Letting the player say "I talk my way
    through" is how most tables play. *(Underneath: game-master's `act`
@@ -374,7 +377,10 @@ reached from the play path.
    a luck point spent to throw again, kept as its own event. *(Not here: game-master's check holds a beat's total to the roll
    plus the stat, so a +1 for help is a willow change first.)*
 4. **The cup, the screen roll, and the GM's word over the dice:** in The
-   dice, above.
+   dice, above. **The cup is built:** every moment's dice go into willow's
+   dice-tower when the moment is posed and come out on the roll, so no
+   call or row can steer them and nobody reads them first. Not yet: the
+   GM's screen roll, and the GM's word over the dice.
 
 **The characters**
 
