@@ -29,10 +29,12 @@ only seals, never the worlds, so what it says is what the person made true.
 
 `recap` is "previously on...", for the start of the next session. Its first
 part is to read aloud: only what the table made true, the sealed canon,
-last session's first (a session ends where its session seal says), so
-nothing the table hasn't heard is said. Its second part is for the GM's
-eyes: the notes of the latest night, typed or scanned, each line cited, the
-promises made for next time, and what was said no to.
+in the order it happened, before that, last time (a session ends where its
+session seal says), then tonight so far, so nothing the table hasn't heard
+is said; an offer is credited to its character by name. Its second part is
+for the GM's eyes: the notes of the latest night, typed or scanned, each
+line cited, how each fight fight.py kept that night ended, the promises for
+next time made on earlier nights, and what was said no to.
 
 `export-canon` is the play growing the world: every fact the GM sealed,
 as markdown, each with its seal (the proposal's hash and row) and where in
@@ -58,9 +60,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import willow_pin
 
-ROOT = (
-    willow_pin.root()
-)  # willow, where its pieces live, held to willow.pin.json
+ROOT = willow_pin.root()  # willow, where its pieces live, held to willow.pin.json
 GM_DIR = ROOT / "adapters" / "stdlib" / "game-master"
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(GM_DIR))
@@ -104,23 +104,29 @@ def answers(
     box: Path, rows: list[dict], worlds: Path
 ) -> list[tuple[int, str, str, str]]:
     """Every ruling and offer the GM has answered, as (the answer's row,
-    sealed or declined, the fact as handed in, which story), in row order."""
-    titles = {}
+    sealed or declined, the fact as handed in, which story, and for an offer
+    the id and the name of the character who brought it, else "" and ""),
+    in row order."""
+    titles, names = {}, {}
     for f in sorted(worlds.glob("*.json")):
         try:
             w = gm.load_world(f)
         except gm.WorldError:
             continue
         titles[w["id"]] = w["title"]
+        names[w["id"]] = {c["id"]: c["name"] for c in w["characters"]}
     out = []
     for g in gm.games(rows):
-        where = titles.get(g["open"].get("world"), g["open"].get("world"))
-        said = [(a, a["fact"]) for a in g["asks"]]
-        said += [(o, f"{o['fact']}  [offered by {o['by']}]") for o in g["offers"]]
-        for a, fact in said:
+        story = g["open"].get("world")
+        where, cast = titles.get(story, story), names.get(story, {})
+        said = [(a, "") for a in g["asks"]]
+        said += [
+            (o, "" if o.get("as") == "gm-word" else o["by"]) for o in g["offers"]
+        ]  # the GM's word is no one's offer
+        for a, by in said:
             what, got = gm.ruling(box, rows, a["subject"])
             if what in ("sealed", "declined"):
-                out.append((got["n"], what, fact, where))
+                out.append((got["n"], what, a["fact"], where, by, cast.get(by, by)))
     return sorted(out)
 
 
@@ -173,18 +179,47 @@ def export_canon(box: Path, to: str) -> int:
     return kernel.ALIVE
 
 
+def gone(box: Path, rows: list[dict]) -> dict:
+    """{the seal row of a truth the GM replaced: (what replaced it, the day)},
+    as clash.py keeps "mine stands now"."""
+    import clash  # the heads-up's own reading of the record
+
+    out = {}
+    for old, r in clash.replaced(box, rows).items():
+        what, got = gm.ruling(box, rows, old)
+        if what == "sealed":
+            out[got["n"]] = (r["fact"], r["ts"][:10])
+    return out
+
+
+def replaced_note(day: str, by: str) -> str:
+    """How a replaced truth reads: a yes taken back as a slip says so
+    (clash.py's SLIP), a real replacement names what stands now."""
+    import clash
+
+    if by == clash.SLIP:
+        return f"taken back on {day}, pressed by mistake"
+    return f"replaced on {day} by: {by}"
+
+
 def canon(box: Path, worlds: Path) -> int:
     rows, breaks = kernel.read(box / "record.jsonl")
     if breaks:
         return fail("the record doesn't verify: " + "; ".join(breaks))
     said = answers(box, rows, worlds)
-    true = [(n, f"  {fact}   ({where}, sealed at row {n})") for n, what, fact, where in said if what == "sealed"]  # fmt: skip
-    no = [(n, f"  not: {fact}   ({where}, declined at row {n})") for n, what, fact, where in said if what == "declined"]  # fmt: skip
+    tag = {n: fact + (f"  [offered by {by}]" if by else "") for n, _, fact, _, by, _ in said}  # fmt: skip
+    out = gone(box, rows)
+    true = [(n, f"  {tag[n]}   ({where}, sealed at row {n})") for n, what, _, where, _, _ in said if what == "sealed" and n not in out]  # fmt: skip
+    was = [(n, f"  was: {tag[n]}   ({where}, sealed at row {n}; {replaced_note(out[n][1], out[n][0])})") for n, what, _, where, _, _ in said if what == "sealed" and n in out]  # fmt: skip
+    no = [(n, f"  not: {tag[n]}   ({where}, declined at row {n})") for n, what, _, where, _, _ in said if what == "declined"]  # fmt: skip
     if not true and not no:
         print("nothing is canon at this table yet: nothing has been sealed")
         return kernel.ESCALATE
     print("what this table holds true:")
     print("\n".join(line for _, line in sorted(true)) or "  nothing sealed yet")
+    if was:
+        print("what it replaced:")
+        print("\n".join(line for _, line in sorted(was)))
     if no:
         print("what it said no to:")
         print("\n".join(line for _, line in sorted(no)))
@@ -222,12 +257,29 @@ def promised(pile: Path) -> list[tuple[str, int, str]]:
     return out
 
 
+def fights(rows: list[dict], session: dict | None) -> list[str]:
+    """Each fight box/fight.py kept in SESSION (every one, with no session
+    ended), as how it ended: the machine's, so never read aloud."""
+    lo, hi = (session["from"], session["to"]) if session else (0, len(rows))
+    ends = {r.get("fight"): r.get("result", {}) for r in rows if r["kind"] == "fight-end"}  # fmt: skip
+    out = []
+    for r in rows:
+        if r["kind"] == "fight-open" and lo <= r["n"] <= hi and r["n"] in ends:
+            res = ends[r["n"]]
+            standing = ", ".join(res.get("party_survivors", []) + res.get("foe_survivors", [])) or "no one"  # fmt: skip
+            said = {"party": "the party won", "foe": "the party fell", "stalemate": "neither side fell"}.get(res.get("outcome"), f"it ended {res.get('outcome')!r}")  # fmt: skip
+            out.append(f"  {r.get('desc') or r.get('encounter')}: {said} in {res.get('rounds')} rounds; standing: {standing}   (row {r['n']})")  # fmt: skip
+    return out
+
+
 def previously(box: Path, table: Path) -> int:
     rows, breaks = kernel.read(box / "record.jsonl")
     if breaks:
         return fail("the record doesn't verify: " + "; ".join(breaks))
     said = answers(box, rows, table / "worlds")
-    true = [(n, fact) for n, what, fact, _ in said if what == "sealed"]
+    aloud = {n: fact + (f" (brought by {name})" if by else "") for n, _, fact, _, by, name in said}  # fmt: skip
+    out = gone(box, rows)
+    true = [(n, aloud[n]) for n, what, *_ in said if what == "sealed" and n not in out]
     ended = [r for r in rows if r["kind"] == "session"]
     print("# Previously on...\n")
     print("## Read aloud: what the table made true\n")
@@ -238,25 +290,37 @@ def previously(box: Path, table: Path) -> int:
         print("\n".join(f"  - {fact}" for _, fact in true))
     else:
         lo, hi = ended[-1]["from"], ended[-1]["to"]
-        parts = (("Last time:", [f for n, f in true if lo <= n <= hi]),
-                 ("Before that:", [f for n, f in true if n < lo]),
-                 ("This time, so far:", [f for n, f in true if n > hi]))  # fmt: skip
-        for head, facts in parts:
-            if facts:
-                print(head)
-                print("\n".join(f"  - {f}" for f in facts))
+        before = [f for n, f in true if n < lo]
+        last = [f for n, f in true if lo <= n <= hi]
+        now = [f for n, f in true if n > hi]
+        if before:
+            print("Before that:")
+            print("\n".join(f"  - {f}" for f in before))
+        print("Last time:")
+        print("\n".join(f"  - {f}" for f in last) or "  Nothing new was made true.")
+        if now:
+            print("This time, so far:")
+            print("\n".join(f"  - {f}" for f in now))
     print("\n## For the GM's eyes\n")
     day, lines = last_notes(table / "pile")
     if lines:
         w = max(len(f"{p}:{i}") for p, i, _ in lines)
         print(f"Your notes from {day}:")
         print("\n".join(f"  {f'{p}:{i}':<{w}}  {t}" for p, i, t in lines))
-    promises = promised(table / "pile")
+    fought = fights(rows, ended[-1] if ended else None)
+    if fought:
+        print("Fights last time:" if ended else "Fights so far:")
+        print("\n".join(fought))
+    shown = {(p, i) for p, i, _ in lines}
+    promises = [x for x in promised(table / "pile") if x[:2] not in shown]
     if promises:
         w = max(len(f"{p}:{i}") for p, i, _ in promises)
-        print("Promised for next time:")
+        print("Promised on earlier nights:")
         print("\n".join(f"  {f'{p}:{i}':<{w}}  {t}" for p, i, t in promises))
-    no = [fact for n, what, fact, _ in said if what == "declined"]
+    if out:
+        print("Replaced:")
+        print("\n".join(f"  - {aloud[n]} ({replaced_note(day, by)})" for n, (by, day) in sorted(out.items())))  # fmt: skip
+    no = [aloud[n] for n, what, *_ in said if what == "declined"]
     if no:
         print("Said no to:")
         print("\n".join(f"  - {f}" for f in no))

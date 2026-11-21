@@ -17,9 +17,7 @@ HERE = Path(__file__).resolve().parents[1] / "box"  # the box these tests test
 sys.path.insert(0, str(HERE))
 import willow_pin
 
-ROOT = (
-    willow_pin.root()
-)  # willow, where its pieces live, held to willow.pin.json
+ROOT = willow_pin.root()  # willow, where its pieces live, held to willow.pin.json
 sys.path.insert(0, str(ROOT))
 import kernel
 
@@ -379,6 +377,36 @@ def test_prep_runs_the_thirteen_steps_and_every_week_has_its_own_run(t):
     assert "the chain holds" in page
 
 
+def test_family_night_runs_its_seven_steps_each_night_in_a_folder_of_its_own(t):
+    """The family's page: what was promised, what waits, every story and roll
+    played again, a copy kept and the record's end pinned; it seals nothing."""
+    t.open()
+    t.night()
+    seals = sum(r["kind"] == "seal" for r in t.rows())
+    for night in ("001", "002"):
+        got = py(HERE / "open_table.py", "family", "--table", t.dir)
+        assert got.returncode == 42, got.stderr  # the house rules wait on the seal
+        run = t.dir / "family" / night
+        log = (run / "00-stack.txt").read_text()
+        assert log.rstrip().endswith("done: 2 of 7 steps flagged"), (
+            log
+        )  # digest and box-health: the rules
+        assert "03 game-master: exit 0" in log and "04 play-dice: exit 0" in log
+        assert json.loads((run / "pin.json").read_text())
+        assert list(run.glob("willow-backup-*.zip"))
+    assert "Next time: where the springs go." in got.stdout
+    assert "the chain holds" in got.stdout
+    assert sum(r["kind"] == "seal" for r in t.rows()) == seals  # it seals nothing
+
+
+def test_a_box_laid_before_family_night_gets_the_page_on_first_use(t):
+    t.open()
+    (t.dir / "family-night.md").unlink()
+    got = py(HERE / "open_table.py", "family", "--table", t.dir)
+    assert got.returncode == 42, got.stderr
+    assert (t.dir / "family-night.md").read_text() == (HERE / "family-night.md").read_text()  # fmt: skip
+
+
 def test_prep_flags_a_week_missed(t):
     """gaps' 0 is a gap found: the page flags it, and a clean run it doesn't.
     A weekly log's gap is more than three weeks with no session notes."""
@@ -514,6 +542,8 @@ def test_recap_reads_aloud_only_what_the_table_made_true_last_time_first(t):
     last, rest = aloud.split("Last time:")[1].split("This time, so far:")
     assert "The red button is bait" in last and VELL in last
     assert "Prince Aldric is free" in rest
+    # read aloud, an offer is the character's, by name, never a seat's id
+    assert f"{VELL} (brought by Pell)" in last and "[offered by" not in aloud
     for secret in (
         "Weakness",
         "smoke",
@@ -525,6 +555,27 @@ def test_recap_reads_aloud_only_what_the_table_made_true_last_time_first(t):
         "sessions/2026-10-24.md:5  Brann wanted to bring a friend. I said next time."
         in gm_only
     )
+    # a promise in tonight's notes is shown once, with them; older ones after
+    assert gm_only.count("sessions/2026-11-14.md:5") == 1
+    notes, earlier = gm_only.split("Promised on earlier nights:")
+    assert "2026-11-14.md:5" in notes and "2026-10-24.md:5" in earlier
+
+
+def test_recap_says_so_when_last_time_made_nothing_new_true(t):
+    """Nights in order, and a quiet night said aloud, not skipped: what was
+    made true before it is "before that", never "last time"."""
+    t.open()
+    t.session()
+    for subj in t.asked():
+        t.seal(subj)
+    end = [STDLIB / "session-seal" / "session_seal.py", "--box", t.box]
+    assert py(*end, *NOW).returncode == 42  # night one, the button sealed
+    t.session("offer", "pell", VELL)  # night two: offered, never answered
+    assert py(*end, "--now", "2026-11-21T10:00:00Z").returncode == 42
+    aloud = t.session("recap").stdout.split("## For the GM's eyes")[0]
+    before, last = aloud.split("Before that:")[1].split("Last time:")
+    assert "The red button is bait" in before
+    assert last.strip() == "Nothing new was made true." and VELL not in aloud
 
 
 # ── between sessions ─────────────────────────────────────────────────────────
@@ -591,6 +642,97 @@ def test_a_story_game_master_wouldnt_play_is_refused_with_its_reason(tmp_path):
     (tmp_path / "s.md").write_text(text)
     got = py(HERE / "author.py", tmp_path / "s.md")
     assert got.returncode == 2 and "'Charm' is not a stat" in got.stderr
+
+
+@pytest.mark.parametrize(
+    "old, new, says",
+    [
+        ("suggests: Wit", "suggests: wit", "line 46: scenes[0].beats[1].suggests 'wit' is not a stat; did you mean 'Wit'?"),
+        ("suggests: Wit", "suggests: Charm", "line 46: scenes[0].beats[1].suggests 'Charm' is not a stat\n"),
+        ("by: juno", "by: jun", "line 45: scenes[0].beats[1].by 'jun' is not a seated character; did you mean 'juno'?"),
+        ("by: juno", "by: cogwen", "line 45: scenes[0].beats[1].by 'cogwen' is not a seated character\n"),
+        ("Wit 2, Weird", "Wits 2, Weird", "line 13: characters[1].stats names 'Wits', not one of the stats; did you mean 'Wit'?"),
+        ("@ the-cellar-ceiling", "@ the-celler-ceiling", "line 24: scenes[0].place 'the-celler-ceiling' is not one of the places; did you mean 'the-cellar-ceiling'?"),
+        ("::climb is weak", "::clmb is weak", "line 58: scenes[0].beats[2].when.beat 'up-into-the-ceiling::clmb' is not an earlier beat, as scene::beat; did you mean 'up-into-the-ceiling::climb'?"),
+        ("::climb is weak", "::wasps is weak", "line 58: scenes[0].beats[2].when.beat 'up-into-the-ceiling::wasps' is not an earlier beat, as scene::beat\n"),
+        ("offered guest is", "offered guests is", "line 93: scenes[1].beats[1].when.offered 'guests' is not one of world.offers; did you mean 'guest'?"),
+        ("kind: decision\nproposed by: old-vell", "kind: decisoin\nproposed by: old-vell", "line 67: scenes[0].beats[3].kind 'decisoin': this reads 'action' and 'decision' beats only; did you mean 'decision'?"),
+        ("- miss: The beam", "- mess: The beam", "line 50: \"- mess: The beam"),
+        ("- miss: The beam she's on is a spring too. Down she comes.", "", "line 41: scenes[0].beats[1].outcomes is missing ['miss']"),
+    ],
+)  # fmt: skip
+def test_a_refusal_names_the_story_line_and_the_name_it_might_have_meant(tmp_path, old, new, says):  # fmt: skip
+    """What game-master refuses is put back on the line it was written on, with
+    the nearest name it could have meant, and none when none is near: a writer
+    reads their story, not the world it makes."""
+    text = (HERE / "stories" / "wasp-nest.md").read_text()
+    assert text.count(old) == 1, old
+    (tmp_path / "s.md").write_text(text.replace(old, new))
+    got = py(HERE / "author.py", tmp_path / "s.md")
+    assert got.returncode == 2 and says in got.stderr, got.stderr
+
+
+@pytest.mark.parametrize("argv", [[], ["a.md", "b.md"], ["a.md", "--to"]])
+def test_author_without_one_story_prints_how_to_write_one(argv):
+    got = py(HERE / "author.py", *argv)
+    assert got.returncode == 2
+    assert got.stderr.strip() == "python box/author.py STORY.md [--to WORLD.json]"
+
+
+HEAD = "# T\nid: t\nsetting: here\nstats: Grit\n"
+
+
+@pytest.mark.parametrize(
+    "text, says",
+    [
+        (HEAD + "base stat: one\n", "line 5: base stat is a number, as 1, not 'one'"),
+        (HEAD + "## Characters\n- Pell: Pell | a | seated\n", "line 6: '- Pell: Pell | a | seated' isn't part of a story here: an id is lower case"),
+        (HEAD + "## Places\n- the yard: Yard\n", "line 6: '- the yard: Yard' isn't part of a story here: an id is lower case, with dashes for spaces"),
+        (HEAD + "## Scene Start: Start @ yard\n", "line 5: '## Scene Start: Start @ yard' isn't part of a story here: a scene is `## Scene id: Title @ place`"),
+        (HEAD + "## Scene start: Start\n", "line 5: '## Scene start: Start' isn't part of a story here: a scene is"),
+        (HEAD + "## Places\n- yard: Yard\n## Scene a: A @ yard\n- strong: s\n", "line 8: '- strong: s' isn't part of a story here: an outcome comes under a beat"),
+        (HEAD + "## Monsters\n", "line 5: '## Monsters' isn't part of a story here: a section is ## Characters, ## Places or"),
+        (HEAD + "Opening, before any scene.\n", "line 5: 'Opening, before any scene.' isn't part of a story here\n"),
+    ],
+)  # fmt: skip
+def test_a_line_that_isnt_a_storys_says_what_it_was_likely_meant_to_be(tmp_path, text, says):  # fmt: skip
+    (tmp_path / "s.md").write_text(text)
+    got = py(HERE / "author.py", tmp_path / "s.md")
+    assert got.returncode == 2 and says in got.stderr, got.stderr
+
+
+@pytest.mark.parametrize("missing", ["places", "characters", "scenes"])
+def test_a_story_without_a_whole_part_is_refused_not_hung(tmp_path, missing):
+    """A refusal no line wrote (world.places must not be empty) climbs to the
+    top of its path and stops there."""
+    text = HEAD + "## Characters\n- pell: Pell | a | seated\n## Places\n- yard: Yard\n"
+    text += "## Scene a: A @ yard\n### Go.\nid: go\nkind: action\nby: pell\nsuggests: Grit\n- strong: s\n- weak: w\n- miss: m\n"  # fmt: skip
+    cut = {"places": "## Places\n- yard: Yard\n", "characters": "## Characters\n- pell: Pell | a | seated\n"}  # fmt: skip
+    text = (
+        text.replace(cut[missing], "") if missing in cut else text.split("## Scene")[0]
+    )
+    (tmp_path / "s.md").write_text(text)
+    got = subprocess.run([sys.executable, HERE / "author.py", tmp_path / "s.md"], capture_output=True, text=True, timeout=30, check=False)  # fmt: skip
+    assert (
+        got.returncode == 2 and f"s.md: world.{missing} must not be empty" in got.stderr
+    ), got.stderr
+
+
+def test_a_story_reads_its_keys_in_any_case_and_star_bullets(tmp_path):
+    """A markdown editor capitalises a key, turns `-` into `*`, or a writer
+    cases a section heading their own way: the world made is the same."""
+    text = (HERE / "stories" / "wasp-nest.md").read_text()
+    loose = re.sub(r"^(id|kind|by|suggests|setting|stats):", lambda m: m.group(1).title() + ":", text, flags=re.MULTILINE)  # fmt: skip
+    loose = re.sub(r"^- ", "* ", loose, flags=re.MULTILINE)
+    loose = loose.replace("## Characters", "## characters").replace(
+        "## Places", "## PLACES"
+    )
+    assert loose != text and "\nKind: action" in loose and "\n* pell:" in loose
+    (tmp_path / "a.md").write_text(text)
+    (tmp_path / "b.md").write_text(loose)
+    a, b = py(HERE / "author.py", tmp_path / "a.md"), py(HERE / "author.py", tmp_path / "b.md")  # fmt: skip
+    assert a.returncode == b.returncode == 0, b.stderr
+    assert json.loads(a.stdout) == json.loads(b.stdout)
 
 
 @pytest.mark.parametrize("name", ["aetheris", "hasbeen", "ironworks"])
@@ -701,6 +843,20 @@ def test_a_capital_is_lowered_only_where_a_word_begins_a_sentence():
     assert ideas.lower_first("a hound") == "a hound" and ideas.lower_first("") == ""
 
 
+def test_a_place_keeps_its_name_mid_sentence_but_its_the(t):
+    """ "At Cogwen's workshop", never "At cogwen's workshop": only a place's
+    leading The is lowered, as a person's is."""
+    import ideas
+
+    t.open()
+    (t.dir / "worlds" / "wasp-nest.json").write_text(
+        py(HERE / "author.py", t.dir / "stories" / "wasp-nest.md").stdout
+    )
+    rows = kernel.read(t.box / "record.jsonl")[0]
+    places = ideas.grammar(t.dir, rows)["place"]
+    assert "Cogwen's workshop" in places and "the cellar ceiling" in places
+
+
 def test_a_world_is_written_as_one_space_indented_json(t):
     t.open()
     got = py(HERE / "author.py", t.dir / "stories" / "wasp-nest.md")
@@ -710,6 +866,10 @@ def test_a_world_is_written_as_one_space_indented_json(t):
 
 def test_a_note_that_ends_at_next_time_is_no_thread(t):
     t.open()
-    (t.pile / "sessions" / "2026-11-20.md").write_text("We stopped there. Pick it up next time\n")
+    (t.pile / "sessions" / "2026-11-20.md").write_text(
+        "We stopped there. Pick it up next time\n"
+    )
     got = py(HERE / "ideas.py", "--table", t.dir, "--seed", "between nights")
-    assert got.returncode == 0, got.stderr  # no thread to deal from it, and no crash looking
+    assert got.returncode == 0, (
+        got.stderr
+    )  # no thread to deal from it, and no crash looking

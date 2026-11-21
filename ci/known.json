@@ -37,6 +37,18 @@
       "where": "the-table/the_table/baseline.py",
       "what": "value not shown",
       "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is a division in an f-string, wins over rounds, no credential"
+    },
+    {
+      "group": "a password typed with its label",
+      "where": "box/fight.py",
+      "what": "value not shown",
+      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is a path joined with pathlib's /, the-table / aetheris5e, no credential"
+    },
+    {
+      "group": "a password typed with its label",
+      "where": "tests/test_play.py",
+      "what": "value not shown",
+      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is a path joined with pathlib's /, pile / sessions, no credential"
     }
   ],
   "ref-check": [
@@ -149,6 +161,43 @@
       "where": "ui/tables/frame.src.html",
       "what": "index.html: not there",
       "why": "the source each ui/*.html table page is built from; the link is relative to where it is built, ui/, which holds index.html"
+    },
+    {
+      "group": "link",
+      "where": "boxes/safe-app-store/results/page.md",
+      "what": "../../../docs/homestead-rungs.md: not there",
+      "why": "a passage the box served, quoted as it stands in the safe-app-store repo it was asked over; the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/safe-app-store/results/page.md",
+      "what": "../README.md: not there",
+      "count": 2,
+      "why": "a passage the box served, quoted as it stands in the safe-app-store repo it was asked over; the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/safe-app-store/results/page.md",
+      "what": "docs/the-house-already-knew.md: not there",
+      "why": "a passage the box served, quoted as it stands in the safe-app-store repo it was asked over; the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/safe-app-store/results/page.md",
+      "what": "stores/README.md: not there",
+      "why": "a passage the box served, quoted as it stands in the safe-app-store repo it was asked over; the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/session-2026-11-20/results/page.md",
+      "what": "box/: not there",
+      "why": "a passage the box served, quoted from open.md as it stood; the link is to a folder beside open.md, not one beside this results page"
+    },
+    {
+      "group": "link",
+      "where": "boxes/session-2026-11-20/results/page.md",
+      "what": "games/: not there",
+      "why": "a passage the box served, quoted from open.md as it stood; the link is to a folder beside open.md, not one beside this results page"
     }
   ]
 }
