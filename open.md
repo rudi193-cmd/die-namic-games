@@ -416,7 +416,12 @@ reached from the play path.
     read; a veil's happens off-screen. Not yet: a pause that stops the whole
     night, and the X-card for a call or a GM's moment, not only a roll.
 14. **Undoing a slip.** A "y" pressed by mistake can only be turned back
-    by a later "mine stands now".
+    by a later "mine stands now". **Built, on that shape:** u at a roll
+    takes back the last yes made tonight, on the GM's y: a replacement
+    whose new word is nothing, sealed, so the yes stays on the record and
+    no longer stands (as willow's `decisions` keeps a replaced row). Not
+    yet: a "no" pressed by mistake (bring it in again with o), and a slip
+    from an earlier night.
 15. **Sharing the GM's chair:** a co-GM, or a kid running a night.
 
 **What the table sees**

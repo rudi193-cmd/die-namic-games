@@ -22,9 +22,7 @@ import pytest
 BOX = Path(__file__).resolve().parents[1] / "box"
 NOW = "2026-11-20T19:00:00Z"
 VELL = "Old Vell from the lantern fair comes down the stair."
-HINT = (
-    "  Enter: roll · o: someone brings something in · s: sheets · x: set it aside\n> "
-)
+HINT = "  Enter: roll · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside\n> "
 
 
 def table_turn(home: Path, steps: list, every: dict | None = None, now: str = NOW):
@@ -63,7 +61,7 @@ def test_each_roll_waits_for_enter_and_a_word_that_isnt_one_is_asked_again(home)
     assert (
         out.count(HINT) >= 2 and "f: a fight" not in out
     )  # the lantern fair has no fights
-    assert "  Press Enter to roll, o, s or x.\n" in out and not left
+    assert "  Press Enter to roll, o, s, u or x.\n" in out and not left
     first = out.split(HINT)[0]
     assert "🎲" not in first  # nothing rolled before the first Enter
 
@@ -135,7 +133,7 @@ def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
     _code, out, left = table_turn(home, steps)
     assert not left, out
     assert (
-        "o: someone brings something in · f: a fight · s: sheets · x: set it aside\n> "
+        "o: someone brings something in · f: a fight · s: sheets · u: undo a yes · x: set it aside\n> "
         in out
     )
     assert "⚔️  the party ambushed by 4 Scorched Belt Raiders" in out
@@ -149,7 +147,7 @@ def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
 
 def test_no_fight_where_it_doesnt_belong(home):
     _code, out, _left = table_turn(home, [("Which story?", ""), (">", "f")])
-    assert "Press Enter to roll, o, s or x." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
+    assert "Press Enter to roll, o, s, u or x." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
 
 
 LAMP = (
@@ -193,3 +191,39 @@ def test_s_at_a_roll_shows_each_seated_characters_sheet_and_what_they_brought_in
     assert (
         "Old Vell" not in out.split("📜 Tamsin")[1].split("> ")[0]
     )  # not seated: no sheet
+
+
+LADDER = [("Which story?", ""), (">", "o"), ("Who?", "1"), ("bring in?", "Tamsin has a ladder"), ("(y/n)", "y")]  # fmt: skip
+
+
+def test_u_takes_back_a_yes_pressed_by_mistake_and_erases_nothing(home):
+    steps = [*LADDER, (">", "u"), ("Take back", "y"), (">", "s"), (">", "")]
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert '   Take back "Tamsin has a ladder"? It stays on the record as a slip, and no longer stands. (y/n) ' in out  # fmt: skip
+    assert "   Taken back. It no longer stands.\n" in out
+    assert "· Tamsin has a ladder" not in out.split("Taken back.")[1]  # off the sheet
+    offer = next(r for r in rows(home) if r["kind"] == "table-offer" and r["fact"] == "Tamsin has a ladder")  # fmt: skip
+    kinds = [r["kind"] for r in rows(home) if r.get("subject") == offer["subject"] and r["kind"] in ("seal", "decline")]  # fmt: skip
+    assert kinds == ["seal"]  # the yes is never undone; it is stood over
+    back = [r for r in rows(home) if r["kind"] == "table-replaces" and r["old"] == offer["subject"]]  # fmt: skip
+    assert (
+        len(back) == 1 and back[0]["fact"] == "nothing: that yes was pressed by mistake"
+    )
+    canon = subprocess.run([sys.executable, BOX / "session.py", "--table", home / "table", "recap"], capture_output=True, text=True, check=False).stdout  # fmt: skip
+    assert (
+        "Tamsin has a ladder" not in canon.split("## For the GM's eyes")[0]
+    )  # not read aloud
+
+
+def test_u_with_nothing_made_true_tonight_says_so(home):
+    _code, out, left = table_turn(home, [("Which story?", ""), (">", "u"), (">", "")])
+    assert "   Nothing has been made true tonight to take back.\n" in out and not left
+    assert not [r for r in rows(home) if r["kind"] == "table-replaces"]
+
+
+def test_no_at_take_back_leaves_it_standing(home):
+    steps = [*LADDER, (">", "u"), ("Take back", "n"), (">", "s"), (">", "")]
+    _code, out, left = table_turn(home, steps)
+    assert not left and "· Tamsin has a ladder" in out.split("Take back")[1]
+    assert not [r for r in rows(home) if r["kind"] == "table-replaces"]

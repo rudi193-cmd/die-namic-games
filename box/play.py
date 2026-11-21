@@ -52,7 +52,11 @@ first (with the heads-up when it meets what the table holds true), and only
 then is it handed in and answered, so leaving midway leaves nothing behind.
 f is a fight played by fight.py onto the record, blow by blow; what it means
 for the story is the GM's to say.
-s shows each seated character's sheet: who they are, what they're good at
+u undoes a yes pressed by mistake: the last thing made true tonight, taken
+back on the GM's y. Nothing takes a seal back; a replacement whose new word
+is nothing stands over it (clash.py's take_back, the "mine stands now"
+shape, as willow's decisions keep a replaced row), so the old yes stays on
+the record and no longer stands. s shows each seated character's sheet: who they are, what they're good at
 (the bonus a roll adds), and the last few things the table made true about
 them, still standing. The opening screen tells the GM how last night's
 fights ended (session.py's recap, for the GM's eyes, never read aloud).
@@ -462,6 +466,24 @@ def set_aside(table: Path, rows: list[dict], game: dict, i: int, text: str) -> s
     return ""
 
 
+def undo(box: Path, now: str) -> bool | None:
+    """A yes pressed by mistake: the last thing made true tonight, taken back
+    on the GM's word. It stays on the record as a slip and no longer stands.
+    True if taken back, False if not (or nothing to take), None if gone."""
+    rows, _ = kernel.read(box / "record.jsonl")
+    made = clash.tonight(box, rows)
+    if not made:
+        print("   Nothing has been made true tonight to take back.")
+        return False
+    last = made[-1]
+    sure = yes(f"   Take back \"{last['fact']}\"? It stays on the record as a slip, and no longer stands. (y/n) ")  # fmt: skip
+    if not sure:
+        return sure
+    clash.take_back(box, now, last)
+    print("   Taken back. It no longer stands.")
+    return True
+
+
 def sheets(table: Path, world: dict) -> str:
     """Each seated character's sheet, for the table: who they are, what they're
     good at (the bonus a roll adds), and the last few things the table made
@@ -509,7 +531,7 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
     hint = (
         "  Enter: roll · o: someone brings something in"
         + (" · f: a fight" if fights else "")
-        + " · s: sheets · x: set it aside"
+        + " · s: sheets · u: undo a yes · x: set it aside"
     )
     while True:
         print(hint)
@@ -526,6 +548,9 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
                 return None
         elif got.lower() == "s":
             print(sheets(table, world))
+        elif got.lower() == "u":
+            if undo(table / "record", now) is None:
+                return None
         elif got.lower() == "x":
             if not line:
                 aside(table, now, game)
@@ -534,7 +559,7 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
         else:
             print(
                 "  Press Enter to roll"
-                + (", o, f, s or x." if fights else ", o, s or x.")
+                + (", o, f, s, u or x." if fights else ", o, s, u or x.")
             )
 
 

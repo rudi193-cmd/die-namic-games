@@ -109,6 +109,25 @@ def replace(box: Path, ts: str, old: dict, new_subject: str, new_fact: str) -> N
     seal(box, subject, ts)
 
 
+SLIP = "nothing: that yes was pressed by mistake"
+
+
+def take_back(box: Path, ts: str, old: dict) -> None:
+    """A yes pressed by mistake, taken back: a replacement whose new word is
+    nothing, handed in and sealed as "mine stands now" is, so the old truth
+    stays on the record and no longer stands (willow's decisions keep a
+    replaced row the same way). Nothing takes a seal back; this stands over it."""
+    replace(box, ts, old, "", SLIP)
+
+
+def tonight(box: Path, rows: list[dict]) -> list[dict]:
+    """What the table made true since the last night ended, still standing,
+    oldest first."""
+    ends = [r["to"] for r in rows if r["kind"] == "session"]
+    after = ends[-1] if ends else -1
+    return [t for t in standing(box, rows) if t["n"] > after]
+
+
 def keep_both(box: Path, ts: str, old: dict, new_subject: str, new_fact: str) -> None:
     """The GM's "both are true": the pair isn't raised again."""
     kernel.append(box, ts, BOTH, who=WHO, pair=sorted((old["subject"], new_subject)), facts=sorted((old["fact"], new_fact)))  # fmt: skip
