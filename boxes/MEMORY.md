@@ -110,6 +110,12 @@ dm` and `dm = ...` was refused).
   has); layforge never names an SRD, its engine decides. Notes in open.md,
   "Round 3"; survey in [pot/results-layforge/](pot/results-layforge/).
 
+- **Round 4 (2026-11-21), read in the source:** dndwright's combat types carry
+  no identity, so the story's characters can be fought (run: initiative with
+  `manual_roll`, typed attack and damage); its weapons are 2024 (Weapon
+  Mastery), so it is a 5.2.1 fit; layforge's gate is one switch of about 45
+  tools with reason codes on refusal. Notes in open.md, "Round 4".
+
 ## Not done, and why
 
 - **Tavern (t11z)**: `t11z/tavern` is refused to the session, both through

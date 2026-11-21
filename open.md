@@ -836,3 +836,45 @@ one else's; a chain that makes the log checkable; typed or committed dice; and
 lines and veils read structurally rather than injected into a prompt. Those
 four are the box's reasons to exist beside it, not instead of it. Worth asking
 the maintainer whether to talk to its author, or to borrow its engine contract.
+
+### Round 4: read in the source, and one run (2026-11-21)
+
+**dndwright can fight the story's characters, with typed dice (run).**
+Open point from the PR: "the fight is fought by aetheris5e's own party, not
+the story's characters". dndwright's combat types carry no identity:
+`InitiativeEntry` is "no IDs, just what ordering needs" (a name, a total, a
+Dexterity modifier); `CombatantState` is "just the numbers, no identity or
+persistence" (hp, max hp, temp hp, death-save tallies, resistances,
+immunities, vulnerabilities); `weapon_attack` takes the attacker's modifiers
+and a weapon name. And `roll_initiative(engine, modifier, manual_roll=...)`
+already takes a rolled number as said. Run with three made-up story
+characters (Tamsin, Oro, a goblin), faces typed in: initiative came out
+Tamsin 16, goblin 11, Oro 9; Tamsin's shortsword attack (+4, `1d6 + 2`,
+mastery Vex, the 2024 rule) with a typed 15 made 19, a hit; a typed 4 on the
+damage die made 6. *Slip in my run:* it then took the 4 rather than the 6
+off the goblin's 7 hit points, because I read the damage total from the wrong
+field; the library's own `apply_damage` was correct for the number it was
+given. So: the story's characters can be fought, and dice can be typed or
+dropped from the tower by an adapter; **what is not checked is the fit to our
+sheets** (our characters carry a bonus per stat, not a Strength modifier) and
+a whole fight loop.
+
+**Layforge's tool gate, read.** One switch (`callDMTool`, `dm_tools.go:478`)
+names about 45 tools (`resolve_check`, `apply_effect`, attacks, grapple,
+equip, loot, currency, `start_combat`, `advance_turn`, `create_npc`,
+vendors, `travel_to`, `stash_*`); each handler enforces its own gate and
+returns a reason code on refusal (`pvp_blocked`, `internal_error`), which is
+the "log with caller, args, success or reason code" its design describes.
+*For us:* a refusal with a named reason is what `safety.py`'s x and our
+declines already do; copying the **reason codes** as a small fixed list would
+make declines countable.
+
+**Edition, closed for dndwright.** Its weapons carry 2024 Weapon Mastery
+(Vex on the shortsword) and its species Heroic Inspiration, so the code is
+2024; only its conditions catalog is 5.1 wording. Rule: use dndwright for
+5.2.1 and read the conditions text against the SRD before trusting it.
+
+**Still unread:** layforge's state machine for turns (`dmStartCombat`,
+`dmAdvanceTurn`); aetheris5e's stat blocks against the 5.2.1 monster list;
+dndwright's `rules/dnd_5e_2024.py` graph, to see whether a story character's
+bonus-per-stat can be a graph input.
