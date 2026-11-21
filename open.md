@@ -601,3 +601,36 @@ again from the record, and the chain (102 rows, 7 sealed).
   surprising, free to reroll, repeatable.
 - The GM's screen roll comes **later**. The GM's word over the dice is
   built (g at the next roll).
+
+## Note: other people's SRD 5.1 fight engines (research, not a plan)
+
+Added from a web search on 2026-11-21, to read and decide on later. Nothing
+below has been opened, run or checked: the licences and activity come from
+search snippets only, so check each repo's LICENSE and history first.
+
+The idea: the box's fights today are aetheris5e's (`f`, `box/fight.py`). Other
+open projects implement the same SRD 5.1 d20 rules. The interest is
+engineering: the kernel's record and seal could stand over any of them, each a
+swappable rules engine whose every blow lands on the record, and none of them
+the authority. Not as the kernel works today; that is the open part.
+
+| Project | Language | Licence (per search) | Note |
+|---|---|---|---|
+| [OpenCombatEngine](https://github.com/jamesplotts/opencombatengine) | C# / .NET 8 | MIT | Interface-driven combat engine, SRD 5.1. Closest match. |
+| [srd_5e](https://hex.pm/packages/srd_5e/0.2.0/files) | Elixir | Apache-2.0 | Newer releases model SRD 5.2 by default, with 5.1 rules as opt-ins. |
+| [jurnalis-project/engine](https://awesome.ecosyste.ms/projects/github.com%2Fjurnalis-project%2Fengine) | Rust | not shown | Stateless, deterministic text CRPG engine, SRD 5.1 (d20). Licence unknown: read LICENSE before anything else. |
+
+Left out on purpose: [libsrd5](https://github.com/kupka/libsrd5) (C#, AGPL).
+
+Questions to settle before building anything:
+
+- None is Python, and willow's stdlib add-ons need nothing beyond Python. A
+  deps add-on would need a pinned install and a licence on its card; a run
+  of a foreign binary would need a `network:`-style line of its own. Or the
+  rules are read and rewritten in Python, with credit.
+- A deterministic, stateless engine (the Rust one says it is) fits the record
+  best: the same inputs give the same blow, so a seal can be checked again.
+- The dice must still come out of the tower, not from the engine's own
+  generator (see "The dice").
+- How this sits beside aetheris5e's fights, and the open point that the
+  fight is fought by its own party, not the story's characters.
