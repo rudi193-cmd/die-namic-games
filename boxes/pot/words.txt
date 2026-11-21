@@ -1,0 +1,7 @@
+# The pot's words: how someone asks, then the words the chunks use.
+# Copied into a pot the first time it swirls; edit the pot's own copy.
+
+fight = combat, initiative
+dice = roll, rolls, rng
+random = rng, seed, seeded
+licence = license
