@@ -44,8 +44,8 @@ def read(table: Path) -> tuple[list[str], list[str]]:
     for raw in page.read_text(encoding="utf-8").splitlines():
         s = raw.strip()
         if s.startswith("#"):
-            head = s.lstrip("#").strip().lower()
-            under = "line" if head.startswith("line") else "veil" if head.startswith("veil") else None  # fmt: skip
+            head = words(s)  # "Lines", "Our lines", "## Veils"
+            under = "line" if {"line", "lines"} & set(head) else "veil" if {"veil", "veils"} & set(head) else None  # fmt: skip
         elif under and s[:1] in ("-", "*") and s[1:].strip():
             got[under].append(s[1:].strip())
     return got["line"], got["veil"]

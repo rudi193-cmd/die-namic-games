@@ -56,7 +56,10 @@ u undoes a yes pressed by mistake: the last thing made true tonight, taken
 back on the GM's y. Nothing takes a seal back; a replacement whose new word
 is nothing stands over it (clash.py's take_back, the "mine stands now"
 shape, as willow's decisions keep a replaced row), so the old yes stays on
-the record and no longer stands. s shows each seated character's sheet: who they are, what they're good at
+the record and no longer stands. After the sheets, the GM can write on them, a line each ("Tamsin finds a
+rope", "Oro is hurt", box/carry.py): what a character carries, uses up, and
+comes through lasts between nights, and the opening screen reads what
+carried over aloud. s shows each seated character's sheet: who they are, what they're good at
 (the bonus a roll adds), and the last few things the table made true about
 them, still standing. The opening screen tells the GM how last night's
 fights ended (session.py's recap, for the GM's eyes, never read aloud).
@@ -97,6 +100,7 @@ except willow_pin.Unpinned as e:
     raise SystemExit(2) from None
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "adapters" / "stdlib" / "game-master"))
+import carry
 import clash
 import game_master as gm
 import kernel
@@ -484,6 +488,27 @@ def undo(box: Path, now: str) -> bool | None:
     return True
 
 
+def write_on_sheet(box: Path, world: dict, now: str) -> bool | None:
+    """The GM's changes to the sheets, a line each, until Enter: what a
+    character finds or uses up, and when they're hurt or healed (carry.py),
+    each kept on the record. True if any was kept, None if the person left."""
+    names = [c["name"] for c in gm.seated(world)]
+    kept = False
+    while True:
+        line = ask(f'   Write on a sheet? ("{names[0]} finds a rope", "{names[-1]} is hurt"; or press Enter) ')  # fmt: skip
+        if line is None:
+            return None
+        if not line:
+            return kept
+        got = carry.read(line, names)
+        if got is None:
+            print(f"   Start with a name ({', '.join(names)}), then finds, uses, is hurt or is healed.")  # fmt: skip
+            continue
+        kernel.append(box, now, carry.KIND, who="gm", **got)
+        print(f"   On {got['char']}'s sheet.")
+        kept = True
+
+
 def sheets(table: Path, world: dict) -> str:
     """Each seated character's sheet, for the table: who they are, what they're
     good at (the bonus a roll adds), and the last few things the table made
@@ -496,6 +521,12 @@ def sheets(table: Path, world: dict) -> str:
     for c in gm.seated(world):
         good = ", ".join(f"{k} +{v}" for k, v in c.get("stats", {}).items()) or "nothing yet"  # fmt: skip
         lines.append(f"\n   📜 {c['name']}" + (f", {c['role']}" if c.get("role") else "") + f"\n      Good at: {good}")  # fmt: skip
+        carrying, hurt = carry.sheet(rows, c["name"])
+        if carrying:
+            lines.append("      Carrying: " + ", ".join(carrying))
+        if hurt:
+            how = "; ".join(h for h in hurt if h)
+            lines.append("      Hurt" + (f": {how}" if how else ""))
         theirs = [fact for _, _, fact, _, by, _ in said if by == c["id"] or c["name"].lower() in fact.lower()]  # fmt: skip
         lines += [f"      · {f}" for f in theirs[-3:]]
     return "\n".join(lines) + "\n"
@@ -548,6 +579,8 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
                 return None
         elif got.lower() == "s":
             print(sheets(table, world))
+            if write_on_sheet(table / "record", world, now) is None:
+                return None
         elif got.lower() == "u":
             if undo(table / "record", now) is None:
                 return None
@@ -734,6 +767,12 @@ def previously(table: Path) -> None:
         print(gm_eyes.split("\nReplaced:\n")[1].split("\nSaid no to:")[0].rstrip())
         print()
     rows, _ = kernel.read(table / "record" / "record.jsonl")
+    names = dict.fromkeys(r["char"] for r in rows if r["kind"] == carry.KIND)
+    over = [s for s in (carry.said(n, *carry.sheet(rows, n)) for n in names) if s]
+    if over:
+        print("Carried over (read this out loud too):")
+        print("\n".join(f"  - {s}" for s in over))
+        print()
     ends = [r for r in rows if r["kind"] == "session"]
     fought = session.fights(rows, ends[-1]) if ends else []
     if fought:

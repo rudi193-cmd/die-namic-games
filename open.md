@@ -379,6 +379,14 @@ reached from the play path.
    Wounds, things carried and spent strength have to last, between moments
    and between nights. *(Underneath, in part: willow's `debts`, `lending`,
    `log-kit`.)*
+   **Built, for things and wounds:** after s, the GM writes on a sheet in
+   plain words ("Tamsin finds a rope", "Oro uses the rope", "Oro is hurt
+   by a club", "Oro is healed"), box/carry.py: each a row, nothing taken
+   off the record, so it lasts between nights, and the opening screen
+   reads what carried over aloud. Read as willow's `lending` reads a loan
+   (every line stays; a return listed under it) and `livestock` an
+   animal's treatments. Not yet: a wound that changes a roll, and spent
+   strength.
 6. **Who is at the table.** One player or five; a friend for one night;
    someone leaving. The seats are fixed by the story, and every fight brings
    the same three.

@@ -2,6 +2,7 @@
   "_what": "What ci/mutants.py breaks, and the tests that must notice. targets: Die-Namic's own code, a file at a time, each with how many of its breaks a run takes: \"all\", or the first N by id (the box's files, whose suite takes a minute a break). tests: the suite every break runs against, whole, fastest file first so a break is caught soonest (pytest stops at the first failure). accepted: a surviving break's id and why no test could tell it from the code; never a way to quiet one a test should catch.",
   "limit": 600,
   "tests": [
+    "tests/test_safety_carry.py",
     "tests/test_willow_pin.py",
     "tests/test_binder.py",
     "tests/test_games.py",
@@ -26,7 +27,8 @@
     "box/ideas.py": 6,
     "box/open_table.py": 6,
     "box/session.py": 6,
-    "box/safety.py": "all"
+    "box/safety.py": "all",
+    "box/carry.py": "all"
   },
   "accepted": {
     "3fe1e297990e": "die_namic/binder.py, a page's name: rsplit('/', 1)[-1] made rsplit('/', 2)[-1]. The last piece after a slash is the same however many splits are made, so no path tells them apart.",

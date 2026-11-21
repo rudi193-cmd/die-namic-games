@@ -183,7 +183,7 @@ def test_a_part_set_aside_in_a_story_that_keeps_no_gm_word_is_said_aloud_and_the
 
 
 def test_s_at_a_roll_shows_each_seated_characters_sheet_and_what_they_brought_in(home):
-    steps = [("Which story?", ""), (">", "o"), ("Who?", "1"), ("bring in?", "Tamsin has a ladder"), ("(y/n)", "y"), (">", "s"), (">", "")]  # fmt: skip
+    steps = [("Which story?", ""), (">", "o"), ("Who?", "1"), ("bring in?", "Tamsin has a ladder"), ("(y/n)", "y"), (">", "s"), ("Write on a sheet?", ""), (">", "")]  # fmt: skip
     _code, out, left = table_turn(home, steps)
     assert not left, out
     assert "   📜 Tamsin, lamp-lighter\n      Good at: Grit +2, Heart +1\n      · Tamsin has a ladder\n" in out  # fmt: skip
@@ -197,7 +197,14 @@ LADDER = [("Which story?", ""), (">", "o"), ("Who?", "1"), ("bring in?", "Tamsin
 
 
 def test_u_takes_back_a_yes_pressed_by_mistake_and_erases_nothing(home):
-    steps = [*LADDER, (">", "u"), ("Take back", "y"), (">", "s"), (">", "")]
+    steps = [
+        *LADDER,
+        (">", "u"),
+        ("Take back", "y"),
+        (">", "s"),
+        ("Write on a sheet?", ""),
+        (">", ""),
+    ]
     _code, out, left = table_turn(home, steps)
     assert not left, out
     assert '   Take back "Tamsin has a ladder"? It stays on the record as a slip, and no longer stands. (y/n) ' in out  # fmt: skip
@@ -223,7 +230,47 @@ def test_u_with_nothing_made_true_tonight_says_so(home):
 
 
 def test_no_at_take_back_leaves_it_standing(home):
-    steps = [*LADDER, (">", "u"), ("Take back", "n"), (">", "s"), (">", "")]
+    steps = [
+        *LADDER,
+        (">", "u"),
+        ("Take back", "n"),
+        (">", "s"),
+        ("Write on a sheet?", ""),
+        (">", ""),
+    ]
     _code, out, left = table_turn(home, steps)
     assert not left and "· Tamsin has a ladder" in out.split("Take back")[1]
     assert not [r for r in rows(home) if r["kind"] == "table-replaces"]
+
+
+def sheet_lines(*lines: str) -> list:
+    return [
+        (">", "s"),
+        *[("Write on a sheet?", x) for x in lines],
+        ("Write on a sheet?", ""),
+    ]
+
+
+def test_what_a_character_finds_and_uses_and_how_they_are_hurt_is_on_their_sheet(home):
+    steps = [("Which story?", ""), *sheet_lines("Tamsin finds a rope", "Oro is hurt by a club", "Tamsin picks up two lanterns", "Mira finds a key", "Tamsin uses the ropes"), (">", "s"), ("Write on a sheet?", ""), (">", "")]  # fmt: skip
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert out.count("   On Tamsin's sheet.\n") == 3 and "   On Oro's sheet.\n" in out
+    assert "   Start with a name (Tamsin, Oro), then finds, uses, is hurt or is healed.\n" in out  # Mira isn't seated  # fmt: skip
+    last = out.split("📜 Tamsin")[-1]
+    assert "      Carrying: two lanterns\n" in last and "rope" not in last.split("📜 Oro")[0]  # used up  # fmt: skip
+    assert "   📜 Oro, juggler\n      Good at: Wit +2\n      Hurt: by a club\n" in out
+    kept = [r for r in rows(home) if r["kind"] == "table-carry"]
+    assert [(r["char"], r["change"], r["what"]) for r in kept] == [("Tamsin", "carry", "a rope"), ("Oro", "hurt", "by a club"), ("Tamsin", "carry", "two lanterns"), ("Tamsin", "spend", "the ropes")]  # fmt: skip
+
+
+def test_what_carries_over_is_said_on_the_opening_screen_until_healed(home):
+    table_turn(
+        home, [("Which story?", ""), *sheet_lines("Oro is hurt", "Tamsin finds a rope")]
+    )
+    _code, out, _left = table_turn(home, [])
+    assert "Carried over (read this out loud too):\n  - Oro is still hurt\n  - Tamsin carries a rope\n" in out  # fmt: skip
+    healed = [("Which story?", "1"), ("(y/n)", "y"), *sheet_lines("Oro is healed")]
+    table_turn(home, healed)  # picked up: the call it waited on, then the next roll
+    _code, out, _left = table_turn(home, [])
+    assert "  - Tamsin carries a rope\n" in out and "Oro is still hurt" not in out
