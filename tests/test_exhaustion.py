@@ -83,6 +83,6 @@ def test_an_unknown_edition_or_kind_is_refused_not_guessed():
 
 
 def test_a_long_rest_eases_one_level_and_never_below_zero():
-    assert [ex.after_long_rest(n) for n in range(0, 7)] == [0, 0, 1, 2, 3, 4, 5]
+    assert [ex.after_long_rest(n) for n in range(7)] == [0, 0, 1, 2, 3, 4, 5]
     with pytest.raises(ValueError):
         ex.after_long_rest(7)
