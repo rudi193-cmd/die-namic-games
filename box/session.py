@@ -192,6 +192,16 @@ def gone(box: Path, rows: list[dict]) -> dict:
     return out
 
 
+def replaced_note(day: str, by: str) -> str:
+    """How a replaced truth reads: a yes taken back as a slip says so
+    (clash.py's SLIP), a real replacement names what stands now."""
+    import clash
+
+    if by == clash.SLIP:
+        return f"taken back on {day}, pressed by mistake"
+    return f"replaced on {day} by: {by}"
+
+
 def canon(box: Path, worlds: Path) -> int:
     rows, breaks = kernel.read(box / "record.jsonl")
     if breaks:
@@ -200,7 +210,7 @@ def canon(box: Path, worlds: Path) -> int:
     tag = {n: fact + (f"  [offered by {by}]" if by else "") for n, _, fact, _, by, _ in said}  # fmt: skip
     out = gone(box, rows)
     true = [(n, f"  {tag[n]}   ({where}, sealed at row {n})") for n, what, _, where, _, _ in said if what == "sealed" and n not in out]  # fmt: skip
-    was = [(n, f"  was: {tag[n]}   ({where}, sealed at row {n}; replaced on {out[n][1]} by: {out[n][0]})") for n, what, _, where, _, _ in said if what == "sealed" and n in out]  # fmt: skip
+    was = [(n, f"  was: {tag[n]}   ({where}, sealed at row {n}; {replaced_note(out[n][1], out[n][0])})") for n, what, _, where, _, _ in said if what == "sealed" and n in out]  # fmt: skip
     no = [(n, f"  not: {tag[n]}   ({where}, declined at row {n})") for n, what, _, where, _, _ in said if what == "declined"]  # fmt: skip
     if not true and not no:
         print("nothing is canon at this table yet: nothing has been sealed")
@@ -309,7 +319,7 @@ def previously(box: Path, table: Path) -> int:
         print("\n".join(f"  {f'{p}:{i}':<{w}}  {t}" for p, i, t in promises))
     if out:
         print("Replaced:")
-        print("\n".join(f"  - {aloud[n]} (replaced on {day} by: {by})" for n, (by, day) in sorted(out.items())))  # fmt: skip
+        print("\n".join(f"  - {aloud[n]} ({replaced_note(day, by)})" for n, (by, day) in sorted(out.items())))  # fmt: skip
     no = [aloud[n] for n, what, *_ in said if what == "declined"]
     if no:
         print("Said no to:")

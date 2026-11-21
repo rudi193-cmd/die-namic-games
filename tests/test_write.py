@@ -228,7 +228,7 @@ def test_a_night_whose_calls_were_answered_offers_what_happens_next(home):
         in nxt
     )  # the table said yes
     assert (
-        "Mira hides the egg.\n🥤 The dice are in the tower. Nobody knows them yet, not even the GM.\n  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside\n> 🎲 Mira tries Clever"
+        "Mira hides the egg.\n🥤 The dice are in the tower. Nobody knows them yet, not even the GM.\n  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · g: the GM's word over the last roll · x: set it aside\n> 🎲 Mira tries Clever"
         in nxt
     )
 
@@ -383,3 +383,55 @@ def test_the_written_fight_story_plays_the_moment_the_gms_call_picks(home, call,
     _code, out = person.at_table([BOX / "play.py"], env, answer)
     assert "   Does it stand that the party won the fight? (y/n) " in out
     assert played in out and not_played not in out
+
+
+TWO_ROLLS = [
+    *EGG[:9],
+    "1", "She picks up the egg.", "3", "It's warm.", "It's cool.", "",  # the miss is left to the GM
+    "1", "She carries it home.", "3", "It hums.", "It ticks.", "It sleeps.", "1",  # always
+    "3",
+]  # fmt: skip
+
+
+def gm_word_over(typed: list[str], at: int = 2):
+    """An ANSWER typing TYPED in order, the two dice 4 6 at every roll but
+    the AT-th, where it presses g: the GM's word over the roll just read."""
+    inner, rolls = person.in_order(typed), [0]
+
+    def answer(text: str, asked: str):
+        if asked == ">":
+            rolls[0] += 1
+            return "g" if rolls[0] == at else "4 6"
+        return inner(text, asked)
+
+    return answer
+
+
+def test_the_gms_word_over_a_roll_is_a_row_of_its_own_and_the_roll_stands(home):
+    typed = ["w", *TWO_ROLLS, "y", "The egg is cold now.", "y", "", "y"]
+    env = {"DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": NOW}
+    code, out = person.at_table([BOX / "play.py"], env, gm_word_over(typed))
+    assert code == 0, out
+    assert "g: the GM's word over the last roll" in out.split("> ")[2]  # not before a first roll  # fmt: skip
+    assert "✋ GM, what happens instead? (the roll stands as it went;" in out
+    assert "It's the rule of the table now." in out
+    rows = [json.loads(line) for line in (table(home) / "record" / "record.jsonl").read_text().splitlines()]  # fmt: skip
+    word = [r for r in rows if r["kind"] == "table-offer" and r["as"] == "gm-word"]
+    assert len(word) == 1 and word[0]["fact"] == "The egg is cold now."
+    assert [r["kind"] for r in rows if r.get("subject") == word[0]["subject"]] == ["proposal", "table-offer", "seal", "table-heard"]  # fmt: skip
+    beats = [r for r in rows if r["kind"] == "table-beat"]
+    assert [r["text"] for r in beats] == ["It's warm.", "It hums."]  # the beats as they went  # fmt: skip
+    assert beats[0]["n"] < word[0]["n"] < beats[1]["n"]  # beside them, never in them  # fmt: skip
+    assert "The egg is cold now." in out.split("End of the night")[-1]  # in the summary  # fmt: skip
+
+
+def test_g_in_a_story_with_no_gms_word_to_keep_says_it_aloud_and_keeps_nothing(home):
+    filled = list(TWO_ROLLS)
+    filled[filled.index("It's cool.") + 1] = "It's cold."  # the miss filled: no gm-word to keep  # fmt: skip
+    typed = ["w", *filled, "y", "", "", "y"]
+    env = {"DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": NOW}
+    code, out = person.at_table([BOX / "play.py"], env, gm_word_over(typed))
+    assert code == 0, out
+    assert "✋ GM, what happens instead? (say it aloud, then press Enter)    Said aloud." in out  # fmt: skip
+    rows = [json.loads(line) for line in (table(home) / "record" / "record.jsonl").read_text().splitlines()]  # fmt: skip
+    assert not [r for r in rows if r["kind"] == "table-offer"]
