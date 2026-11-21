@@ -5,6 +5,7 @@
     python box/open_table.py end   --table DIR
     python box/open_table.py check --table DIR
     python box/open_table.py family --table DIR
+    python box/open_table.py sheets --table DIR --to FILE.html [--story ID]
 
 The box is the game master's binder. `open` lays a fresh one in DIR, which
 must not exist yet:
@@ -42,6 +43,10 @@ family-night.md, the page for a family's own table (box/play.py's): before
 the night, what was promised and what waits; after it, every story and roll
 played again, a copy kept and the record's end pinned, each run in
 DIR/family/NNN. Each then has the kernel verify the chain.
+
+`sheets` writes the characters' sheets as one page in big, high-contrast type
+for holding at the table (box/paper.py): FILE must not exist yet nor be
+inside DIR/record, and nothing is written to the record.
 
 This never seals, declines or reads the key, and writes the record only
 through the kernel and the add-ons.
@@ -176,7 +181,7 @@ def cmd_page(table: Path, which: str) -> int:
 def main(argv: list[str]) -> int:
     opts, args, it = {}, [], iter(argv)
     for a in it:
-        if a in ("--table", "--key", "--now"):
+        if a in ("--table", "--key", "--now", "--to", "--story"):
             opts[a] = next(it, "")
         else:
             args.append(a)
@@ -186,10 +191,23 @@ def main(argv: list[str]) -> int:
         ["end"],
         ["check"],
         ["family"],
+        ["sheets"],
     ):
         print(__doc__.split("\n\n")[1], file=sys.stderr)
         return kernel.REFUSED
     table = Path(opts["--table"])
+    if args == ["sheets"]:
+        if not opts.get("--to"):
+            return fail("sheets needs --to: the file the page is written to")
+        if not (table / "record" / "kernel.json").exists():
+            return fail(f"{table} isn't a box laid by open")
+        import paper
+
+        why = paper.write(table, Path(opts["--to"]), opts.get("--story"))
+        if why:
+            return fail(why)
+        print(f"wrote {opts['--to']}")
+        return kernel.ALIVE
     if args != ["open"]:
         return cmd_page(table, args[0])
     if not opts.get("--key"):

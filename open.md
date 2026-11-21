@@ -402,11 +402,14 @@ reached from the play path.
    someone leaving. The seats are fixed by the story, and every fight brings
    the same three.
 7. **A sheet the player can see:** what their hero is good at, carries, and
-   has been through. **Built, in part:** s at any roll shows each seated
-   character's sheet, what they're good at (the bonus a roll adds) and the
-   last three things the table made true about them or they brought in,
-   still standing. Not yet: what they carry, kept apart from the rest, and
-   one on paper (willow's `print --large`).
+   has been through. **Built:** s at any roll shows each seated
+   character's sheet, what they're good at (the bonus a roll adds), what they
+   carry and how they're hurt, kept apart from the rest (box/carry.py), and
+   the last three things the table made true about them or they brought in,
+   still standing. On paper: `open_table.py sheets --to FILE.html` writes
+   them as one page in big, high-contrast type (box/paper.py). Willow's
+   `print --large` is for an answer with its sources and writes to the
+   record, so it doesn't fit a sheet.
 8. **Growing:** getting better at things over the nights, and rewards.
 
 **The story**

@@ -69,7 +69,8 @@ rope", "Oro is hurt", box/carry.py): what a character carries, uses up, and
 comes through lasts between nights, and the opening screen reads what
 carried over aloud. s shows each seated character's sheet: who they are, what they're good at
 (the bonus a roll adds), and the last few things the table made true about
-them, still standing. The opening screen tells the GM how last night's
+them, still standing (sheet_data, which box/paper.py also sets on a page for
+holding, big and high-contrast). The opening screen tells the GM how last night's
 fights ended (session.py's recap, for the GM's eyes, never read aloud).
 
 **Safety, without a setup question.** x at any roll sets the next part
@@ -533,26 +534,43 @@ def write_on_sheet(box: Path, world: dict, now: str) -> bool | None:
         kept = True
 
 
-def sheets(table: Path, world: dict) -> str:
-    """Each seated character's sheet, for the table: who they are, what they're
-    good at (the bonus a roll adds), and the last few things the table made
-    true about them or that they brought in, still standing."""
+def sheet_data(table: Path, world: dict) -> list[dict]:
+    """Each seated character's sheet as data, for the terminal and for paper
+    (paper.py): name, role, what they're good at, what they carry, how they're
+    hurt, and the last three things the table made true about them or that
+    they brought in, still standing."""
     box = table / "record"
     rows, _ = kernel.read(box / "record.jsonl")
     out = session.gone(box, rows)
     said = [s for s in session.answers(box, rows, table / "worlds") if s[1] == "sealed" and s[0] not in out]  # fmt: skip
-    lines = []
+    data = []
     for c in gm.seated(world):
         good = ", ".join(f"{k} +{v}" for k, v in c.get("stats", {}).items()) or "nothing yet"  # fmt: skip
-        lines.append(f"\n   📜 {c['name']}" + (f", {c['role']}" if c.get("role") else "") + f"\n      Good at: {good}")  # fmt: skip
         carrying, hurt = carry.sheet(rows, c["name"])
-        if carrying:
-            lines.append("      Carrying: " + ", ".join(carrying))
-        if hurt:
-            how = "; ".join(h for h in hurt if h)
-            lines.append("      Hurt" + (f": {how}" if how else ""))
         theirs = [fact for _, _, fact, _, by, _ in said if by == c["id"] or c["name"].lower() in fact.lower()]  # fmt: skip
-        lines += [f"      · {f}" for f in theirs[-3:]]
+        data.append(
+            {
+                "name": c["name"],
+                "role": c.get("role") or "",
+                "good": good,
+                "carrying": list(carrying),
+                "hurt": "; ".join(h for h in hurt if h) if hurt else None,
+                "true": theirs[-3:],
+            }
+        )
+    return data
+
+
+def sheets(table: Path, world: dict) -> str:
+    """Each seated character's sheet, for the table (sheet_data, as text)."""
+    lines = []
+    for c in sheet_data(table, world):
+        lines.append(f"\n   📜 {c['name']}" + (f", {c['role']}" if c["role"] else "") + f"\n      Good at: {c['good']}")  # fmt: skip
+        if c["carrying"]:
+            lines.append("      Carrying: " + ", ".join(c["carrying"]))
+        if c["hurt"] is not None:
+            lines.append("      Hurt" + (f": {c['hurt']}" if c["hurt"] else ""))
+        lines += [f"      · {f}" for f in c["true"]]
     return "\n".join(lines) + "\n"
 
 
