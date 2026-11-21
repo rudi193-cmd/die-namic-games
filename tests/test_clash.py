@@ -27,7 +27,7 @@ EGG = [
     "a kid who finds a dragon egg", "The Garden Egg", "the school garden",
     "Mira, a kid who likes bugs", "y", "The Groundskeeper, who sees everything", "n", "", "",
     "1", "She picks up the egg.", "3", "It's warm.", "It cracks.", "He sees her.",
-    "2", "Is the egg a real dragon?", OLD,
+    "2", "Is the egg a real dragon?", OLD, "1",
     "3",
 ]  # fmt: skip
 
