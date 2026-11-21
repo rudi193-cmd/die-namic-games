@@ -22,7 +22,9 @@ import pytest
 BOX = Path(__file__).resolve().parents[1] / "box"
 NOW = "2026-11-20T19:00:00Z"
 VELL = "Old Vell from the lantern fair comes down the stair."
-HINT = "  Enter: roll · o: someone brings something in · x: set it aside\n> "
+HINT = (
+    "  Enter: roll · o: someone brings something in · s: sheets · x: set it aside\n> "
+)
 
 
 def table_turn(home: Path, steps: list, every: dict | None = None, now: str = NOW):
@@ -61,7 +63,7 @@ def test_each_roll_waits_for_enter_and_a_word_that_isnt_one_is_asked_again(home)
     assert (
         out.count(HINT) >= 2 and "f: a fight" not in out
     )  # the lantern fair has no fights
-    assert "  Press Enter to roll, o or x.\n" in out and not left
+    assert "  Press Enter to roll, o, s or x.\n" in out and not left
     first = out.split(HINT)[0]
     assert "🎲" not in first  # nothing rolled before the first Enter
 
@@ -132,7 +134,10 @@ def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
     ]  # Aetheris; the raiders
     _code, out, left = table_turn(home, steps)
     assert not left, out
-    assert "o: someone brings something in · f: a fight · x: set it aside\n> " in out
+    assert (
+        "o: someone brings something in · f: a fight · s: sheets · x: set it aside\n> "
+        in out
+    )
     assert "⚔️  the party ambushed by 4 Scorched Belt Raiders" in out
     end = next(r for r in rows(home) if r["kind"] == "fight-end")["result"]
     said = {"party": "The party won", "foe": "The party fell"}[end["outcome"]]
@@ -144,7 +149,7 @@ def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
 
 def test_no_fight_where_it_doesnt_belong(home):
     _code, out, _left = table_turn(home, [("Which story?", ""), (">", "f")])
-    assert "Press Enter to roll, o or x." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
+    assert "Press Enter to roll, o, s or x." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
 
 
 LAMP = (
@@ -177,3 +182,14 @@ def test_a_part_set_aside_in_a_story_that_keeps_no_gm_word_is_said_aloud_and_the
     assert "Something went wrong" not in out and "   Said aloud.\n" in out
     assert "Oro keeps the crowd from noticing." in out and not left  # played on
     assert not [r for r in rows(home) if r["kind"] == "table-offer"]  # nothing kept
+
+
+def test_s_at_a_roll_shows_each_seated_characters_sheet_and_what_they_brought_in(home):
+    steps = [("Which story?", ""), (">", "o"), ("Who?", "1"), ("bring in?", "Tamsin has a ladder"), ("(y/n)", "y"), (">", "s"), (">", "")]  # fmt: skip
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert "   📜 Tamsin, lamp-lighter\n      Good at: Grit +2, Heart +1\n      · Tamsin has a ladder\n" in out  # fmt: skip
+    assert "   📜 Oro, juggler\n      Good at: Wit +2\n" in out
+    assert (
+        "Old Vell" not in out.split("📜 Tamsin")[1].split("> ")[0]
+    )  # not seated: no sheet

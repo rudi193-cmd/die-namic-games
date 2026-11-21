@@ -9,6 +9,7 @@ scratch folder with its own key; nothing here seals."""
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -256,3 +257,17 @@ def test_a_fights_dice_are_its_seed_read_as_hex(table):
     kept = f.Kept()
     again = combat.Combat(statblocks.build_encounter("raiders"), random.Random(int(seed, 16)), sink=kept).run()  # fmt: skip
     assert blows == kept.blows and res == json.loads(json.dumps(again))
+
+
+def test_the_opening_screen_tells_the_gm_how_last_nights_fights_ended(table):
+    assert fight(table, "fight", "raiders").returncode == 0
+    end = rows(table)[-1]["result"]
+    end_night(table)
+    env = {**os.environ, "DIE_NAMIC_HOME": str(table.parent), "DIE_NAMIC_NOW": "2026-11-27T19:00:00Z"}  # fmt: skip
+    got = subprocess.run([sys.executable, BOX / "play.py"], input="", capture_output=True, text=True, env=env, check=False)  # fmt: skip
+    said = {"party": "the party won", "foe": "the party fell"}[end["outcome"]]
+    assert f"Just for you, GM, how last time's fights ended:\n  the party ambushed by 4 Scorched Belt Raiders: {said} in {end['rounds']} rounds; standing: " in got.stdout  # fmt: skip
+    head = got.stdout.split("Let's start a story.")[0]
+    assert (
+        "(row" not in head and "Just for you, GM, how last time's fights ended" in head
+    )

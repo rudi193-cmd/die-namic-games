@@ -52,6 +52,10 @@ first (with the heads-up when it meets what the table holds true), and only
 then is it handed in and answered, so leaving midway leaves nothing behind.
 f is a fight played by fight.py onto the record, blow by blow; what it means
 for the story is the GM's to say.
+s shows each seated character's sheet: who they are, what they're good at
+(the bonus a roll adds), and the last few things the table made true about
+them, still standing. The opening screen tells the GM how last night's
+fights ended (session.py's recap, for the GM's eyes, never read aloud).
 
 **Safety, without a setup question.** x at any roll sets the next part
 aside: no reason asked, the dice still roll, and the GM says what happens
@@ -458,6 +462,23 @@ def set_aside(table: Path, rows: list[dict], game: dict, i: int, text: str) -> s
     return ""
 
 
+def sheets(table: Path, world: dict) -> str:
+    """Each seated character's sheet, for the table: who they are, what they're
+    good at (the bonus a roll adds), and the last few things the table made
+    true about them or that they brought in, still standing."""
+    box = table / "record"
+    rows, _ = kernel.read(box / "record.jsonl")
+    out = session.gone(box, rows)
+    said = [s for s in session.answers(box, rows, table / "worlds") if s[1] == "sealed" and s[0] not in out]  # fmt: skip
+    lines = []
+    for c in gm.seated(world):
+        good = ", ".join(f"{k} +{v}" for k, v in c.get("stats", {}).items()) or "nothing yet"  # fmt: skip
+        lines.append(f"\n   📜 {c['name']}" + (f", {c['role']}" if c.get("role") else "") + f"\n      Good at: {good}")  # fmt: skip
+        theirs = [fact for _, _, fact, _, by, _ in said if by == c["id"] or c["name"].lower() in fact.lower()]  # fmt: skip
+        lines += [f"      · {f}" for f in theirs[-3:]]
+    return "\n".join(lines) + "\n"
+
+
 def opening(table: Path, text: str) -> str:
     """A scene's opening, or "(The GM sets the scene.)" when it touches a line."""
     lines, veils = safety.read(table)
@@ -488,7 +509,7 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
     hint = (
         "  Enter: roll · o: someone brings something in"
         + (" · f: a fight" if fights else "")
-        + " · x: set it aside"
+        + " · s: sheets · x: set it aside"
     )
     while True:
         print(hint)
@@ -503,13 +524,18 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
         elif got.lower() == "f" and fights:
             if fight(table, now) is None:
                 return None
+        elif got.lower() == "s":
+            print(sheets(table, world))
         elif got.lower() == "x":
             if not line:
                 aside(table, now, game)
             print("   Set aside. Nobody needs to say why. The dice still roll, and the GM says what happens instead.")  # fmt: skip
             return True
         else:
-            print("  Press Enter to roll" + (", o, f or x." if fights else ", o or x."))
+            print(
+                "  Press Enter to roll"
+                + (", o, f, s or x." if fights else ", o, s or x.")
+            )
 
 
 def pick_one(prompt_: str, options: list[str]) -> int | None:
@@ -681,6 +707,13 @@ def previously(table: Path) -> None:
     if "\nReplaced:\n" in gm_eyes:
         print("Just for you, GM, what your table replaced:")
         print(gm_eyes.split("\nReplaced:\n")[1].split("\nSaid no to:")[0].rstrip())
+        print()
+    rows, _ = kernel.read(table / "record" / "record.jsonl")
+    ends = [r for r in rows if r["kind"] == "session"]
+    fought = session.fights(rows, ends[-1]) if ends else []
+    if fought:
+        print("Just for you, GM, how last time's fights ended:")
+        print("\n".join(f.split("   (row")[0] for f in fought))
         print()
     day, lines = session.last_notes(table / "pile")
     if lines and day == latest_night(table):

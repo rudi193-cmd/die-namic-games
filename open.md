@@ -383,7 +383,11 @@ reached from the play path.
    someone leaving. The seats are fixed by the story, and every fight brings
    the same three.
 7. **A sheet the player can see:** what their hero is good at, carries, and
-   has been through.
+   has been through. **Built, in part:** s at any roll shows each seated
+   character's sheet, what they're good at (the bonus a roll adds) and the
+   last three things the table made true about them or they brought in,
+   still standing. Not yet: what they carry, kept apart from the rest, and
+   one on paper (willow's `print --large`).
 8. **Growing:** getting better at things over the nights, and rewards.
 
 **The story**
@@ -422,6 +426,8 @@ reached from the play path.
 17. **A board in a fight:** who's hurt, who's stunned, whose turn.
 18. **Last night's fight on the opening screen.** Found in the journey: the
     recap says "Fights last time", but the screen the GM opens on doesn't.
+    **Built:** the opening screen tells the GM how each of last night's
+    fights ended, for their eyes only.
 
 **First, for a family table:** 1 (real dice typed in), 13 (safety) and 5
 (what carries over). They decide most whether a room of kids can play it,
