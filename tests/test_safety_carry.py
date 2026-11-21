@@ -139,3 +139,33 @@ def test_a_bar_is_never_empty_while_standing_and_full_at_full():
     assert board.bar(1, 75) == "█" + "░" * 9
     assert board.bar(0, 75) == "░" * 10 and board.bar(31, 31) == "█" * 10
     assert board.bar(10, 20) == "█" * 5 + "░" * 5
+
+
+def test_the_board_is_of_the_fight_it_names_when_the_record_holds_two():
+    first = blows(ORDER, {"kind": "round", "n": 1}, {"kind": "attack", "by": "Sena Koll", "vs": "Engine-Blooded Bruiser", "hit": True, "target_hp": 9})  # fmt: skip
+    second = [{"n": 10, "kind": "fight-open", "encounter": "warden", "desc": "the warden"},
+              {"n": 11, "kind": "fight-blow", "fight": 10, "state": {"kind": "initiative", "order": ["Warforged", "Mind-Forge Warden"]}},
+              {"n": 12, "kind": "fight-blow", "fight": 10, "state": {"kind": "round", "n": 1}},
+              {"n": 13, "kind": "fight-blow", "fight": 10, "state": {"kind": "attack", "by": "Warforged", "vs": "Mind-Forge Warden", "hit": True, "target_hp": 60}}]  # fmt: skip
+    s = board.state(first + second, 10)
+    assert s["desc"] == "the warden" and {f["name"]: f["hp"] for f in s["fighters"]}["Mind-Forge Warden"] == 60  # fmt: skip
+    assert "Engine-Blooded Bruiser" not in {f["name"] for f in s["fighters"]}
+    assert {f["name"]: f["hp"] for f in board.state(first + second, 0)["fighters"]}["Engine-Blooded Bruiser"] == 9  # fmt: skip
+
+
+def test_a_fight_before_its_first_round_is_round_nought():
+    s = board.state(blows(ORDER), 0)
+    assert s["round"] == 0 and s["next"] is None
+
+
+def test_a_hit_leaves_the_hit_points_it_says_and_a_fall_is_none():
+    rs = blows(ORDER, {"kind": "round", "n": 1},
+               {"kind": "attack", "by": "Sena Koll", "vs": "Tide-Touched Scout", "hit": True, "target_hp": 11},
+               {"kind": "attack", "by": "Sena Koll", "vs": "Warforged", "hit": True, "target_hp": 4},
+               {"kind": "down", "who": "Warforged"})  # fmt: skip
+    f = {x["name"]: x for x in board.state(rs, 0)["fighters"]}
+    assert f["Tide-Touched Scout"]["hp"] == 11 and f["Warforged"]["hp"] == 0 and f["Warforged"]["down"]  # fmt: skip
+
+
+def test_a_bar_with_no_hit_points_to_have_is_empty():
+    assert board.bar(0, 0) == "░" * 10
