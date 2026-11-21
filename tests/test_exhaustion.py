@@ -19,9 +19,13 @@ def test_5_2_takes_two_off_every_d20_and_five_feet_a_level():
 
 
 def test_5_1_gives_disadvantage_by_level_and_no_number():
-    assert [ex.roll_mode("check", n) for n in range(4)] == ["normal", "disadvantage", "disadvantage", "disadvantage"]  # fmt: skip
-    assert [ex.roll_mode("attack", n) for n in range(4)] == ["normal", "normal", "normal", "disadvantage"]  # fmt: skip
-    assert ex.roll_mode("save", 3) == ex.roll_mode("attack", 3) == "disadvantage"
+    assert [ex.roll_mode("check", n, "5.1") for n in range(4)] == ["normal", "disadvantage", "disadvantage", "disadvantage"]  # fmt: skip
+    assert [ex.roll_mode("attack", n, "5.1") for n in range(4)] == ["normal", "normal", "normal", "disadvantage"]  # fmt: skip
+    assert (
+        ex.roll_mode("save", 3, "5.1")
+        == ex.roll_mode("attack", 3, "5.1")
+        == "disadvantage"
+    )
     assert ex.d20_modifier(4, "5.1") == 0
 
 
@@ -39,12 +43,14 @@ def test_5_1_speed_is_halved_from_two_and_zero_from_five():
 
 
 def test_5_1_halves_the_hit_point_maximum_from_four_and_5_2_does_not():
-    assert [ex.hp_max(n, 21) for n in range(7)] == [21, 21, 21, 21, 10, 10, 10]
-    assert ex.hp_max(4, 1) == 1  # at least 1
-    assert ex.hp_max(6, 21, "5.2") == 21
+    assert [ex.hp_max(n, 21, "5.1") for n in range(7)] == [21, 21, 21, 21, 10, 10, 10]
+    assert ex.hp_max(4, 1, "5.1") == 1  # at least 1
+    assert ex.hp_max(6, 21) == 21  # 5.2, the default
 
 
-def test_5_2_has_no_disadvantage_and_5_1_does():
+def test_the_default_is_5_2_so_no_disadvantage_unless_5_1_is_asked_for():
+    assert ex.DEFAULT == "5.2"
+    assert ex.roll_mode("check", 5) == "normal"
     assert ex.roll_mode("check", 5, "5.2") == "normal"
     assert ex.roll_mode("check", 5, "5.1") == "disadvantage"
 

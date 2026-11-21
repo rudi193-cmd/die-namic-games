@@ -602,6 +602,14 @@ again from the record, and the chain (102 rows, 7 sealed).
 - **Two kinds of dice.** Table dice go in **the cup**: unknown until thrown,
   thrown after the GM's call, seen by all, kept. Prompt dice stay seeded:
   surprising, free to reroll, repeatable.
+- **The box plays SRD 5.2.1** (decided 2026-11-21, the maintainer agreeing
+  to the recommendation). New rules and content come from 5.2.1, CC-BY-4.0:
+  any content taken carries the attribution Wizards of the Coast asks for
+  ("This work includes material from the System Reference Document 5.2.1 ...
+  licensed under CC-BY-4.0"; read the exact wording from the SRD itself).
+  SRD 5.1 is used only where an engine forces it, named as such, never mixed
+  in one stat block. Nothing already built declares an edition; aetheris5e
+  names none, so what it plays is still to be checked against 5.2.1.
 - The GM's screen roll comes **later**. The GM's word over the dice is
   built (g at the next roll).
 
@@ -692,8 +700,8 @@ the GM's yes under a seal, carry-over as rows (5).
    module keeps both, named, never mixed. *The box still has to say which
    edition it plays;* open question, not decided.
 
-**Decisions this raises (not made):** which SRD edition the box plays (the
-engines split on it, and so would fights); whether an outside engine is a
+**Decided 2026-11-21:** the box plays SRD 5.2.1 (see Decided). **Still open:**
+whether aetheris5e's fights already match it; whether an outside engine is a
 `deps` add-on or a port; and whether a wound's change to a roll waits on item 3
 or is shown to the GM as advice meanwhile.
 

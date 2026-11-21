@@ -92,7 +92,7 @@ dm` and `dm = ...` was refused).
     `pydantic` and `pyyaml` (a `deps` add-on).
   - Exhaustion written as `box/exhaustion.py` in both SRD editions: dndwright
     is 5.1, srd_5e is 5.2. Not wired into play (item 3 first).
-- **Which edition the box plays** is an open decision the engines forced.
+- **Decided 2026-11-21: the box plays SRD 5.2.1**, 5.1 only where an engine forces it. Engine pick follows: srd_5e (5.2) and dndwright's 5.2.1 content fit; jurnalis-engine and OpenCombatEngine are 5.1, so ideas to borrow, not drop-ins. Still to check: what aetheris5e's fights follow.
 
 ## Not done, and why
 

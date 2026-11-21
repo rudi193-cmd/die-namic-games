@@ -5,6 +5,7 @@ for open.md item 5's "a wound that changes a roll", and is NOT yet wired into
 play: game-master's check holds a beat's total to the roll plus the stat
 (open.md item 3), so a roll that a wound lowers is a willow change first.
 
+The box plays SRD 5.2.1 (DEFAULT); 5.1 stays for an engine that forces it.
 The two SRD editions say different things about the same word, so both are
 kept, named, never mixed:
 
@@ -22,6 +23,7 @@ afresh here, from the rules as they read, not copied from either.
 from __future__ import annotations
 
 EDITIONS = ("5.1", "5.2")
+DEFAULT = "5.2"  # the box plays SRD 5.2.1 (open.md, Decided); 5.1 only when asked for
 MAX_LEVEL = 6
 
 
@@ -46,14 +48,14 @@ def dead(level: int) -> bool:
     return _level(level) >= MAX_LEVEL
 
 
-def d20_modifier(level: int, edition: str = "5.2") -> int:
+def d20_modifier(level: int, edition: str = DEFAULT) -> int:
     """What every d20 test is changed by. 5.2: -2 a level. 5.1 has none: it
     gives disadvantage instead (see roll_mode)."""
     _level(level)
     return -2 * level if _edition(edition) == "5.2" else 0
 
 
-def speed_change(level: int, speed: int, edition: str = "5.2") -> int:
+def speed_change(level: int, speed: int, edition: str = DEFAULT) -> int:
     """A speed in feet, after exhaustion. 5.2: 5 feet off a level, never below
     0. 5.1: halved from level 2, 0 from level 5."""
     _level(level)
@@ -66,10 +68,11 @@ def speed_change(level: int, speed: int, edition: str = "5.2") -> int:
     return speed // 2 if level >= 2 else speed
 
 
-def roll_mode(kind: str, level: int, edition: str = "5.1") -> str:
+def roll_mode(kind: str, level: int, edition: str = DEFAULT) -> str:
     """'disadvantage' or 'normal' for a kind of roll ('check', 'attack',
-    'save'). Only 5.1 uses it: checks from level 1, attacks and saves from 3.
-    In 5.2 it is always 'normal'; the penalty is d20_modifier."""
+    'save'). Only 5.1 uses it (checks from level 1, attacks and saves from 3):
+    ask for edition "5.1". In 5.2, the default, it is always 'normal'; the
+    penalty is d20_modifier."""
     _level(level)
     if kind not in ("check", "attack", "save"):
         raise ValueError("kind is 'check', 'attack' or 'save'")
@@ -80,7 +83,7 @@ def roll_mode(kind: str, level: int, edition: str = "5.1") -> str:
     return "disadvantage" if level >= 3 else "normal"
 
 
-def hp_max(level: int, maximum: int, edition: str = "5.1") -> int:
+def hp_max(level: int, maximum: int, edition: str = DEFAULT) -> int:
     """Hit point maximum: halved from level 4 in 5.1 (rounded down, at least 1);
     unchanged in 5.2."""
     _level(level)
@@ -91,7 +94,7 @@ def hp_max(level: int, maximum: int, edition: str = "5.1") -> int:
     return maximum
 
 
-def said(level: int, edition: str = "5.2") -> str:
+def said(level: int, edition: str = DEFAULT) -> str:
     """The effect in the table's words, as a GM would say it."""
     if _level(level) == 0:
         return "not worn out"
