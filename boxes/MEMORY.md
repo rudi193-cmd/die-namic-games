@@ -116,6 +116,11 @@ dm` and `dm = ...` was refused).
   Mastery), so it is a 5.2.1 fit; layforge's gate is one switch of about 45
   tools with reason codes on refusal. Notes in open.md, "Round 4".
 
+- **Round 5:** dndwright's sheet graph needs 5e ability scores, ours are
+  bonuses on a story's own stats, so no fit for sheets; a fight only needs
+  plain numbers (modifiers, AC, hit points), which aetheris5e's stat blocks
+  already are. Decision waiting: a spike adapter, or leave aetheris5e as is.
+
 ## Not done, and why
 
 - **Tavern (t11z)**: `t11z/tavern` is refused to the session, both through

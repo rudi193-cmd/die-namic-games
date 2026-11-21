@@ -878,3 +878,33 @@ make declines countable.
 `dmAdvanceTurn`); aetheris5e's stat blocks against the 5.2.1 monster list;
 dndwright's `rules/dnd_5e_2024.py` graph, to see whether a story character's
 bonus-per-stat can be a graph input.
+
+### Round 5: dndwright's sheet graph against our sheets (2026-11-21)
+
+Read `rules/schema.py` and the README's quickstart. The graph is a character
+*sheet* computer: its inputs are ability scores, class, species and level, and
+it computes modifiers, proficiency, armor class, hit points, saves and
+spellcasting (`evaluate_character({...})`). A story character here is a name
+and a bonus on each of a story's own stats (the lantern fair: Grit, Wit,
+Heart) over `base_stat`, a 2d6-band system, not 5e ability scores. So **the
+graph does not take our sheets** without an arbitrary map from Grit, Wit and
+Heart to Strength through Charisma, and that map is a design decision, not
+a plumbing one.
+
+**It isn't needed for a fight.** The pieces a fight uses take plain numbers:
+`roll_initiative(engine, modifier, manual_roll=)`, `weapon_attack(...,
+strength_mod=, dexterity_mod=, proficiency_bonus=)`, `roll_attack(modifier,
+target_ac=)`, `roll_damage(expr)`, `apply_damage(CombatantState, n)`. And
+aetheris5e's stat blocks already are numbers: armor class, hit points,
+initiative, saves, attacks (`statblocks.py`). So a fight is: a story
+character's hit points and a chosen attack bonus, in; blows, hit points and
+status, out, each blow a row on the record.
+
+**State of the question "can an outside engine fight the story's characters":**
+yes for the fight, no for the sheet. What it would cost: a `deps` add-on
+(pydantic, pyyaml pinned, licence on the card), an adapter that hands it the
+tower's or the table's faces, and a decision on what a story character's
+attack bonus and damage are. Not built; nothing in `box/` calls dndwright.
+**Decision for the maintainer:** build that adapter as a spike (a short
+module with a test, outside the play path), or leave aetheris5e's fights as
+they are and keep dndwright as the reference for rules.
