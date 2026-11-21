@@ -697,8 +697,8 @@ the GM's yes under a seal, carry-over as rows (5).
    (cumulative: disadvantage on ability checks, speed halved, disadvantage on
    attacks and saves, hit point maximum halved, speed 0, death) and
    **srd_5e's is 5.2** (-2 on every d20 per level, -5 feet, death at 6). The
-   module keeps both, named, never mixed. *The box still has to say which
-   edition it plays;* open question, not decided.
+   module keeps both, named, never mixed. *The box plays 5.2.1* (decided
+   2026-11-21, see Decided), so 5.2 is the module's default.
 
 **Decided 2026-11-21:** the box plays SRD 5.2.1 (see Decided). **Still open:**
 whether aetheris5e's fights already match it; whether an outside engine is a
