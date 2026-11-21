@@ -154,3 +154,63 @@ def test_a_record_that_doesnt_check_out_is_refused(home):
     path.write_text("\n".join([json.dumps(first), *lines[1:]]) + "\n")
     got = play(home, "\n")
     assert got.returncode == 2 and "Something went wrong: the record doesn't check out" in got.stderr  # fmt: skip
+
+
+LAMP = (
+    "The lantern catches first time",
+    "It catches, but a pane cracks",
+    "The hook gives",
+)
+
+
+def our_lines(home: Path, lines: str = "", veils: str = "") -> None:
+    page = "## Lines\n" + "".join(f"- {x}\n" for x in lines.split(",") if x) + "\n## Veils\n" + "".join(f"- {x}\n" for x in veils.split(",") if x)  # fmt: skip
+    (home / "table" / "pile" / "our-lines.md").write_text(page)
+
+
+def test_a_part_that_touches_a_line_is_never_read(home):
+    our_lines(home, lines="hook")
+    out = play(
+        home, "\n\n\n"
+    ).stdout  # the story, Enter at the roll, Enter at the GM's moment
+    assert "🛑 The next part touches one of your lines (hook). It's set aside:" in out
+    assert "Tamsin climbs to the dark stall's hook." not in out and not any(t in out for t in LAMP)  # fmt: skip
+    assert "✋ GM, what happens instead?" in out
+
+
+def test_an_opening_that_touches_a_line_is_set_by_the_gm(home):
+    our_lines(home, lines="river")
+    out = play(home, "\n").stdout
+    assert "-- Dusk at the stalls --\n(The GM sets the scene.)\n" in out
+    assert "The first lanterns go up along the river." not in out
+
+
+def test_a_veil_happens_off_screen(home):
+    our_lines(home, veils="crowd")
+    out = play(
+        home, "\n\n\n\n"
+    ).stdout  # the story, the lamp's roll, the crowd's, the GM's moment
+    assert "Tamsin climbs to the dark stall's hook.\n" in out  # a veil isn't a line
+    assert (
+        "Oro keeps the crowd from noticing.\n   🌫 (crowd: it happens off-screen.)\n"
+        in out
+    )
+    assert (
+        "   🌫 That happens off-screen.\n" in out
+        and "✋ GM, what happens instead?" in out
+    )
+    crowd = (
+        "Five clubs and a borrowed hat",
+        "One child watches the stall",
+        "A club goes into the river",
+    )
+    assert not any(t in out for t in crowd)
+
+
+def test_with_no_page_of_lines_nothing_changes(home):
+    out = play(home, "\n\n").stdout
+    assert (
+        "🛑" not in out
+        and "🌫" not in out
+        and "Tamsin climbs to the dark stall's hook." in out
+    )

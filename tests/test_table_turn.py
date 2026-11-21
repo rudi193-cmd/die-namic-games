@@ -22,7 +22,7 @@ import pytest
 BOX = Path(__file__).resolve().parents[1] / "box"
 NOW = "2026-11-20T19:00:00Z"
 VELL = "Old Vell from the lantern fair comes down the stair."
-HINT = "  Enter: roll · o: someone brings something in\n> "
+HINT = "  Enter: roll · o: someone brings something in · x: set it aside\n> "
 
 
 def table_turn(home: Path, steps: list, every: dict | None = None, now: str = NOW):
@@ -57,11 +57,11 @@ CELLAR = ("Which story?", "4")  # The Clockwork Cellar, with nothing played
 
 
 def test_each_roll_waits_for_enter_and_a_word_that_isnt_one_is_asked_again(home):
-    _code, out, left = table_turn(home, [("Which story?", ""), (">", "x")])
+    _code, out, left = table_turn(home, [("Which story?", ""), (">", "z")])
     assert (
         out.count(HINT) >= 2 and "f: a fight" not in out
     )  # the lantern fair has no fights
-    assert "  Press Enter to roll, or o.\n" in out and not left
+    assert "  Press Enter to roll, o or x.\n" in out and not left
     first = out.split(HINT)[0]
     assert "🎲" not in first  # nothing rolled before the first Enter
 
@@ -132,7 +132,7 @@ def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
     ]  # Aetheris; the raiders
     _code, out, left = table_turn(home, steps)
     assert not left, out
-    assert "o: someone brings something in · f: a fight\n> " in out
+    assert "o: someone brings something in · f: a fight · x: set it aside\n> " in out
     assert "⚔️  the party ambushed by 4 Scorched Belt Raiders" in out
     end = next(r for r in rows(home) if r["kind"] == "fight-end")["result"]
     said = {"party": "The party won", "foe": "The party fell"}[end["outcome"]]
@@ -144,4 +144,36 @@ def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
 
 def test_no_fight_where_it_doesnt_belong(home):
     _code, out, _left = table_turn(home, [("Which story?", ""), (">", "f")])
-    assert "Press Enter to roll, or o." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
+    assert "Press Enter to roll, o or x." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
+
+
+LAMP = (
+    "The lantern catches first time",
+    "It catches, but a pane cracks",
+    "The hook gives",
+)
+
+
+def test_x_at_a_roll_sets_the_part_aside_and_the_gm_says_what_happens(home):
+    steps = [
+        ("Which story?", ""),
+        (">", "x"),
+        ("happens instead?", "The lantern was lit already."),
+    ]
+    _code, out, left = table_turn(home, steps)
+    assert "Set aside. Nobody needs to say why." in out and "   (Set aside.)\n" in out
+    assert "✋ GM, what happens instead? (say it aloud, then press Enter)" in out
+    assert "   Said aloud.\n" in out and not any(t in out for t in LAMP)
+    assert not left
+    xs = [r for r in rows(home) if r["kind"] == "table-x"]
+    assert len(xs) == 1 and xs[0]["who"] == "table" and xs[0]["at"] == 0
+    assert not {"why", "reason", "for", "because", "name", "character", "by"} & set(xs[0])  # fmt: skip
+
+
+def test_a_part_set_aside_in_a_story_that_keeps_no_gm_word_is_said_aloud_and_the_night_goes_on(home):  # fmt: skip
+    (home / "table" / "pile" / "our-lines.md").write_text("## Lines\n- hook\n")
+    steps = [("Which story?", ""), (">", ""), ("happens instead?", "It was lit already."), (">", "")]  # fmt: skip
+    _code, out, left = table_turn(home, steps)
+    assert "Something went wrong" not in out and "   Said aloud.\n" in out
+    assert "Oro keeps the crowd from noticing." in out and not left  # played on
+    assert not [r for r in rows(home) if r["kind"] == "table-offer"]  # nothing kept

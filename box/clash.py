@@ -92,8 +92,8 @@ def meets(box: Path, fact: str, subject: str = "") -> list[dict]:
             and contradictions.same(said, {"stems": stems(t["fact"])})]  # fmt: skip
 
 
-def seal(box: Path, subject: str) -> None:
-    done = subprocess.run([sys.executable, str(KERNEL), "seal", "--box", str(box), subject], capture_output=True, text=True, check=False)  # fmt: skip
+def seal(box: Path, subject: str, ts: str) -> None:
+    done = subprocess.run([sys.executable, str(KERNEL), "seal", "--box", str(box), "--now", ts, subject], capture_output=True, text=True, check=False)  # fmt: skip
     if done.returncode != kernel.ALIVE:
         raise RuntimeError((done.stderr or done.stdout).strip())
 
@@ -106,7 +106,7 @@ def replace(box: Path, ts: str, old: dict, new_subject: str, new_fact: str) -> N
     if why:
         raise RuntimeError(why)
     kernel.append(box, ts, REPLACES, who=WHO, old=old["subject"], new=new_subject, fact=new_fact, subject=subject)  # fmt: skip
-    seal(box, subject)
+    seal(box, subject, ts)
 
 
 def keep_both(box: Path, ts: str, old: dict, new_subject: str, new_fact: str) -> None:

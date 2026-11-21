@@ -164,5 +164,5 @@ def test_a_seal_the_kernel_refuses_is_said_in_the_kernels_words(home):
     import clash
 
     with pytest.raises(RuntimeError) as got:
-        clash.seal(home / "table" / "record", "proposal:" + "0" * 64)
+        clash.seal(home / "table" / "record", "proposal:" + "0" * 64, NOW)
     assert "is not a proposal in this box" in str(got.value), str(got.value)

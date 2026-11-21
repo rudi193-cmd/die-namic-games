@@ -404,7 +404,13 @@ reached from the play path.
 
 13. **Safety, first of all at a kids' table.** Agreeing beforehand what is
     off the table, and a way to stop a scene with no reason asked (lines
-    and veils; the X-card). There is nothing for it yet.
+    and veils; the X-card). **Built, without a setup question:** x at any
+    roll sets the part aside, the dice still roll and the GM says what
+    happens instead, and the record keeps only that it was (no one named,
+    no reason). Lines and veils are a page the family writes once,
+    `pile/our-lines.md` (box/safety.py): a part that touches a line is never
+    read; a veil's happens off-screen. Not yet: a pause that stops the whole
+    night, and the X-card for a call or a GM's moment, not only a roll.
 14. **Undoing a slip.** A "y" pressed by mistake can only be turned back
     by a later "mine stands now".
 15. **Sharing the GM's chair:** a co-GM, or a kid running a night.

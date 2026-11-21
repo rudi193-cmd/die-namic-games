@@ -25,7 +25,8 @@
     "box/clash.py": 6,
     "box/ideas.py": 6,
     "box/open_table.py": 6,
-    "box/session.py": 6
+    "box/session.py": 6,
+    "box/safety.py": "all"
   },
   "accepted": {
     "3fe1e297990e": "die_namic/binder.py, a page's name: rsplit('/', 1)[-1] made rsplit('/', 2)[-1]. The last piece after a slash is the same however many splits are made, so no path tells them apart.",

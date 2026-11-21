@@ -9,6 +9,13 @@ in your words, then the add-on that answers it), and it is your stack.
 
     python box/open_table.py family --table ~/.die-namic/table
 
+**What never happens at our table.** Write it once, before the first night,
+in your own words, as `pile/our-lines.md` in the table: a heading "Lines"
+over what never happens in the story (spiders, say), and a heading "Veils"
+over what can happen, off-screen (kissing), each on its own line after a
+dash. play.py reads it at every part, and anyone can press x at a roll to
+set a part aside, no reason asked.
+
 Each run is kept in a folder of its own, DIR/family/NNN, so the steps that
 write a file write it there. It reads, and keeps a copy; it seals nothing.
 

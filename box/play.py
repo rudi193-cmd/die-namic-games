@@ -53,6 +53,14 @@ then is it handed in and answered, so leaving midway leaves nothing behind.
 f is a fight played by fight.py onto the record, blow by blow; what it means
 for the story is the GM's to say.
 
+**Safety, without a setup question.** x at any roll sets the next part
+aside: no reason asked, the dice still roll, and the GM says what happens
+instead; only that it was set aside is kept (a `table-x` row, no one named).
+A family's lines and veils are a page they write once, pile/our-lines.md
+(box/safety.py): a part that touches a line is never read, and the GM says
+what happens instead; one that touches a veil happens off-screen. No page,
+nothing changes.
+
 Not here yet (open.md has it): the cup for the dice.
 
 Exit codes, the kernel's: 0 done; 42 left with a call or the night waiting;
@@ -84,6 +92,7 @@ sys.path.insert(0, str(ROOT / "adapters" / "stdlib" / "game-master"))
 import clash
 import game_master as gm
 import kernel
+import safety
 import session
 
 KERNEL = ROOT / "kernel.py"
@@ -251,7 +260,7 @@ def your_call(box: Path, world: dict, game: dict, now: str) -> bool | None:
         choice = heads_up(met, reword=False)
         if choice is None:
             return None
-        done = run(KERNEL, "decline" if choice == "old" else "seal", "--box", box, a["subject"])  # fmt: skip
+        done = run(KERNEL, "decline" if choice == "old" else "seal", "--box", box, "--now", now, a["subject"])  # fmt: skip
         if done.returncode != kernel.ALIVE:
             raise RuntimeError((done.stderr or done.stdout).strip())
         standing_by(box, now, choice, met, a["subject"], a["fact"])
@@ -261,7 +270,15 @@ def your_call(box: Path, world: dict, game: dict, now: str) -> bool | None:
     answer = yes("   Is that true in your world? (y/n) ")
     if answer is None:
         return None
-    done = run(KERNEL, "seal" if answer else "decline", "--box", box, a["subject"])
+    done = run(
+        KERNEL,
+        "seal" if answer else "decline",
+        "--box",
+        box,
+        "--now",
+        now,
+        a["subject"],
+    )
     if done.returncode != kernel.ALIVE:
         raise RuntimeError((done.stderr or done.stdout).strip())
     print("   It's true now." if answer else "   It didn't happen.")
@@ -303,10 +320,10 @@ def night(table: Path, world: dict, world_file: Path, now: str) -> int:
             scene = sc["id"]
             print(f"\n-- {sc['title']} --")
             if sc["opening"] and not any(x["scene"] == sc["id"] for x in game["beats"]):
-                print("\n".join(sc["opening"]))
+                print(opening(table, "\n".join(sc["opening"])))
         asked = [a for a in game["asks"] if (a["scene"], a["beat"]) == (sc["id"], b["id"])]  # fmt: skip
         if b["kind"] == "action":
-            if before_roll(table, world, world_file, b, now) is None:
+            if before_roll(table, world, world_file, b, now, game) is None:
                 print("\nThe story is waiting. Run this again to pick up.")
                 return kernel.ESCALATE
             done = session.step(box, world_file, now, "act", b["suggests"])
@@ -333,11 +350,14 @@ def night(table: Path, world: dict, world_file: Path, now: str) -> int:
         if done.returncode == kernel.REFUSED:
             raise RuntimeError(done.stderr.strip())
         rows, game, _ = gm.current(box, world)
-        for beat in game["beats"][shown:]:
+        for i, beat in enumerate(game["beats"][shown:], shown):
             if beat["beat_kind"] != "action":
                 continue
             print(said_roll(world, rows, beat))
-            if beat["text"] != BLANK:
+            aside = set_aside(table, rows, game, i, f"{b.get('prompt', '')}\n{beat['text']}")  # fmt: skip
+            if aside:
+                print(aside)
+            if beat["text"] != BLANK and not aside:
                 print(beat["text"])
             elif gm_says(box, world, world_file, beat, now) is None:
                 print("\nThe GM's moment is waiting. Run this again to pick up.")
@@ -365,7 +385,15 @@ def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str) -> b
     """A moment left blank: the GM says what happens. What they type and say
     yes to is the rule of the table, kept as an offer of the GM's word, made
     at the moment of the character whose turn it was, and sealed on that yes.
-    Enter keeps nothing (said aloud only); None if the person left."""
+    Enter keeps nothing (said aloud only); None if the person left. In a
+    story with no GM's word to keep (it names no gm-word offer: a part set
+    aside in a story written before), it's said aloud, and nothing kept."""
+    if GM_WORD not in world.get("offers", []):
+        said = ask("✋ GM, what happens instead? (say it aloud, then press Enter) ")
+        if said is None:
+            return None
+        print("   Said aloud.")
+        return False
     while True:
         line = ask(
             "✋ GM, what happens? (say it, and type it to keep it; or press Enter) "
@@ -398,7 +426,7 @@ def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str) -> b
         raise RuntimeError(done.stderr.strip())
     _, game, _ = gm.current(box, world)
     subject = game["offers"][-1]["subject"]
-    sealed = run(KERNEL, "seal", "--box", box, subject)
+    sealed = run(KERNEL, "seal", "--box", box, "--now", now, subject)
     if sealed.returncode != kernel.ALIVE:
         raise RuntimeError((sealed.stderr or sealed.stdout).strip())
     heard = session.step(box, world_file, now, "settle")
@@ -410,17 +438,57 @@ def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str) -> b
     return True
 
 
+def aside(table: Path, now: str, game: dict) -> None:
+    """The X-card: the next part set aside, kept as only that it was. The row
+    names no one and gives no reason: `game` is the story's open row, `at`
+    the moment it is for (how many it had played)."""
+    kernel.append(table / "record", now, safety.X, who="table", game=game["open"]["n"], at=len(game["beats"]))  # fmt: skip
+
+
+def set_aside(table: Path, rows: list[dict], game: dict, i: int, text: str) -> str:
+    """What to say instead of moment I's text, or "" to read it: set aside by
+    an x, or touching one of the table's lines (never read) or veils (off-screen)."""
+    if any(r["kind"] == safety.X and (r.get("game"), r.get("at")) == (game["open"]["n"], i) for r in rows):  # fmt: skip
+        return "   (Set aside.)"
+    lines, veils = safety.read(table)
+    if safety.touches(lines, text):
+        return "   (Set aside: one of your lines.)"
+    if safety.touches(veils, text):
+        return "   🌫 That happens off-screen."
+    return ""
+
+
+def opening(table: Path, text: str) -> str:
+    """A scene's opening, or "(The GM sets the scene.)" when it touches a line."""
+    lines, veils = safety.read(table)
+    if safety.touches(lines, text):
+        return "(The GM sets the scene.)"
+    if safety.touches(veils, text):
+        return "(Something happens off-screen, and the scene begins.)"
+    return text
+
+
 FIGHTS = {"aetheris-the-waking-tide"}  # the stories aetheris5e's encounters belong to
 
 
-def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str) -> bool | None:  # fmt: skip
+def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, game: dict) -> bool | None:  # fmt: skip
     """The moment said, and the table's turn before the roll: Enter rolls, o
     is someone bringing something in, f a fight (in a story fights belong
     to). True to roll; None if the person left."""
-    print(f"\n{b['prompt']}")
+    lines, veils = safety.read(table)
+    line, veil = safety.touches(lines, b["prompt"]), safety.touches(veils, b["prompt"])
+    if line:
+        aside(table, now, game)
+        print(f"\n🛑 The next part touches one of your lines ({line}). It's set aside:\n   the dice still roll, and the GM says what happens instead.")  # fmt: skip
+    else:
+        print(f"\n{b['prompt']}")
+        if veil:
+            print(f"   🌫 ({veil}: it happens off-screen.)")
     fights = world["id"] in FIGHTS
-    hint = "  Enter: roll · o: someone brings something in" + (
-        " · f: a fight" if fights else ""
+    hint = (
+        "  Enter: roll · o: someone brings something in"
+        + (" · f: a fight" if fights else "")
+        + " · x: set it aside"
     )
     while True:
         print(hint)
@@ -435,8 +503,13 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str) -
         elif got.lower() == "f" and fights:
             if fight(table, now) is None:
                 return None
+        elif got.lower() == "x":
+            if not line:
+                aside(table, now, game)
+            print("   Set aside. Nobody needs to say why. The dice still roll, and the GM says what happens instead.")  # fmt: skip
+            return True
         else:
-            print("  Press Enter to roll" + (", o or f." if fights else ", or o."))
+            print("  Press Enter to roll" + (", o, f or x." if fights else ", o or x."))
 
 
 def pick_one(prompt_: str, options: list[str]) -> int | None:
@@ -497,7 +570,9 @@ def bring_in(box: Path, world: dict, world_file: Path, now: str) -> bool | None:
         raise RuntimeError(done.stderr.strip())
     _, game, _ = gm.current(box, world)
     subject = game["offers"][-1]["subject"]
-    answered = run(KERNEL, "seal" if answer else "decline", "--box", box, subject)
+    answered = run(
+        KERNEL, "seal" if answer else "decline", "--box", box, "--now", now, subject
+    )
     if answered.returncode != kernel.ALIVE:
         raise RuntimeError((answered.stderr or answered.stdout).strip())
     heard = session.step(box, world_file, now, "settle")
@@ -568,7 +643,7 @@ def end(table: Path, world: dict, game: dict, now: str) -> int:
     ends = [r for r in rows if r["kind"] == "session"]
     subject = ends[-1]["subject"] if ends else None
     if subject and gm.ruling(box, rows, subject)[0] != "sealed":
-        done = run(KERNEL, "seal", "--box", box, subject)
+        done = run(KERNEL, "seal", "--box", box, "--now", now, subject)
         if done.returncode != kernel.ALIVE:
             raise RuntimeError((done.stderr or done.stdout).strip())
     held = run(KERNEL, "verify", "--box", box)
