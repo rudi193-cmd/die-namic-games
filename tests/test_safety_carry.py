@@ -20,8 +20,8 @@ def page(tmp_path: Path, text: str) -> Path:
 
 
 def test_the_page_is_read_as_written_under_its_two_headings(tmp_path):
-    t = page(tmp_path, "- before any heading\n# Our lines\n- spiders\n* a pet getting hurt\n-\n- \n## Veils\n- kissing\n## Other\n- not a line\n")  # fmt: skip
-    assert safety.read(t) == (["spiders", "a pet getting hurt"], ["kissing"])
+    t = page(tmp_path, "- before any heading\n# Our lines\n- spiders\n* a pet getting hurt\n-ghosts\n-x\n-\n- \n## Veils\n- kissing\n## Other\n- not a line\n")  # fmt: skip
+    assert safety.read(t) == (["spiders", "a pet getting hurt", "ghosts", "x"], ["kissing"])  # a dash with no space too  # fmt: skip
 
 
 def test_no_page_is_no_lines(tmp_path):
