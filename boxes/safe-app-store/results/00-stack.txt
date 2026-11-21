@@ -1,0 +1,43 @@
+01 all-passages: started (1be8da65)
+01 all-passages: exit 0, 1 line
+02 all-passages: started (cddb464a)
+02 all-passages: exit 0, 1 line
+03 all-passages: started (bf0c2e36)
+03 all-passages: exit 0, 1 line
+04 first-mention: started (d959b9ab)
+04 first-mention: exit 0, 2 lines
+05 all-passages: started (76aac70e)
+05 all-passages: exit 0, 1 line
+06 first-mention: started (d2635caa)
+06 first-mention: exit 0, 2 lines
+07 all-passages: started (f99b1e71)
+07 all-passages: exit 0, 1 line
+08 all-passages: started (b5a1f567)
+08 all-passages: exit 0, 1 line
+09 all-passages: started (44a9d2bf)
+09 all-passages: exit 0, 1 line
+10 all-passages: started (20ae5892)
+10 all-passages: exit 0, 1 line
+11 first-mention: started (31d71fe0)
+11 first-mention: exit 0, 2 lines
+12 all-passages: started (c48019ad)
+12 all-passages: exit 0, 1 line
+13 all-passages: started (6b7a298a)
+13 all-passages: exit 0, 1 line
+14 all-passages: started (67c305ab)
+14 all-passages: exit 0, 1 line
+15 all-passages: started (6191a1d3)
+15 all-passages: exit 0, 1 line
+16 all-passages: started (5b5b5953)
+16 all-passages: exit 0, 1 line
+17 all-passages: started (f469fa56)
+17 all-passages: exit 0, 1 line
+18 all-passages: started (382e6af6)
+18 all-passages: exit 0, 1 line
+19 all-passages: started (c328ad84)
+19 all-passages: exit 0, 1 line
+20 all-passages: started (5d2e71e1)
+20 all-passages: exit 0, 1 line
+21 box-health: started (5a644aca)
+21 box-health: exit 42, 12 lines, mass 9, populated, flagged
+done: 1 of 21 steps flagged

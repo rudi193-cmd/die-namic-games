@@ -1,0 +1,533 @@
+"""The table's turn before each roll, in box/play.py: Enter rolls, o is
+someone bringing something into the story (game-master's own offer), f a
+fight (in a story fights belong to).
+
+Played by a person at the keyboard who reads each question (tests/person.py),
+since what comes before which roll is the dice's to say. What is held: the GM
+is asked before anything is handed in, an offer is the character's, sealed
+or declined once, and what it unlocks plays; a fight is kept on the record
+and checks; walking away leaves nothing half done."""
+
+from __future__ import annotations
+
+import json
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+import person
+import pytest
+
+BOX = Path(__file__).resolve().parents[1] / "box"
+sys.path.insert(0, str(BOX))
+import willow_pin
+
+NOW = "2026-11-20T19:00:00Z"
+VELL = "Old Vell from the lantern fair comes down the stair."
+HINT = "  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside · p: pause the night\n> "
+
+
+def table_turn(home: Path, steps: list, every: dict | None = None, now: str = NOW):
+    env = {"DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": now}
+    answer = person.answering(steps, every)
+    code, out = person.at_table([BOX / "play.py"], env, answer)
+    return code, out, answer.left
+
+
+@pytest.fixture(scope="module")
+def laid(tmp_path_factory) -> Path:
+    home = tmp_path_factory.mktemp("home")
+    code, _, _ = table_turn(home, [])
+    assert code == 42
+    return home
+
+
+@pytest.fixture
+def home(laid, tmp_path) -> Path:
+    return shutil.copytree(laid, tmp_path / "home")
+
+
+def rows(home: Path) -> list[dict]:
+    return [json.loads(line) for line in (home / "table" / "record" / "record.jsonl").read_text().splitlines()]  # fmt: skip
+
+
+def answered(home: Path, subject: str) -> list[str]:
+    return [r["kind"] for r in rows(home) if r.get("subject") == subject and r["kind"] in ("seal", "decline", "table-heard")]  # fmt: skip
+
+
+CELLAR = ("Which story?", "4")  # The Clockwork Cellar, with nothing played
+
+
+def test_each_roll_waits_for_enter_and_a_word_that_isnt_one_is_asked_again(home):
+    _code, out, left = table_turn(home, [("Which story?", ""), (">", "z")])
+    assert (
+        out.count(HINT) >= 2 and "f: a fight" not in out
+    )  # the lantern fair has no fights
+    assert (
+        "  Press Enter to roll, type your two dice (like 4 6), or h, o, s, u, x or p.\n"
+        in out
+        and not left
+    )
+    first = out.split(HINT)[0]
+    assert "🎲" not in first  # nothing rolled before the first Enter
+
+
+def test_someone_brings_something_in_and_the_gm_says_yes(home):
+    steps = [CELLAR, (">", "o"), ("Who?", "1"), ("bring in?", VELL), ("Which?", "2"), ("(y/n)", "y")]  # fmt: skip
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert f"✋ Your call, GM. Pell brings this in:\n   {VELL}\n   Is that true in your world? (y/n)    It's true now." in out  # fmt: skip
+    offer = [r for r in rows(home) if r["kind"] == "table-offer"]
+    assert len(offer) == 1 and offer[0]["by"] == "pell" and "as" not in offer[0]
+    assert answered(home, offer[0]["subject"]) == ["seal", "table-heard"]
+    canon = subprocess.run([sys.executable, BOX / "session.py", "--table", home / "table", "canon"], capture_output=True, text=True, check=False).stdout  # fmt: skip
+    assert f"{VELL}  [offered by pell]" in canon
+
+
+def test_no_is_declined_and_the_story_goes_on(home):
+    steps = [CELLAR, (">", "o"), ("Who?", "2"), ("bring in?", VELL), ("Which?", "2"), ("(y/n)", "n")]  # fmt: skip
+    _code, out, _left = table_turn(home, steps)
+    assert "Juno brings this in:" in out and "It didn't happen." in out
+    offer = next(r for r in rows(home) if r["kind"] == "table-offer")
+    assert offer["by"] == "juno" and answered(home, offer["subject"]) == ["decline", "table-heard"]  # fmt: skip
+    assert out.split("It didn't happen.")[1].startswith(
+        "\n" + HINT
+    )  # back to the same roll
+
+
+def test_a_guest_is_offered_as_one_and_what_waits_on_a_guest_plays(home):
+    steps = [CELLAR, (">", "o"), ("Who?", "1"), ("bring in?", VELL), ("Which?", "1"), ("(y/n)", "y")]  # fmt: skip
+    _code, out, _left = table_turn(home, steps, {">": "", "Is that true in your world? (y/n)": "y"})  # fmt: skip
+    offer = next(r for r in rows(home) if r["kind"] == "table-offer")
+    assert offer["as"] == "guest"
+    assert (
+        "the guest the table brought" in out
+    )  # the cellar's moment that waits on a sealed guest
+
+
+def test_leaving_at_the_gms_call_hands_nothing_in(home):
+    steps = [CELLAR, (">", "o"), ("Who?", "1"), ("bring in?", VELL), ("Which?", "2")]
+    code, out, _ = table_turn(home, steps)
+    assert code == 42 and "The story is waiting." in out
+    assert not [r for r in rows(home) if r["kind"] == "table-offer"]
+
+
+def test_enter_instead_of_something_goes_back_to_the_roll(home):
+    _code, out, left = table_turn(home, [CELLAR, (">", "o"), ("Who?", "1"), ("bring in?", "")])  # fmt: skip
+    assert not left and not [r for r in rows(home) if r["kind"] == "table-offer"]
+    assert "(or press Enter) " + HINT in out
+
+
+def test_what_is_brought_in_gets_the_heads_up_too(home):
+    first = [CELLAR, (">", "o"), ("Who?", "1"), ("bring in?", VELL), ("Which?", "2"), ("(y/n)", "y")]  # fmt: skip
+    table_turn(home, first, {">": "", "Is that true in your world? (y/n)": "y", "That's our night?": "y", "remember": ""})  # fmt: skip
+    again = [("Which story?", "1"), (">", "o"), ("Who?", "2"), ("bring in?", "Old Vell never came down the stair."), ("Which?", "2"), ("Which?", "2")]  # fmt: skip
+    _code, out, left = table_turn(home, again, now="2026-11-27T19:00:00Z")
+    assert not left, out
+    assert f"💡 Before you decide:\n   on 2026-11-20 your table made this true:\n   {VELL}" in out  # fmt: skip
+    assert "It didn't happen. The old one stands." in out
+    offer = [r for r in rows(home) if r["kind"] == "table-offer"][-1]
+    assert answered(home, offer["subject"]) == ["decline", "table-heard"]
+
+
+def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
+    steps = [
+        ("Which story?", "1"),
+        (">", "f"),
+        ("Which?", "3"),
+    ]  # Aetheris; the raiders
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert (
+        "o: someone brings something in · f: a fight · s: sheets · u: undo a yes · x: set it aside · p: pause the night\n> "
+        in out
+    )
+    assert "⚔️  the party ambushed by 4 Scorched Belt Raiders" in out
+    end = next(r for r in rows(home) if r["kind"] == "fight-end")["result"]
+    said = {"party": "The party won", "foe": "The party fell"}[end["outcome"]]
+    assert f"⚔️  {said} in {end['rounds']} rounds. Still standing: " in out
+    assert "(What the fight means for the story is yours to say, GM.)\n  Enter: roll" in out  # fmt: skip
+    assert (
+        "\n  The party\n    Sena Koll " in out and "\n  Their side\n" in out
+    )  # the board, after
+    assert out.index("  Their side") < out.index(f"⚔️  {said} in")
+    held = subprocess.run([sys.executable, BOX / "fight.py", "--table", home / "table", "check"], capture_output=True, text=True, check=False)  # fmt: skip
+    assert held.returncode == 0 and held.stdout.startswith("1 fight on the record")
+
+
+def test_no_fight_where_it_doesnt_belong(home):
+    _code, out, _left = table_turn(home, [("Which story?", ""), (">", "f")])
+    assert "Press Enter to roll, type your two dice (like 4 6), or h, o, s, u, x or p." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
+
+
+LAMP = (
+    "The lantern catches first time",
+    "It catches, but a pane cracks",
+    "The hook gives",
+)
+
+
+def test_x_at_a_roll_sets_the_part_aside_and_the_gm_says_what_happens(home):
+    steps = [
+        ("Which story?", ""),
+        (">", "x"),
+        ("happens instead?", "The lantern was lit already."),
+    ]
+    _code, out, left = table_turn(home, steps)
+    assert "Set aside. Nobody needs to say why." in out and "   (Set aside.)\n" in out
+    assert "✋ GM, what happens instead? (say it aloud, then press Enter)" in out
+    assert "   Said aloud.\n" in out and not any(t in out for t in LAMP)
+    assert not left
+    xs = [r for r in rows(home) if r["kind"] == "table-x"]
+    assert len(xs) == 1 and xs[0]["who"] == "table" and xs[0]["at"] == 0
+    assert not {"why", "reason", "for", "because", "name", "character", "by"} & set(xs[0])  # fmt: skip
+
+
+def test_a_part_set_aside_in_a_story_that_keeps_no_gm_word_is_said_aloud_and_the_night_goes_on(home):  # fmt: skip
+    (home / "table" / "pile" / "our-lines.md").write_text("## Lines\n- hook\n")
+    steps = [("Which story?", ""), (">", ""), ("happens instead?", "It was lit already."), (">", "")]  # fmt: skip
+    _code, out, left = table_turn(home, steps)
+    assert "Something went wrong" not in out and "   Said aloud.\n" in out
+    assert "Oro keeps the crowd from noticing." in out and not left  # played on
+    assert not [r for r in rows(home) if r["kind"] == "table-offer"]  # nothing kept
+
+
+def test_s_at_a_roll_shows_each_seated_characters_sheet_and_what_they_brought_in(home):
+    steps = [("Which story?", ""), (">", "o"), ("Who?", "1"), ("bring in?", "Tamsin has a ladder"), ("(y/n)", "y"), (">", "s"), ("Write on a sheet?", ""), (">", "")]  # fmt: skip
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert "   📜 Tamsin, lamp-lighter\n      Good at: Grit +2, Heart +1\n      · Tamsin has a ladder\n" in out  # fmt: skip
+    assert "   📜 Oro, juggler\n      Good at: Wit +2\n" in out
+    assert (
+        "Old Vell" not in out.split("📜 Tamsin")[1].split("> ")[0]
+    )  # not seated: no sheet
+
+
+LADDER = [("Which story?", ""), (">", "o"), ("Who?", "1"), ("bring in?", "Tamsin has a ladder"), ("(y/n)", "y")]  # fmt: skip
+
+
+def test_u_takes_back_a_yes_pressed_by_mistake_and_erases_nothing(home):
+    steps = [
+        *LADDER,
+        (">", "u"),
+        ("Take back", "y"),
+        (">", "s"),
+        ("Write on a sheet?", ""),
+        (">", ""),
+    ]
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert '   Take back "Tamsin has a ladder"? It stays on the record as a slip, and no longer stands. (y/n) ' in out  # fmt: skip
+    assert "   Taken back. It no longer stands.\n" in out
+    assert "· Tamsin has a ladder" not in out.split("Taken back.")[1]  # off the sheet
+    offer = next(r for r in rows(home) if r["kind"] == "table-offer" and r["fact"] == "Tamsin has a ladder")  # fmt: skip
+    kinds = [r["kind"] for r in rows(home) if r.get("subject") == offer["subject"] and r["kind"] in ("seal", "decline")]  # fmt: skip
+    assert kinds == ["seal"]  # the yes is never undone; it is stood over
+    back = [r for r in rows(home) if r["kind"] == "table-replaces" and r["old"] == offer["subject"]]  # fmt: skip
+    assert (
+        len(back) == 1 and back[0]["fact"] == "nothing: that yes was pressed by mistake"
+    )
+    canon = subprocess.run([sys.executable, BOX / "session.py", "--table", home / "table", "recap"], capture_output=True, text=True, check=False).stdout  # fmt: skip
+    assert (
+        "Tamsin has a ladder" not in canon.split("## For the GM's eyes")[0]
+    )  # not read aloud
+
+
+def test_u_with_nothing_made_true_tonight_says_so(home):
+    _code, out, left = table_turn(home, [("Which story?", ""), (">", "u"), (">", "")])
+    assert "   Nothing has been made true tonight to take back.\n" in out and not left
+    assert not [r for r in rows(home) if r["kind"] == "table-replaces"]
+
+
+def test_no_at_take_back_leaves_it_standing(home):
+    steps = [
+        *LADDER,
+        (">", "u"),
+        ("Take back", "n"),
+        (">", "s"),
+        ("Write on a sheet?", ""),
+        (">", ""),
+    ]
+    _code, out, left = table_turn(home, steps)
+    assert not left and "· Tamsin has a ladder" in out.split("Take back")[1]
+    assert not [r for r in rows(home) if r["kind"] == "table-replaces"]
+
+
+def sheet_lines(*lines: str) -> list:
+    return [
+        (">", "s"),
+        *[("Write on a sheet?", x) for x in lines],
+        ("Write on a sheet?", ""),
+    ]
+
+
+def test_what_a_character_finds_and_uses_and_how_they_are_hurt_is_on_their_sheet(home):
+    steps = [("Which story?", ""), *sheet_lines("Tamsin finds a rope", "Oro is hurt by a club", "Tamsin picks up two lanterns", "Mira finds a key", "Tamsin uses the ropes"), (">", "s"), ("Write on a sheet?", ""), (">", "")]  # fmt: skip
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert out.count("   On Tamsin's sheet.\n") == 3 and "   On Oro's sheet.\n" in out
+    assert "   Start with a name (Tamsin, Oro), then finds, uses, is hurt or is healed.\n" in out  # Mira isn't seated  # fmt: skip
+    last = out.split("📜 Tamsin")[-1]
+    assert "      Carrying: two lanterns\n" in last and "rope" not in last.split("📜 Oro")[0]  # used up  # fmt: skip
+    assert "   📜 Oro, juggler\n      Good at: Wit +2\n      Hurt: by a club\n" in out
+    kept = [r for r in rows(home) if r["kind"] == "table-carry"]
+    assert [(r["char"], r["change"], r["what"]) for r in kept] == [("Tamsin", "carry", "a rope"), ("Oro", "hurt", "by a club"), ("Tamsin", "carry", "two lanterns"), ("Tamsin", "spend", "the ropes")]  # fmt: skip
+
+
+def test_what_carries_over_is_said_on_the_opening_screen_until_healed(home):
+    table_turn(
+        home, [("Which story?", ""), *sheet_lines("Oro is hurt", "Tamsin finds a rope")]
+    )
+    _code, out, _left = table_turn(home, [])
+    assert "Carried over (read this out loud too):\n  - Oro is still hurt\n  - Tamsin carries a rope\n" in out  # fmt: skip
+    healed = [("Which story?", "1"), ("(y/n)", "y"), *sheet_lines("Oro is healed")]
+    table_turn(home, healed)  # picked up: the call it waited on, then the next roll
+    _code, out, _left = table_turn(home, [])
+    assert "  - Tamsin carries a rope\n" in out and "Oro is still hurt" not in out
+
+
+def test_h_lets_the_player_choose_how_with_each_ways_chances(home):
+    steps = [("Which story?", ""), (">", "h"), ("How?", "3"), (">", "")]
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert "   How does Tamsin meet it?\n   1. Grit +2 (strong 42%, weak 42%, miss 17%) — the story's\n" in out  # fmt: skip
+    assert "   3. Heart +1 (strong 28%, weak 44%, miss 28%)\n" in out
+    assert "   Tamsin meets it with Heart.\n" in out and "🎲 Tamsin tries Heart: rolled " in out  # fmt: skip
+    beat = next(r for r in rows(home) if r["kind"] == "table-beat")
+    assert (beat["stat"], beat["bonus"]) == ("Heart", 1)
+    held = subprocess.run([sys.executable, willow_pin.root() / "adapters" / "stdlib" / "game-master" / "game_master.py", "--box", home / "table" / "record", "check", "--world", home / "table" / "worlds" / "lantern-fair.json"], capture_output=True, text=True, check=False)  # fmt: skip
+    assert held.returncode == 0, (
+        held.stdout + held.stderr
+    )  # the story's own check takes any of its stats
+
+
+def test_enter_at_how_keeps_the_storys_way(home):
+    _code, out, _left = table_turn(home, [("Which story?", ""), (">", "h"), ("How?", ""), (">", "")])  # fmt: skip
+    assert "   Tamsin meets it with Grit.\n" in out and "🎲 Tamsin tries Grit:" in out
+
+
+def checks(home: Path) -> list[subprocess.CompletedProcess]:
+    adds = willow_pin.root() / "adapters" / "stdlib"
+    box = home / "table" / "record"
+    out = []
+    for a in ("game-master/game_master.py", "play-dice/play_dice.py", "dice-tower/dice_tower.py"):  # fmt: skip
+        out.append(subprocess.run([sys.executable, adds / a, "--box", box, "check"], capture_output=True, text=True, check=False))  # fmt: skip
+    return out
+
+
+def test_the_dice_are_in_the_tower_before_anything_is_written_and_come_out_on_the_roll(home):  # fmt: skip
+    steps = [*LADDER, (">", "")]  # the moment posed, something brought in, then Enter
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert "Tamsin climbs to the dark stall's hook.\n🥤 The dice are in the tower. Nobody knows them yet, not even the GM.\n" in out  # fmt: skip
+    kinds = [r["kind"] for r in rows(home)]
+    drop, offer, out_ = kinds.index("tower-drop"), kinds.index("table-offer"), kinds.index("tower-out")  # fmt: skip
+    assert (
+        drop < offer < out_ and kinds[out_ + 1] == "table-beat"
+    )  # dropped first, out on the roll
+    beat = rows(home)[out_ + 1]
+    assert (
+        beat["roll_row"] == rows(home)[out_]["n"] and "roll" not in kinds
+    )  # no seeded roll at all
+    die = next((home / "table" / "tower").iterdir())
+    assert die.stat().st_mode & 0o777 == 0o600 and not str(die).startswith(str(home / "table" / "record"))  # fmt: skip
+    assert all(c.returncode == 0 for c in checks(home)), [
+        c.stderr for c in checks(home)
+    ]
+
+
+def test_dice_thrown_at_the_table_are_typed_in_and_kept_as_said(home):
+    steps = [("Which story?", ""), (">", "4 5"), (">", "6,6"), ("(y/n)", "y")]
+    _code, out, left = table_turn(home, steps)
+    assert not left, out
+    assert "🎲 Tamsin tries Grit: rolled 4 + 5 (your dice), +2 Grit = 11. Great!\n" in out  # fmt: skip
+    assert "🎲 Oro tries Wit: rolled 6 + 6 (your dice), +2 Wit = 14. Great!\n" in out
+    said = [r for r in rows(home) if r["kind"] == "roll"]
+    assert [(r["generator"], r["faces"]) for r in said] == [("said", [[4, 5]]), ("said", [[6, 6]])]  # fmt: skip
+    beats = [r for r in rows(home) if r["kind"] == "table-beat" and r["beat_kind"] == "action"]  # fmt: skip
+    assert [b["roll_row"] for b in beats[:2]] == [r["n"] for r in said]
+    held = checks(home)
+    assert all(c.returncode == 0 for c in held), [c.stderr for c in held]
+    assert "2 of them said, kept as said." in held[1].stdout
+    assert "still inside" not in held[2].stdout  # the tower's unused dice came out
+
+
+def test_a_die_that_isnt_one_is_asked_again_and_enter_still_rolls(home):
+    steps = [("Which story?", ""), (">", "7 2"), (">", "")]
+    _code, out, left = table_turn(home, steps)
+    assert not left and "  A die shows 1 to 6: type the two dice, like 4 6.\n" in out
+    assert "(your dice)" not in out and any(r["kind"] == "tower-out" for r in rows(home))  # fmt: skip
+
+
+def test_a_moment_asked_for_its_dice_again_finds_them_still_in_the_tower(home, capsys):  # fmt: skip
+    import play
+
+    game = {"open": {"n": 1}, "beats": []}
+    first = play.in_tower(home / "table", game, NOW)
+    again = play.in_tower(home / "table", game, NOW)  # a night picked up again
+    assert first == again and capsys.readouterr().out.count("🥤") == 1
+    drops = [r for r in rows(home) if r["kind"] == "tower-drop"]
+    assert len(drops) == 1 and drops[0]["for"] == "moment 1"
+    nxt = play.in_tower(home / "table", {**game, "beats": [{}]}, NOW)
+    assert (
+        nxt != first and len([r for r in rows(home) if r["kind"] == "tower-drop"]) == 2
+    )
+
+
+AMBUSH = """# The Ambush
+
+id: the-ambush
+setting: A pass in the hills. Every name here is a character, never a player.
+stats: Grit, Wit
+base stat: 1
+
+## Characters
+
+- rhea: Rhea | scout | seated | Grit 2
+
+## Places
+
+- the-pass: The pass
+
+## Scene pass: The pass @ the-pass
+
+Raiders come down the slope.
+
+### Rhea readies her bow.
+
+id: ready
+kind: action
+suggests: Grit
+
+- strong: She is ready.
+- weak: She is nearly ready.
+- miss: She drops an arrow.
+
+## Scene after: After the fight @ the-pass
+
+### Rhea counts the raiders' horses.
+
+id: horses
+kind: action
+suggests: Wit
+when: the fight is won
+
+- strong: Six horses, and one of them friendly.
+- weak: Five horses.
+- miss: The horses scatter.
+
+### Rhea limps back down the pass.
+
+id: retreat
+kind: action
+suggests: Grit
+when: the fight is lost
+
+- strong: She makes the camp by dark.
+- weak: She makes the camp by morning.
+- miss: She hides in the rocks till dawn.
+"""
+
+
+def ambush(home: Path) -> str:
+    """The ambush laid in the table's stories, and its number in the picker."""
+    story = home / "table" / "stories" / "the-ambush.md"
+    story.parent.mkdir(exist_ok=True)
+    story.write_text(AMBUSH)
+    made = subprocess.run([sys.executable, BOX / "author.py", story, "--to", home / "table" / "worlds" / "the-ambush.json"], capture_output=True, text=True, check=False)  # fmt: skip
+    assert made.returncode == 0, made.stderr
+    _code, out, _left = table_turn(home, [])
+    return next(x.split(".")[0].strip() for x in out.splitlines() if "The Ambush" in x and x.strip()[:1].isdigit())  # fmt: skip
+
+
+@pytest.mark.parametrize("call, played, not_played", [("y", "Rhea counts the raiders' horses.", "Rhea limps back"), ("n", "Rhea limps back down the pass.", "raiders' horses")])  # fmt: skip
+def test_a_fight_the_story_turns_on_is_the_gms_call_and_the_next_moment_follows_it(home, call, played, not_played):  # fmt: skip
+    k = ambush(home)
+    steps = [("Which story?", k), (">", "f"), ("Which?", "3"), ("won the fight?", call), (">", ""), (">", "")]  # fmt: skip
+    _code, out, _left = table_turn(home, steps)
+    assert "✋ Your call, GM. The dice say the party " in out and "   Does it stand that the party won the fight? (y/n) " in out  # fmt: skip
+    assert f"   It stands: the party {'won' if call == 'y' else 'lost'}.\n" in out
+    assert played in out and not_played not in out
+    offer = next(r for r in rows(home) if r["kind"] == "table-offer" and r.get("as") == "fight")  # fmt: skip
+    answer = [r["kind"] for r in rows(home) if r.get("subject") == offer["subject"] and r["kind"] in ("seal", "decline")]  # fmt: skip
+    assert answer == ["seal" if call == "y" else "decline"]
+    end = next(r for r in rows(home) if r["kind"] == "fight-end")["result"]["outcome"]
+    assert ("Your word over the dice" in out) == ((end == "party") != (call == "y"))
+    assert all(c.returncode == 0 for c in checks(home)), [
+        c.stderr for c in checks(home)
+    ]
+
+
+def test_a_story_that_turns_on_a_fight_takes_fight_among_its_offers(tmp_path):
+    story = tmp_path / "s.md"
+    story.write_text(AMBUSH)
+    made = subprocess.run([sys.executable, BOX / "author.py", story, "--to", tmp_path / "s.json"], capture_output=True, text=True, check=False)  # fmt: skip
+    assert made.returncode == 0, made.stderr
+    world = json.loads((tmp_path / "s.json").read_text())
+    assert world["offers"] == ["fight"]
+    whens = [
+        b.get("when") for sc in world["scenes"] for b in sc["beats"] if "when" in b
+    ]
+    assert whens == [{"offered": "fight", "is": ["sealed"]}, {"offered": "fight", "is": ["declined"]}]  # fmt: skip
+
+
+def test_a_yes_taken_back_reads_as_pressed_by_mistake_on_the_next_night(home):
+    steps = [*LADDER, (">", "u"), ("Take back", "y"), (">", "")]
+    table_turn(home, steps, {">": "", "That's our night?": "y", "remember": ""})
+    _code, out, _left = table_turn(home, [], now="2026-11-21T19:00:00Z")
+    assert "(taken back on 2026-11-20, pressed by mistake)" in out
+    assert "replaced on" not in out and "nothing: that yes was pressed" not in out
+
+
+def test_p_at_a_roll_pauses_the_whole_night_and_it_is_picked_up_again(home):
+    code, out, left = table_turn(home, [("Which story?", ""), (">", "p")])
+    assert code == 42 and not left
+    assert "Paused. Nobody needs to say why. Run this again when you're ready." in out
+    pauses = [r for r in rows(home) if r["kind"] == "table-pause"]
+    assert len(pauses) == 1 and pauses[0]["who"] == "table"
+    assert not {"why", "reason", "for", "because", "name", "character", "by"} & set(pauses[0])  # fmt: skip
+    assert not [r for r in rows(home) if r["kind"] == "table-x"]
+    _code, again, _ = table_turn(home, [("Which story?", ""), (">", "")])
+    assert HINT in again
+
+
+def test_p_at_the_gms_call_pauses_and_nothing_is_decided(home):
+    steps = [CELLAR, (">", "o"), ("Who?", "1"), ("bring in?", VELL), ("Which?", "2"), ("(y/n)", "p")]  # fmt: skip
+    code, out, _ = table_turn(home, steps)
+    assert code == 42 and "Paused. Nobody needs to say why." in out
+    assert len([r for r in rows(home) if r["kind"] == "table-pause"]) == 1
+    assert not [r for r in rows(home) if r["kind"] == "table-offer"]
+    assert "It's true now." not in out and "It didn't happen." not in out
+
+
+def test_x_at_the_gms_call_sets_it_aside_and_decides_nothing(home):
+    before = [r["kind"] for r in rows(home)]
+    steps = [CELLAR, (">", "o"), ("Who?", "1"), ("bring in?", VELL), ("Which?", "2"), ("(y/n)", "x")]  # fmt: skip
+    _code, out, left = table_turn(home, steps)
+    assert not left
+    assert "Set aside. Nobody needs to say why. Nothing is handed in or decided." in out
+    assert "It's true now." not in out and "It didn't happen." not in out
+    new = rows(home)[len(before) :]
+    xs = [r for r in new if r["kind"] == "table-x"]
+    assert len(xs) == 1 and xs[0]["part"] == "call" and xs[0]["who"] == "table"
+    assert not [r for r in new if r["kind"] in ("seal", "decline")]
+    assert not {"why", "reason", "for", "because", "name", "character", "by"} & set(xs[0])  # fmt: skip
+
+
+def test_x_and_p_at_the_gms_moment(home):
+    steps = [("Which story?", ""), (">", "x"), ("happens instead?", "x")]
+    _code, out, _left = table_turn(home, steps)
+    assert "Nothing is kept; the story goes on." in out
+    kinds = [(r["kind"], r.get("part")) for r in rows(home) if r["kind"] == "table-x"]
+    assert kinds == [("table-x", None), ("table-x", "moment")]
+
+
+def test_p_at_the_gms_moment_pauses_and_the_night_picks_up_again(home):
+    steps = [("Which story?", ""), (">", "x"), ("happens instead?", "p")]
+    code, out, _ = table_turn(home, steps)
+    assert code == 42 and "Paused. Nobody needs to say why." in out
+    assert not [r for r in rows(home) if r["kind"] == "table-offer"]
+    again = [("Which story?", "1"), ("happens instead?", "")]
+    _code, out, _left = table_turn(home, again)
+    assert "Something went wrong" not in out and "Which story?" in out

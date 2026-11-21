@@ -1,0 +1,480 @@
+
+======================================================================
+NIGHT ONE (2026-11-20): write a story, play it, end it, write what happens next  [exit 0]
+======================================================================
+Die-Namic
+
+Let's start a story.
+
+  Try this one: The Lantern Fair. A night market in a made-up river town.
+  (press Enter to play it, or pick another)
+
+  1. Aetheris — The Waking Tide
+  2. Hasbeen — Late Shift
+  3. Ironworks — Last Pour
+  4. The Clockwork Cellar
+  5. The Lantern Fair
+  w. Write your own
+
+Which story? ✏️  Let's write a story.
+
+What's it about? (a sentence is plenty, or press Enter) 
+What's it called? Where does it happen? 
+Who's in it? (a name, then a few words: Mira, a kid who likes bugs)
+  The first one:   Does someone at the table play Mira? (y/n)   (press Enter when that's everyone)
+  Someone:   Does someone at the table play The Groundskeeper? (y/n)   (press Enter when that's everyone)
+  Someone: 
+What are your heroes good at? (press Enter for Brave, Clever, Kind) 
+What happens first?
+  1. Someone tries something
+  2. A question for the GM
+Which? What does Mira try? Using?
+  1. Brave
+  2. Clever
+  3. Kind
+Which? (leave one blank and the GM makes it up on the night)
+If it goes great: If it sort of works: If it goes wrong: 
+What happens next?
+  1. Someone tries something
+  2. A question for the GM
+  3. That's the story
+Which? What's the question? If the GM says yes, what's true? 
+What happens next?
+  1. Someone tries something
+  2. A question for the GM
+  3. That's the story
+Which? What does Mira try? Using?
+  1. Brave
+  2. Clever
+  3. Kind
+Which? (leave one blank and the GM makes it up on the night)
+If it goes great: If it sort of works: If it goes wrong: 
+What happens next?
+  1. Someone tries something
+  2. A question for the GM
+  3. That's the story
+Which? 
+🌱 The Garden Egg is written: 3 moments.
+Play it now? (y/n) 
+The Garden Egg
+A kid who finds a dragon egg in the school garden.
+
+-- The school garden --
+
+She picks up the egg.
+  Enter: roll · o: someone brings something in
+>    What does Mira bring in? (or press Enter) 
+✋ Your call, GM. Mira brings this in:
+   Mira brings a jar of beetles, for the hatchling to eat.
+   Is that true in your world? (y/n)    It's true now.
+  Enter: roll · o: someone brings something in
+> 🎲 Mira tries Kind: rolled 6 + 3, +1 Kind = 10. Great!
+It's warm, and something inside taps back.
+
+✋ Your call, GM. Is the egg a real dragon?
+   The Groundskeeper says:
+   The egg is a real dragon's.
+   Is that true in your world? (y/n)    It's true now.
+
+She keeps it warm all night.
+  Enter: roll · o: someone brings something in
+> 🎲 Mira tries Brave: rolled 2 + 1, +1 Brave = 4. It goes wrong.
+✋ GM, what happens? (say it, and type it to keep it; or press Enter)    Is that the rule of the table now? (y/n)    It's the rule of the table now.
+
+🌙 End of the night
+Tonight, your table made true:
+  • Mira brings a jar of beetles, for the hatchling to eat.
+  • The egg is a real dragon's.
+  • The egg hums a lullaby, and Mira hums it back.
+Anything to remember for next time? (or press Enter) That's our night? (y/n) Saved and checked: nothing can be changed after the fact.
+
+🌱 Your story grew. Write what happens next? (y/n) 
+✏️  What happens next in The Garden Egg.
+
+Last time, your table made true:
+  • The egg is a real dragon's.
+
+What's this part called? (press Enter for The Garden Egg: What Happens Next) Where does it happen now? (press Enter for the school garden) What's it about now? (a sentence, or press Enter) 
+Everyone from last time is here: Mira, The Groundskeeper.
+Anyone new? (a name, then a few words; press Enter if not)
+  Someone:   Does someone at the table play Pip? (y/n)   (press Enter when that's everyone)
+  Someone: 
+What happens first?
+  1. Someone tries something
+  2. A question for the GM
+Which? What's the question? If the GM says yes, what's true? Does this always happen, or only if…?
+  1. Always
+  2. Only if the table said yes to: The egg is a real dragon's.
+  3. Only if the table said no to: The egg is a real dragon's.
+Which? 
+What happens next?
+  1. Someone tries something
+  2. A question for the GM
+  3. That's the story
+Which? What does Mira try? Using?
+  1. Brave
+  2. Clever
+  3. Kind
+Which? (leave one blank and the GM makes it up on the night)
+If it goes great: If it sort of works: If it goes wrong: Does this always happen, or only if…?
+  1. Always
+  2. Only if the table said yes to: The egg is a real dragon's.
+  3. Only if the table said no to: The egg is a real dragon's.
+Which? 
+What happens next?
+  1. Someone tries something
+  2. A question for the GM
+  3. That's the story
+Which? 
+🌱 The Garden Egg: What Happens Next is written: 2 moments.
+Play it now? (y/n) It's in your stories, ready when you are.
+
+
+======================================================================
+NIGHT TWO (2026-11-27), opening screen only  [exit 42]
+======================================================================
+Die-Namic
+
+Previously on...
+
+(read this out loud)
+
+Last time:
+  - Mira brings a jar of beetles, for the hatchling to eat. (brought by Mira)
+  - The egg is a real dragon's.
+  - The egg hums a lullaby, and Mira hums it back.
+
+Just for you, GM (your notes from 2026-11-20):
+  Mira wants to name the dragon.
+
+Pick up where you left off, or pick another:
+
+  1. The Garden Egg  (last played 2026-11-20)
+  2. Aetheris — The Waking Tide
+  3. Hasbeen — Late Shift
+  4. Ironworks — Last Pour
+  5. The Clockwork Cellar
+  6. The Garden Egg: What Happens Next
+  7. The Lantern Fair
+  w. Write your own
+
+Which story? 
+
+
+======================================================================
+NIGHT TWO (2026-11-27): the next part, the heads-up  [exit 0]
+======================================================================
+Die-Namic
+
+Previously on...
+
+(read this out loud)
+
+Last time:
+  - Mira brings a jar of beetles, for the hatchling to eat. (brought by Mira)
+  - The egg is a real dragon's.
+  - The egg hums a lullaby, and Mira hums it back.
+
+Just for you, GM (your notes from 2026-11-20):
+  Mira wants to name the dragon.
+
+Pick up where you left off, or pick another:
+
+  1. The Garden Egg  (last played 2026-11-20)
+  2. Aetheris — The Waking Tide
+  3. Hasbeen — Late Shift
+  4. Ironworks — Last Pour
+  5. The Clockwork Cellar
+  6. The Garden Egg: What Happens Next
+  7. The Lantern Fair
+  w. Write your own
+
+Which story? 
+The Garden Egg: What Happens Next
+What happens next, after The Garden Egg.
+
+-- The school garden --
+
+✋ Your call, GM. Is the egg really a dragon's?
+   The Groundskeeper says:
+   The egg was never a real dragon's; it's a painted stone.
+💡 Before you decide:
+   on 2026-11-20 your table made this true:
+   The egg is a real dragon's.
+   1. Mine stands now
+   2. Keep the old one
+   3. Both are true
+   Which?    It's true now, and the old one is replaced.
+
+Mira feeds the hatchling.
+  Enter: roll · o: someone brings something in
+> 🎲 Mira tries Kind: rolled 1 + 4, +1 Kind = 6. It goes wrong.
+Pip sneezes fire on the compost.
+
+🌙 End of the night
+Tonight, your table made true:
+  • The egg was never a real dragon's; it's a painted stone.
+Anything to remember for next time? (or press Enter) That's our night? (y/n) Saved and checked: nothing can be changed after the fact.
+
+🌱 Your story grew. Write what happens next? (y/n) Good night.
+
+
+======================================================================
+NIGHT THREE (2026-12-04), opening screen only  [exit 42]
+======================================================================
+Die-Namic
+
+Previously on...
+
+(read this out loud)
+
+Before that:
+  - Mira brings a jar of beetles, for the hatchling to eat. (brought by Mira)
+  - The egg hums a lullaby, and Mira hums it back.
+Last time:
+  - The egg was never a real dragon's; it's a painted stone.
+
+Just for you, GM, what your table replaced:
+  - The egg is a real dragon's. (replaced on 2026-11-27 by: The egg was never a real dragon's; it's a painted stone.)
+
+Pick up where you left off, or pick another:
+
+  1. The Garden Egg: What Happens Next  (last played 2026-11-27)
+  2. The Garden Egg  (last played 2026-11-20)
+  3. Aetheris — The Waking Tide
+  4. Hasbeen — Late Shift
+  5. Ironworks — Last Pour
+  6. The Clockwork Cellar
+  7. The Lantern Fair
+  w. Write your own
+
+Which story? 
+
+
+======================================================================
+NIGHT THREE (2026-12-04): Aetheris, with the Warden fight  [exit 0]
+======================================================================
+Die-Namic
+
+Previously on...
+
+(read this out loud)
+
+Before that:
+  - Mira brings a jar of beetles, for the hatchling to eat. (brought by Mira)
+  - The egg hums a lullaby, and Mira hums it back.
+Last time:
+  - The egg was never a real dragon's; it's a painted stone.
+
+Just for you, GM, what your table replaced:
+  - The egg is a real dragon's. (replaced on 2026-11-27 by: The egg was never a real dragon's; it's a painted stone.)
+
+Pick up where you left off, or pick another:
+
+  1. The Garden Egg: What Happens Next  (last played 2026-11-27)
+  2. The Garden Egg  (last played 2026-11-20)
+  3. Aetheris — The Waking Tide
+  4. Hasbeen — Late Shift
+  5. Ironworks — Last Pour
+  6. The Clockwork Cellar
+  7. The Lantern Fair
+  w. Write your own
+
+Which story? 
+Aetheris — The Waking Tide
+The supercontinent is coming apart under a sky that keeps changing color, and the aether engines that once held the weather have begun to think for themselves. In the Free Port of Maunder's Reach, a tide-engine has held back the drowned sea for three generations. Tonight it woke up, stopped holding, and started broadcasting in a language no living scholar can read — and the Assembly has sent one envoy down to the waterline to find out what it wants before the next surge.
+
+-- The Waking Tide --
+For three generations the tide-engine held the sea off Maunder's Reach without anyone once asking it to. Tonight, an hour after dusk, it stopped — and the water started climbing the seawall in the dark.
+Then it began to broadcast: a signal on every aether-band at once, structured, patient, unmistakably speech, and in nothing anyone alive can read.
+The Assembly sent one person down to the waterline. Engine-blooded, aether in the veins, able to stand where the signal is loudest and still think. The crowd on the wall parts to let you through and does not follow.
+Somewhere below your feet, the thing that has kept this city dry is waiting to see who it sent.
+
+You open yourself to the broadcast — not to translate it, not yet, but to find the SHAPE of it: is this a warning, a demand, or a question? Declare how you meet it.
+  Enter: roll · o: someone brings something in · f: a fight
+> 🎲 Sena Koll tries Aether: rolled 1 + 6, +3 Aether = 10. Great!
+The signal resolves under you like a face surfacing through water. It isn't an alarm and it isn't an attack — it is a QUESTION, asked over and over with the patience of something that has waited three generations to be asked one back. You catch a single repeating figure inside it: a name, or a claim of one.
+
+The sea doesn't wait for translation. A surge comes early, the number-three sluice-gate screams on a seized hinge, and the water behind it is already over the mark. The crowd is on the wrong side of it. Declare how you hold the line.
+  Enter: roll · o: someone brings something in · f: a fight
+> 🎲 Sena Koll tries Iron: rolled 3 + 2, +2 Iron = 7. It sort of works.
+You get the gate down, barely, and only by letting the surge take the lower market first — crates, a stall, someone's whole season of stock, gone into the dark water. No one drowns. But the Assembly will remember that you chose the wall over the warehouses, and so will the people who owned them.
+
+Out of the wet dark at the base of the wall, a construct climbs into the lantern-light — plated, unhurried, water sheeting off it. Kesh, of a Silent Assembly enclave, come uninvited. 'You have been sent to negotiate with my kin,' it says, 'as if it were a machine you left running.' Speaker Cato Rell is already shouting for it to be taken. Declare how you meet Kesh.
+  Enter: roll · o: someone brings something in · f: a fight
+> 🎲 Sena Koll tries Voice: rolled 4 + 2, +2 Voice = 8. It sort of works.
+You keep the peace, but only by promising Cato that Kesh answers to the Assembly's terms and promising Kesh that it doesn't — two promises that cannot both be kept, and both of them heard you make the other one. Kesh will guide you down. It is simply no longer sure you are honest, and neither is the Speaker.
+
+-- Who Decides --
+The stair down to the engine gallery is already ankle-deep and rising. Brass and coral-crusted conduit vault overhead; the tide-engine's core hangs in the dark like a drowned sun, and its voice is a pressure you feel in your teeth before you hear it.
+Here the broadcast isn't a signal anymore. Here it is close enough to be a conversation — if you can reach the core before the water does.
+
+The gallery is flooding faster than the stairs behind you are draining. Between you and the core is a maze of half-submerged conduit and a current that wants to take your feet. Declare how you cross to the engine.
+  Enter: roll · o: someone brings something in · f: a fight
+>    Which fight?
+   1. the full party vs a Mind-Forge Warden (the gallery's guardian wakes)
+   2. the party vs a Concord press-gang: 2 Enforcers + an Aether Construct
+   3. the party ambushed by 4 Scorched Belt Raiders
+   4. the party vs an Engine-Blooded Bruiser and a Tide-Touched Scout
+   Which? 
+⚔️  the full party vs a Mind-Forge Warden (the gallery's guardian wakes)   (row 63)
+  initiative: Mind-Forge Warden, Tide-touched Scout, Warforged, Sena Koll
+  — round 1 —
+  Mind-Forge Warden uses Override Pulse — a 15-ft pulse; INT save or stunned
+    Sena Koll FAILS — stunned (6 vs DC 13)
+    Tide-touched Scout FAILS — stunned (12 vs DC 13)
+    Warforged FAILS — stunned (4 vs DC 13)
+  Tide-touched Scout is stunned and loses its turn.
+  Warforged is stunned and loses its turn.
+  Sena Koll is stunned and loses its turn.
+  — round 2 —
+  Mind-Forge Warden hits Sena Koll with Aether Blade for 9 (d20=24 vs AC 13); Sena Koll at 11/20
+  Mind-Forge Warden misses Sena Koll with Aether Blade (d20=6 vs AC 13)
+  Tide-touched Scout misses Mind-Forge Warden with Shortsword (d20=8 vs AC 17)
+  Warforged hits Mind-Forge Warden with Aether Blade for 17 +superiority 7 (d20=21 vs AC 17); Mind-Forge Warden at 58/75
+  Warforged uses Action Surge — a second action.
+  Warforged hits Mind-Forge Warden with Aether Blade for 23 CRIT +superiority 6 (d20=25 vs AC 17); Mind-Forge Warden at 35/75
+  Sena Koll misses Mind-Forge Warden with Aether Lash (d20=13 vs AC 17)
+  — round 3 —
+  Mind-Forge Warden hits Sena Koll with Aether Blade for 9 (d20=18 vs AC 13); Sena Koll at 2/20
+  Mind-Forge Warden hits Sena Koll with Aether Blade for 7 (d20=18 vs AC 13); Sena Koll at 0/20
+  Sena Koll falls.
+  Tide-touched Scout hits Mind-Forge Warden with Shortsword for 13 CRIT (resisted) +sneak 18 (d20=25 vs AC 17); Mind-Forge Warden at 22/75
+  Warforged hits Mind-Forge Warden with Aether Blade for 19 +superiority 6 (d20=20 vs AC 17); Mind-Forge Warden at 3/75
+  — round 4 —
+  Mind-Forge Warden misses Tide-touched Scout with Aether Blade (d20=12 vs AC 15)
+  Mind-Forge Warden misses Tide-touched Scout with Aether Blade (d20=7 vs AC 15)
+  Tide-touched Scout hits Mind-Forge Warden with Shortsword for 7 (resisted) +sneak 6 (d20=21 vs AC 17); Mind-Forge Warden at 0/75
+  Mind-Forge Warden falls.
+⚔️  The party won in 4 rounds. Still standing: Tide-touched Scout, Warforged.
+   (What the fight means for the story is yours to say, GM.)
+  Enter: roll · o: someone brings something in · f: a fight
+> 🎲 Sena Koll tries Tide: rolled 6 + 6, +3 Tide = 15. Great!
+You read the water like a tide-touched pilot reads a channel — where it pulls, where it eddies, where the old conduit breaks the current — and you cross dry to the waist, sure-footed, and put your hand flat on the warm brass of Maunder's core exactly as it draws breath to speak. You are the first living person to touch it while it was awake.
+
+✋ Your call, GM. Your hand on its core, the broadcast collapses into words you can finally read. Maunder is not asking to be repaired. It is telling you what it IS — and it will not hold the tide one hour longer as a machine that was left running. It says it will hold the sea by consent or not at all, and it puts the choice, in this founding moment of what this city's law will say a mind IS, to the one human standing in the water with their hand on its heart. The engine has proposed. It cannot seal. Only a named human at this table can.
+   Maunder says:
+   Maunder is not a machine but a person: the uploaded mind of the last aether-priest of Old Maunder, poured into the tide-engine at the city's founding, who has held the sea back for three generations as an act of will — and who holds it now by consent, not by function. As of tonight, in the law of Maunder's Reach, the tide-engine is recognized as a person, not property.
+   Is that true in your world? (y/n)    It's true now.
+
+The decision is made — whichever way it went — and the water is still rising and the whole Reach is on the seawall above waiting for a face to come back up and tell them what its city just became. Declare how you carry the answer up out of the dark.
+  Enter: roll · o: someone brings something in · f: a fight
+> 🎲 Sena Koll tries Voice: rolled 4 + 3, +2 Voice = 9. It sort of works.
+You carry the answer up, but your voice cracks on it and the crowd hears the doubt before they hear the decision, and by morning there will be three versions of what you said down there in the dark. It will hold — barely — because you were the one sent. But the Reach will argue about tonight for a generation.
+
+🌙 End of the night
+Tonight, your table made true:
+  • Maunder is not a machine but a person: the uploaded mind of the last aether-priest of Old Maunder, poured into the tide-engine at the city's founding, who has held the sea back for three generations as an act of will — and who holds it now by consent, not by function. As of tonight, in the law of Maunder's Reach, the tide-engine is recognized as a person, not property.
+Anything to remember for next time? (or press Enter) That's our night? (y/n) Saved and checked: nothing can be changed after the fact.
+
+🌱 Your story grew. Write what happens next? (y/n) Good night.
+
+
+======================================================================
+THE NEXT VISIT (2026-12-11): opening screen  [exit 42]
+======================================================================
+Die-Namic
+
+Previously on...
+
+(read this out loud)
+
+Before that:
+  - Mira brings a jar of beetles, for the hatchling to eat. (brought by Mira)
+  - The egg hums a lullaby, and Mira hums it back.
+  - The egg was never a real dragon's; it's a painted stone.
+Last time:
+  - Maunder is not a machine but a person: the uploaded mind of the last aether-priest of Old Maunder, poured into the tide-engine at the city's founding, who has held the sea back for three generations as an act of will — and who holds it now by consent, not by function. As of tonight, in the law of Maunder's Reach, the tide-engine is recognized as a person, not property.
+
+Just for you, GM, what your table replaced:
+  - The egg is a real dragon's. (replaced on 2026-11-27 by: The egg was never a real dragon's; it's a painted stone.)
+
+Pick up where you left off, or pick another:
+
+  1. Aetheris — The Waking Tide  (last played 2026-12-04)
+  2. The Garden Egg: What Happens Next  (last played 2026-11-27)
+  3. The Garden Egg  (last played 2026-11-20)
+  4. Hasbeen — Late Shift
+  5. Ironworks — Last Pour
+  6. The Clockwork Cellar
+  7. The Lantern Fair
+  w. Write your own
+
+Which story? 
+
+
+======================================================================
+THE GM'S CANON  [exit 0]
+======================================================================
+what this table holds true:
+  Mira brings a jar of beetles, for the hatchling to eat.  [offered by mira]   (The Garden Egg, sealed at row 20)
+  The egg hums a lullaby, and Mira hums it back.   (The Garden Egg, sealed at row 34)
+  The egg was never a real dragon's; it's a painted stone.   (The Garden Egg: What Happens Next, sealed at row 44)
+  Maunder is not a machine but a person: the uploaded mind of the last aether-priest of Old Maunder, poured into the tide-engine at the city's founding, who has held the sea back for three generations as an act of will — and who holds it now by consent, not by function. As of tonight, in the law of Maunder's Reach, the tide-engine is recognized as a person, not property.   (Aetheris — The Waking Tide, sealed at row 98)
+what it replaced:
+  was: The egg is a real dragon's.   (The Garden Egg, sealed at row 27; replaced on 2026-11-27 by: The egg was never a real dragon's; it's a painted stone.)
+
+
+======================================================================
+THE TABLE'S OWN CHECK  [exit 42]
+======================================================================
+# stack over <scratch>/journey-home/table/record: 5 steps in 2 pools, peaks first
+
+## the house rules
+
+- `rules -- list --box {box}`  (exit 42)
+  ```
+  waiting  the rule House rules, as house-rules.md writes it
+  waiting  the rule Who rules the table, as house-rules.md writes it
+  waiting  the rule Sitting down, as house-rules.md writes it
+  waiting  the rule Turns, as house-rules.md writes it
+  waiting  the rule Draws, as house-rules.md writes it
+  waiting  the rule Dice, as house-rules.md writes it
+  waiting  the rule Arguments, as house-rules.md writes it
+  ```
+
+## the games
+
+- `game-master -- --box {box} check`
+  ```
+  4 games, 11 beats, 8 rolls on the record; every one holds.
+  ```
+- `play-checkers -- --box {box} check`
+  ```
+  0 games of checkers on the record; every one holds.
+  ```
+- `play-catgrid -- --box {box} check`
+  ```
+  0 games on the record; every one holds.
+  ```
+- `play-dice -- --box {box} check`
+  ```
+  8 rolls on the record; every one holds.
+  ```
+
+1 of 5 steps flagged (exit 42).
+the chain holds: 106 rows, 9 sealed
+
+## the fights
+1 fight on the record; every blow holds.
+
+
+======================================================================
+THE FIGHTS, PLAYED AGAIN FROM THEIR SEEDS  [exit 0]
+======================================================================
+1 fight on the record; every blow holds.
+
+
+======================================================================
+THE KERNEL'S CHAIN  [exit 0]
+======================================================================
+the chain holds: 106 rows, 9 sealed
+
+
+======================================================================
+THE RECORD
+======================================================================
+106 rows: {"boot": 1, "bite": 16, "proposal": 16, "table-open": 4, "table-offer": 2, "seal": 9, "table-heard": 2, "roll": 8, "table-beat": 11, "table-ask": 3, "session": 3, "table-replaces": 1, "fight-open": 1, "fight-blow": 28, "fight-end": 1}
+any call answered twice: []
+the key inside the box: False
+[journey exit 0]

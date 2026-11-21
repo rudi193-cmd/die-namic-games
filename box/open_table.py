@@ -4,6 +4,8 @@
     python box/open_table.py prep  --table DIR
     python box/open_table.py end   --table DIR
     python box/open_table.py check --table DIR
+    python box/open_table.py family --table DIR
+    python box/open_table.py sheets --table DIR --to FILE.html [--story ID]
 
 The box is the game master's binder. `open` lays a fresh one in DIR, which
 must not exist yet:
@@ -35,8 +37,16 @@ seal handed in over it all, a checked backup and a pin of where the record
 ends, each run kept in DIR/end/NNN; and last, what the table holds true.
 
 `check` runs the table's own check page,
-check.md: every game on the record played again from its first row. Each
-then has the kernel verify the chain.
+check.md: every game on the record played again from its first row, and
+every fight fight.py kept, when there are any. `family` runs
+family-night.md, the page for a family's own table (box/play.py's): before
+the night, what was promised and what waits; after it, every story and roll
+played again, a copy kept and the record's end pinned, each run in
+DIR/family/NNN. Each then has the kernel verify the chain.
+
+`sheets` writes the characters' sheets as one page in big, high-contrast type
+for holding at the table (box/paper.py): FILE must not exist yet nor be
+inside DIR/record, and nothing is written to the record.
 
 This never seals, declines or reads the key, and writes the record only
 through the kernel and the add-ons.
@@ -56,17 +66,16 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import willow_pin
 
-ROOT = (
-    willow_pin.root()
-)  # willow, where its pieces live, held to willow.pin.json
+ROOT = willow_pin.root()  # willow, where its pieces live, held to willow.pin.json
 sys.path.insert(0, str(ROOT))
 import kernel
 
 BINDER = HERE / "binder"
 WORDS = HERE / "gm-words.txt"
 WORLDS = HERE / "worlds"
-PAGES = {"prep": HERE / "gm-stack.md", "end": HERE / "gm-end.md", "check": HERE / "check.md"}  # fmt: skip
+PAGES = {"prep": HERE / "gm-stack.md", "end": HERE / "gm-end.md", "check": HERE / "check.md", "family": HERE / "family-night.md"}  # fmt: skip
 SESSION = HERE / "session.py"
+FIGHT = HERE / "fight.py"
 STDLIB = ROOT / "adapters" / "stdlib"
 RULES = STDLIB / "rules" / "rules.py"
 GM = STDLIB / "game-master" / "game_master.py"
@@ -135,12 +144,16 @@ def cmd_open(table: Path, key: Path, now: str) -> int:
 
 def cmd_page(table: Path, which: str) -> int:
     box, page = table / "record", table / PAGES[which].name
+    if which == "family" and (box / "kernel.json").exists() and not page.exists():
+        # a box laid before this page was: it's copied in, the box's own from now on
+        shutil.copy(PAGES[which], page)
     if not (box / "kernel.json").exists() or not page.exists():
         return fail(f"{table} isn't a box laid by open")
     keep = []
     if which in (
         "prep",
         "end",
+        "family",
     ):  # each run kept in a folder of its own, for the steps that write
         runs = table / which
         runs.mkdir(exist_ok=True)
@@ -153,6 +166,12 @@ def cmd_page(table: Path, which: str) -> int:
     print(chain.stdout.rstrip())
     if chain.returncode != kernel.ALIVE:
         return fail(f"the chain: {(chain.stderr or chain.stdout).strip()}")
+    rows, _ = kernel.read(box / "record.jsonl")
+    if which == "check" and any(r["kind"] == "fight-open" for r in rows):
+        fights = run(str(FIGHT), "--table", str(table), "check")
+        print("\n## the fights\n" + (fights.stdout or fights.stderr).rstrip())
+        if fights.returncode != kernel.ALIVE:
+            return fail(f"the fights: {fights.stderr.strip()}")
     if which == "end":  # what the table made true, to close the night on
         canon = run(str(SESSION), "--table", str(table), "canon")
         print("\n## what the table holds true\n" + canon.stdout.rstrip())
@@ -162,14 +181,33 @@ def cmd_page(table: Path, which: str) -> int:
 def main(argv: list[str]) -> int:
     opts, args, it = {}, [], iter(argv)
     for a in it:
-        if a in ("--table", "--key", "--now"):
+        if a in ("--table", "--key", "--now", "--to", "--story"):
             opts[a] = next(it, "")
         else:
             args.append(a)
-    if not opts.get("--table") or args not in (["open"], ["prep"], ["end"], ["check"]):
+    if not opts.get("--table") or args not in (
+        ["open"],
+        ["prep"],
+        ["end"],
+        ["check"],
+        ["family"],
+        ["sheets"],
+    ):
         print(__doc__.split("\n\n")[1], file=sys.stderr)
         return kernel.REFUSED
     table = Path(opts["--table"])
+    if args == ["sheets"]:
+        if not opts.get("--to"):
+            return fail("sheets needs --to: the file the page is written to")
+        if not (table / "record" / "kernel.json").exists():
+            return fail(f"{table} isn't a box laid by open")
+        import paper
+
+        why = paper.write(table, Path(opts["--to"]), opts.get("--story"))
+        if why:
+            return fail(why)
+        print(f"wrote {opts['--to']}")
+        return kernel.ALIVE
     if args != ["open"]:
         return cmd_page(table, args[0])
     if not opts.get("--key"):

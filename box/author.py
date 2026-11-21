@@ -35,7 +35,7 @@ The shape, in order:
     kind: action                        (or: decision)
     by: juno                            (whose beat it is; optional)
     suggests: Wit                       (an action's approach)
-    when: up::climb is weak, miss       (or: offered guest is sealed;
+    when: up::climb is weak, miss       (or: offered guest is sealed; the fight is won;
                                          or: sealed clockwork-cellar::room::free is sealed,
                                          a ruling in an earlier chapter)
     - strong: what happens
@@ -44,11 +44,19 @@ The shape, in order:
     proposed by: vell                   (a decision's)
     fact: what the ruling would make true
 
+A refusal names the line in the story, wherever it was found: a key that
+isn't a story's, or a name game-master can't find (a stat, a seated
+character, a place, an earlier beat), with the nearest name it might have
+meant; a line that isn't a story's at all says what it looks meant to
+be (an id with capitals, a scene without its place). Keys and section
+headings may be written in any case, and a list item with `*` or `-`.
+
 Exit codes, the kernel's: 0 made; 2 refused.
 """
 
 from __future__ import annotations
 
+import difflib
 import json
 import re
 import sys
@@ -58,16 +66,17 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import willow_pin
 
-ROOT = (
-    willow_pin.root()
-)  # willow, where its pieces live, held to willow.pin.json
+ROOT = willow_pin.root()  # willow, where its pieces live, held to willow.pin.json
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "adapters" / "stdlib" / "game-master"))
 import game_master as gm
 import kernel
 
-KEY = re.compile(r"^([a-z][a-z ]*):\s*(.*)$")
-CHARACTER = re.compile(r"^- ([a-z0-9-]+):\s*(.+)$")
+KEY = re.compile(r"^([a-z][a-z ]*):\s*(.*)$", re.IGNORECASE)
+CHARACTER = re.compile(r"^[-*] ([a-z0-9-]+):\s*(.+)$")
+OUTCOME = re.compile(r"^[-*] (strong|weak|miss):\s*(.+)$")
+BEAT_PATH = {"proposed by": "proposes.proposed_by", "fact": "proposes.fact"}
+WHERE = re.compile(r"^((?:world|characters|places|scenes)(?:\[\d+\]|\.[a-z_]+)*)")
 SCENE = re.compile(r"^## Scene ([a-z0-9-]+):\s*(.+?)\s*@\s*([a-z0-9-]+)$")
 BEAT_WHEN = re.compile(r"^([a-z0-9-]+::[a-z0-9-]+) is (.+)$")
 OFFER_WHEN = re.compile(r"^offered ([a-z0-9-]+) is (.+)$")
@@ -103,7 +112,14 @@ def character(cid: str, text: str, at: int) -> dict:
     return c
 
 
+FIGHT_WHEN = re.compile(r"^the fight is (won|lost)$", re.IGNORECASE)
+
+
 def when_of(text: str, at: int) -> dict:
+    if m := FIGHT_WHEN.match(
+        text.strip()
+    ):  # the GM's answer to how the last fight stands
+        return {"offered": "fight", "is": ["sealed" if m.group(1).lower() == "won" else "declined"]}  # fmt: skip
     if m := SEALED_WHEN.match(text):
         return {"sealed": m.group(1), "is": listed(m.group(2))}
     if m := OFFER_WHEN.match(text):
@@ -111,27 +127,47 @@ def when_of(text: str, at: int) -> dict:
     if m := BEAT_WHEN.match(text):
         return {"beat": m.group(1), "is": listed(m.group(2))}
     raise StoryError(
-        f"line {at}: when is `scene::beat is strong, weak`, `offered KIND is sealed`"
-        " or `sealed story::scene::beat is sealed`"
+        f"line {at}: when is `scene::beat is strong, weak`, `offered KIND is sealed`,"
+        " `the fight is won` or `sealed story::scene::beat is sealed`"
     )
 
 
-def read(text: str) -> dict:
-    """The world a story's markdown writes, or StoryError naming the line."""
+def why_not(line: str, section: str) -> str:
+    """What a line that isn't part of a story was most likely meant to be."""
+    ids = "an id is lower case, with dashes for spaces, as old-vell"
+    if line.lower().startswith("## scene"):
+        return f": a scene is `## Scene id: Title @ place`, and {ids}"
+    if OUTCOME.match(line):
+        return ": an outcome comes under a beat (### The prompt)"
+    if re.match(r"^[-*] [^:]+:", line) and section in ("characters", "places"):
+        return f": {ids}"
+    if line.startswith("## "):
+        return ": a section is ## Characters, ## Places or ## Scene id: Title @ place"
+    return ""
+
+
+def read(text: str, lines: dict | None = None) -> dict:
+    """The world a story's markdown writes, or StoryError naming the line.
+
+    LINES, if given, is filled with where each part was written: a path as
+    game-master's validate names it (scenes[0].beats[1].by) to its line."""
     world = {"characters": [], "places": [], "scenes": []}
     section, scene, beat = "head", None, None
+    lines = {} if lines is None else lines
+    bw = ""
     for at, raw in enumerate(text.splitlines(), 1):
         line = raw.strip()
         if not line or (line.startswith("<!--") and line.endswith("-->")):
             continue
         if line.startswith("# ") and section == "head" and "title" not in world:
             world["title"] = line[2:].strip()
-        elif line in ("## Characters", "## Places"):
+        elif line.lower() in ("## characters", "## places"):
             section, scene, beat = line[3:].lower(), None, None
         elif m := SCENE.match(line):
             scene = {"id": m.group(1), "title": m.group(2), "place": m.group(3), "opening": [], "beats": []}  # fmt: skip
             world["scenes"].append(scene)
             section, beat = "scene", None
+            lines[f"scenes[{len(world['scenes']) - 1}]"] = at
         elif line.startswith("### "):
             if scene is None:
                 raise StoryError(
@@ -139,23 +175,28 @@ def read(text: str) -> dict:
                 )
             beat = {"prompt": line[4:].strip()}
             scene["beats"].append(beat)
+            bw = f"scenes[{len(world['scenes']) - 1}].beats[{len(scene['beats']) - 1}]"
+            lines[bw] = at
         elif section in ("characters", "places") and (m := CHARACTER.match(line)):
             if section == "characters":
                 world["characters"].append(character(m.group(1), m.group(2), at))
             else:
                 world["places"].append({"id": m.group(1), "name": m.group(2).strip()})
-        elif beat is not None and (
-            m := re.match(r"^- (strong|weak|miss):\s*(.+)$", line)
-        ):
+            lines[f"{section}[{len(world[section]) - 1}]"] = at
+        elif beat is not None and (m := OUTCOME.match(line)):
             beat.setdefault("outcomes", {})[m.group(1)] = m.group(2)
+            lines[f"{bw}.outcomes.{m.group(1)}"] = at
         elif (m := KEY.match(line)) and (section == "head" or beat is not None):
-            key, value = m.group(1), m.group(2).strip()
+            key, value = m.group(1).lower(), m.group(2).strip()
             if beat is None:
                 head = {"id": "id", "setting": "setting", "stats": "stats", "base stat": "base_stat", "offers": "offers"}  # fmt: skip
                 if key not in head:
                     raise StoryError(
                         f"line {at}: {key!r} isn't a story's: {', '.join(head)}"
                     )
+                lines[f"world.{head[key]}"] = at
+                if key == "base stat" and not re.fullmatch(r"-?\d+", value):
+                    raise StoryError(f"line {at}: base stat is a number, as 1, not {value!r}")  # fmt: skip
                 world[head[key]] = listed(value) if key in ("stats", "offers") else int(value) if key == "base stat" else value  # fmt: skip
             else:
                 fields = {
@@ -164,6 +205,7 @@ def read(text: str) -> dict:
                     "by": "by",
                     "suggests": "suggests",
                 }
+                lines[f"{bw}.{BEAT_PATH.get(key, key)}"] = at
                 if key in fields:
                     beat[fields[key]] = value
                 elif key == "when":
@@ -172,20 +214,89 @@ def read(text: str) -> dict:
                     beat.setdefault("proposes", {})["proposed_by" if key == "proposed by" else "fact"] = value  # fmt: skip
                 else:
                     raise StoryError(f"line {at}: {key!r} isn't a beat's: id, kind, by, suggests, when, proposed by, fact")  # fmt: skip
-        elif scene is not None and beat is None:
+        elif scene is not None and beat is None and not OUTCOME.match(line):
             scene["opening"].append(line)
         else:
-            raise StoryError(f"line {at}: {line[:60]!r} isn't part of a story here")
+            raise StoryError(f"line {at}: {line[:60]!r} isn't part of a story here{why_not(line, section)}")  # fmt: skip
     world.setdefault("base_stat", 1)
+    fought = any(b.get("when", {}).get("offered") == "fight" for sc in world["scenes"] for b in sc.get("beats", []))  # fmt: skip
+    if fought and "fight" not in world.get(
+        "offers", []
+    ):  # a story that turns on a fight takes its ending as an offer
+        world["offers"] = [*world.get("offers", []), "fight"]
     return world
 
 
+def line_of(why: str, lines: dict) -> int | None:
+    """The story line a validate message's path was written on: the path
+    itself, or the nearest part of it that was written (a beat, a scene)."""
+    m = WHERE.match(why)
+    path = m.group(1) if m else ""
+    while path:
+        if path in lines:
+            return lines[path]
+        up = re.sub(r"(\.[a-z_]+|\[\d+\])$", "", path)
+        path = "" if up == path else up
+    return None
+
+
+def candidates(why: str, world: dict) -> list[str]:
+    """The names a refused name was meant to be one of, by what was refused."""
+    if " is not a stat" in why or "not one of the stats" in why:
+        return list(world.get("stats", []))
+    if " is not a seated character" in why:
+        return [c["id"] for c in world["characters"] if c.get("seat")]
+    if " is not one of the places" in why:
+        return [p["id"] for p in world["places"]]
+    if " is not an earlier beat" in why:
+        at = re.match(r"scenes\[(\d+)\]\.beats\[(\d+)\]", why)
+        i, j = (int(at.group(1)), int(at.group(2))) if at else (0, 0)
+        return [
+            f"{sc['id']}::{b.get('id')}"
+            for n, sc in enumerate(world["scenes"][: i + 1])
+            for b in (sc["beats"][:j] if n == i else sc["beats"])
+        ]
+    if " is not one of world.offers" in why:
+        return list(world.get("offers", []))
+    if ".kind " in why:
+        return ["action", "decision"]
+    return []
+
+
+def nearest(why: str, world: dict) -> str | None:
+    """The name nearest the one refused, if one is near: 'pel' to 'pell'."""
+    m = re.search(r"'([^']*)'", why)
+    names = candidates(why, world)
+    if not m or not names:
+        return None
+    said = m.group(1)
+    if "::" in said:  # scene::beat: the scene's part shared, so each part on its own
+        parts = said.split("::")
+        near = [n for n in names if all(close(a, [b]) for a, b in zip(parts, n.split("::")))]  # fmt: skip
+        return near[0] if near else None
+    got = close(said, names)
+    return got if got != said else None
+
+
+def close(said: str, names: list[str]) -> str | None:
+    """The name SAID was nearest meant to be: the same but for case, or near."""
+    same = [n for n in names if n.lower() == said.lower()]
+    near = same or difflib.get_close_matches(said, names, n=1, cutoff=0.6)
+    return near[0] if near else None
+
+
 def make(path: Path) -> dict:
-    world = read(path.read_text(encoding="utf-8"))
+    lines: dict = {}
+    world = read(path.read_text(encoding="utf-8"), lines)
     try:
         return gm.validate(world)
     except gm.WorldError as e:
-        raise StoryError(f"{path.name}: {e}") from None
+        why = str(e)
+        at = line_of(why, lines)
+        near = nearest(why, world)
+        where = f"line {at}: " if at else ""
+        hint = f"; did you mean {near!r}?" if near else ""
+        raise StoryError(f"{path.name}: {where}{why}{hint}") from None
 
 
 def main(argv: list[str]) -> int:

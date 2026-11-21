@@ -1,0 +1,6 @@
+# The session's words: how someone asks, then the words its pages use.
+# The kernel reads every question through this list.
+
+conflict = clash
+retcon = replaced, replaces
+dm = gm
