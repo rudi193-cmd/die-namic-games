@@ -83,6 +83,13 @@ fights ended (session.py's recap, for the GM's eyes, never read aloud).
 **Safety, without a setup question.** x at any roll sets the next part
 aside: no reason asked, the dice still roll, and the GM says what happens
 instead; only that it was set aside is kept (a `table-x` row, no one named).
+p at any of those prompts pauses the whole night: nothing asked, nothing
+more played, "Paused. Nobody needs to say why.", exit 42, and running it
+again picks the night up where it was; only that it happened is kept (a
+`table-pause` row, no one named). x works at the GM's call and at the GM's
+moment too: at a call nothing is decided (the machine never seals or
+declines for the GM; game-master settles a call only on a yes or no), so
+the call waits for later; at a moment nothing is kept and the story goes on.
 A family's lines and veils are a page they write once, pile/our-lines.md
 (box/safety.py): a part that touches a line is never read, and the GM says
 what happens instead; one that touches a veil happens off-screen. No page,
@@ -159,12 +166,37 @@ def ask(prompt: str) -> str | None:
         return None
 
 
-def yes(prompt: str) -> bool | None:
-    """The person's yes or no, asked until it is one; None if they've gone."""
+class Pause(Exception):
+    """The table stopped the whole night (p): nothing asked, nothing more played."""
+
+
+ASIDE = "aside"  # what a prompt returns when the table pressed x there
+
+
+def safe_key(got: str, ctx: tuple | None, at: int | None = None, part: str = "") -> bool:  # fmt: skip
+    """x or p typed alone where the table can set a part aside or stop the
+    night: p records that a pause happened (no one named, no reason) and
+    raises Pause; x records the part set aside and returns True. CTX is
+    (table, now, game); None where the keys aren't offered."""
+    key = got.strip().lower()
+    if ctx is None or key not in ("x", "p"):
+        return False
+    table, now, game = ctx
+    if key == "p":
+        pause(table, now, game)
+    aside(table, now, game, at, part)
+    return True
+
+
+def yes(prompt: str, ctx: tuple | None = None, part: str = "") -> bool | str | None:  # fmt: skip
+    """The person's yes or no, asked until it is one; None if they've gone.
+    With CTX, x sets the part aside (ASIDE) and p pauses the night."""
     while True:
         got = ask(prompt)
         if got is None:
             return None
+        if safe_key(got, ctx, part=part):
+            return ASIDE
         if got.lower() in ("y", "yes"):
             return True
         if got.lower() in ("n", "no"):
@@ -256,7 +288,7 @@ def said_roll(world: dict, rows: list[dict], beat: dict) -> str:
 CHOICES = {"mine": "Mine stands now", "old": "Keep the old one", "both": "Both are true", "reword": "Let me reword it"}  # fmt: skip
 
 
-def heads_up(met: list[dict], reword: bool) -> str | None:
+def heads_up(met: list[dict], reword: bool, ctx: tuple | None = None, part: str = "") -> str | None:  # fmt: skip
     """Before the GM decides: what the table already holds true about the
     same thing, and their choice ("mine", "old", "both", "reword"); None if
     they've gone."""
@@ -270,6 +302,8 @@ def heads_up(met: list[dict], reword: bool) -> str | None:
         got = ask("   Which? ")
         if got is None:
             return None
+        if safe_key(got, ctx, part=part):
+            return ASIDE
         if got.isdigit() and 1 <= int(got) <= len(keys):
             return keys[int(got) - 1]
         print(f"   Type a number from 1 to {len(keys)}.")
@@ -284,6 +318,10 @@ def standing_by(box: Path, ts: str, choice: str, met: list[dict], subject: str, 
             clash.keep_both(box, ts, old, subject, fact)
 
 
+CALL_KEYS = "  x: set it aside · p: pause the night"
+CALL_ASIDE = "   Set aside. Nobody needs to say why. Nothing is decided: the call waits until you want it."  # fmt: skip
+
+
 def your_call(box: Path, world: dict, game: dict, now: str) -> bool | None:
     """The question the story puts to the GM, asked; the GM's answer made
     the record's by the kernel. When the table already holds something true
@@ -291,11 +329,15 @@ def your_call(box: Path, world: dict, game: dict, now: str) -> bool | None:
     it waiting."""
     a = game["asks"][-1]
     who = names(world).get(a.get("proposed_by"), a.get("proposed_by"))
-    print(f"\n✋ Your call, GM. {prompt(world, a)}\n   {who} says:")
+    print(f"\n{CALL_KEYS}\n✋ Your call, GM. {prompt(world, a)}\n   {who} says:")
     print(f"   {a['fact']}")
+    ctx = (box.parent, now, game)
     met = clash.meets(box, a["fact"], a["subject"])
     if met:
-        choice = heads_up(met, reword=False)
+        choice = heads_up(met, reword=False, ctx=ctx, part="call")
+        if choice == ASIDE:
+            print(CALL_ASIDE)
+            return None
         if choice is None:
             return None
         done = run(KERNEL, "decline" if choice == "old" else "seal", "--box", box, "--now", now, a["subject"])  # fmt: skip
@@ -305,7 +347,10 @@ def your_call(box: Path, world: dict, game: dict, now: str) -> bool | None:
         print({"mine": "   It's true now, and the old one is replaced.", "old": "   It didn't happen. The old one stands.",
                "both": "   It's true now, beside the old one."}[choice])  # fmt: skip
         return choice != "old"
-    answer = yes("   Is that true in your world? (y/n) ")
+    answer = yes("   Is that true in your world? (y/n) ", ctx, "call")
+    if answer == ASIDE:
+        print(CALL_ASIDE)
+        return None
     if answer is None:
         return None
     done = run(
@@ -425,6 +470,10 @@ def waiting_blank(game: dict) -> bool:
     return not any(o["n"] > beat["n"] and o.get("as") == GM_WORD for o in game["offers"])  # fmt: skip
 
 
+MOMENT_KEYS = "  x: set it aside · p: pause the night"
+MOMENT_ASIDE = "   Set aside. Nobody needs to say why. Nothing is kept; the story goes on."  # fmt: skip
+
+
 def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str, over: bool = False) -> bool | None:  # fmt: skip
     """A moment left blank: the GM says what happens. What they type and say
     yes to is the rule of the table, kept as an offer of the GM's word, made
@@ -434,13 +483,21 @@ def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str, over
     aside in a story written before), it's said aloud, and nothing kept.
     With `over`, the moment was read and its roll stands as it went: this
     is the GM's word over it, a row of its own, never the roll changed."""
+    _, game, _ = gm.current(box, world)
+    ctx = (box.parent, now, game)
+    at = len(game["beats"]) - 1  # the moment the GM is speaking for
     if GM_WORD not in world.get("offers", []):
+        print(MOMENT_KEYS)
         said = ask("✋ GM, what happens instead? (say it aloud, then press Enter) ")
         if said is None:
             return None
+        if safe_key(said, ctx, at, "moment"):
+            print(MOMENT_ASIDE)
+            return False
         print("   Said aloud.")
         return False
     while True:
+        print(MOMENT_KEYS)
         line = ask(
             "✋ GM, what happens instead? (the roll stands as it went; say it, and type it to keep it; or press Enter) "
             if over
@@ -448,12 +505,18 @@ def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str, over
         )
         if line is None:
             return None
+        if safe_key(line, ctx, at, "moment"):
+            print(MOMENT_ASIDE)
+            return False
         if not line:
             print("   Said aloud, not kept.")
             return False
         met = clash.meets(box, line)
         if met:
-            choice = heads_up(met, reword=True)
+            choice = heads_up(met, reword=True, ctx=ctx, part="moment")
+            if choice == ASIDE:
+                print(MOMENT_ASIDE)
+                return False
             if choice is None:
                 return None
             if choice == "reword":
@@ -462,7 +525,10 @@ def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str, over
                 print("   Not kept. The old one stands.")
                 return False
             break
-        keep_it = yes("   Is that the rule of the table now? (y/n) ")
+        keep_it = yes("   Is that the rule of the table now? (y/n) ", ctx, "moment")
+        if keep_it == ASIDE:
+            print(MOMENT_ASIDE)
+            return False
         if keep_it is None:
             return None
         if keep_it:
@@ -486,17 +552,26 @@ def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str, over
     return True
 
 
-def aside(table: Path, now: str, game: dict) -> None:
+def aside(table: Path, now: str, game: dict, at: int | None = None, part: str = "") -> None:  # fmt: skip
     """The X-card: the next part set aside, kept as only that it was. The row
     names no one and gives no reason: `game` is the story's open row, `at`
-    the moment it is for (how many it had played)."""
-    kernel.append(table / "record", now, safety.X, who="table", game=game["open"]["n"], at=len(game["beats"]))  # fmt: skip
+    the moment it is for (how many it had played). At a GM's call or moment
+    (PART "call" or "moment") the row says which kind of part, nothing more."""
+    more = {"part": part} if part else {}
+    kernel.append(table / "record", now, safety.X, who="table", game=game["open"]["n"], at=len(game["beats"]) if at is None else at, **more)  # fmt: skip
+
+
+def pause(table: Path, now: str, game: dict) -> None:
+    """The pause: the whole night stopped, kept as only that it was (a
+    `table-pause` row: no one named, no reason). Raises Pause."""
+    kernel.append(table / "record", now, safety.PAUSE, who="table", game=game["open"]["n"], at=len(game["beats"]))  # fmt: skip
+    raise Pause
 
 
 def set_aside(table: Path, rows: list[dict], game: dict, i: int, text: str) -> str:
     """What to say instead of moment I's text, or "" to read it: set aside by
     an x, or touching one of the table's lines (never read) or veils (off-screen)."""
-    if any(r["kind"] == safety.X and (r.get("game"), r.get("at")) == (game["open"]["n"], i) for r in rows):  # fmt: skip
+    if any(r["kind"] == safety.X and (r.get("game"), r.get("at")) == (game["open"]["n"], i) and "part" not in r for r in rows):  # fmt: skip
         return "   (Set aside.)"
     lines, veils = safety.read(table)
     if safety.touches(lines, text):
@@ -623,7 +698,7 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
         + (" · f: a fight" if fights else "")
         + " · s: sheets · u: undo a yes"
         + (" · g: the GM's word over the last roll" if last else "")
-        + " · x: set it aside"
+        + " · x: set it aside · p: pause the night"
     )
     while True:
         print(hint)
@@ -659,6 +734,8 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
         elif got.lower() == "g" and last:
             if gm_says(table / "record", world, world_file, last, now, over=True) is None:  # fmt: skip
                 return None
+        elif got.lower() == "p":
+            pause(table, now, game)
         elif got.lower() == "x":
             if not line:
                 aside(table, now, game)
@@ -668,7 +745,7 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
             print(
                 "  Press Enter to roll, type your two dice (like 4 6), or "
                 + ("h, o, f, s, u" if fights else "h, o, s, u")
-                + (", g or x." if last else " or x.")
+                + (", g, x or p." if last else ", x or p.")
             )
 
 
@@ -757,18 +834,22 @@ def bring_in(box: Path, world: dict, world_file: Path, now: str) -> bool | None:
         if j is None:
             return None
         kind = kinds[j] if j < len(kinds) else ""
-    print(f"\n✋ Your call, GM. {who['name']} brings this in:\n   {fact}")
+    print(f"\n{CALL_KEYS}\n✋ Your call, GM. {who['name']} brings this in:\n   {fact}")
+    ctx = (box.parent, now, gm.current(box, world)[1])
     met = clash.meets(box, fact)
     if met:
-        choice = heads_up(met, reword=False)
+        choice = heads_up(met, reword=False, ctx=ctx, part="call")
         if choice is None:
             return None
         answer = choice != "old"
     else:
         choice = ""
-        answer = yes("   Is that true in your world? (y/n) ")
+        answer = yes("   Is that true in your world? (y/n) ", ctx, "call")
         if answer is None:
             return None
+    if ASIDE in (choice, answer):
+        print("   Set aside. Nobody needs to say why. Nothing is handed in or decided.")
+        return ""
     done = session.step(box, world_file, now, "offer", who["id"], fact, *(["--as", kind] if kind else []))  # fmt: skip
     if done.returncode == kernel.REFUSED:
         raise RuntimeError(done.stderr.strip())
@@ -969,7 +1050,11 @@ def main(argv: list[str]) -> int:
             import write
 
             return write.compose(table, now)
-        return night(table, picked[0], picked[1], now)
+        try:
+            return night(table, picked[0], picked[1], now)
+        except Pause:
+            print("\nPaused. Nobody needs to say why. Run this again when you're ready.")  # fmt: skip
+            return kernel.ESCALATE
     except RuntimeError as e:
         print(f"\nSomething went wrong: {e}", file=sys.stderr)
         return kernel.REFUSED

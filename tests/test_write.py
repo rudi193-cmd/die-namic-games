@@ -79,7 +79,7 @@ def test_a_story_written_from_play_is_the_file_author_reads_and_plays(home):
         again.returncode == 0 and json.loads(again.stdout) == made
     )  # one file, every door
     assert (
-        "She picks up the egg.\n🥤 The dice are in the tower. Nobody knows them yet, not even the GM.\n  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside\n> 🎲 Mira tries Kind: rolled "
+        "She picks up the egg.\n🥤 The dice are in the tower. Nobody knows them yet, not even the GM.\n  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside · p: pause the night\n> 🎲 Mira tries Kind: rolled "
         in got.stdout
     )
     assert "✋ Your call, GM. Is the egg a real dragon?\n   The Groundskeeper says:\n   The egg is a real dragon's." in got.stdout  # fmt: skip
@@ -224,11 +224,11 @@ def test_a_night_whose_calls_were_answered_offers_what_happens_next(home):
     assert story.count("when:") == 1
     nxt = got.stdout.split("is written: 2 moments.\nPlay it now?")[-1]
     assert (
-        "Mira feeds the hatchling.\n🥤 The dice are in the tower. Nobody knows them yet, not even the GM.\n  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside\n> 🎲 Mira tries Kind"
+        "Mira feeds the hatchling.\n🥤 The dice are in the tower. Nobody knows them yet, not even the GM.\n  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside · p: pause the night\n> 🎲 Mira tries Kind"
         in nxt
     )  # the table said yes
     assert (
-        "Mira hides the egg.\n🥤 The dice are in the tower. Nobody knows them yet, not even the GM.\n  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · g: the GM's word over the last roll · x: set it aside\n> 🎲 Mira tries Clever"
+        "Mira hides the egg.\n🥤 The dice are in the tower. Nobody knows them yet, not even the GM.\n  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · g: the GM's word over the last roll · x: set it aside · p: pause the night\n> 🎲 Mira tries Clever"
         in nxt
     )
 
@@ -239,7 +239,7 @@ def test_a_moment_that_waits_on_a_yes_isnt_played_after_a_no(home):
     nxt = got.stdout.split("is written: 2 moments.\nPlay it now?")[-1]
     assert (
         "Mira feeds the hatchling." not in nxt
-        and "Mira hides the egg.\n🥤 The dice are in the tower. Nobody knows them yet, not even the GM.\n  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside\n> 🎲"
+        and "Mira hides the egg.\n🥤 The dice are in the tower. Nobody knows them yet, not even the GM.\n  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside · p: pause the night\n> 🎲"
         in nxt
     )
 

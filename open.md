@@ -444,8 +444,12 @@ reached from the play path.
     happens instead, and the record keeps only that it was (no one named,
     no reason). Lines and veils are a page the family writes once,
     `pile/our-lines.md` (box/safety.py): a part that touches a line is never
-    read; a veil's happens off-screen. Not yet: a pause that stops the whole
-    night, and the X-card for a call or a GM's moment, not only a roll.
+    read; a veil's happens off-screen. **Also built:** p at a roll, a call or a
+    GM's moment pauses the whole night (no reason asked; a `table-pause`
+    row, no one named; run it again to pick up), and x works at a GM's call
+    (nothing is decided, the call waits) and a GM's moment (nothing kept,
+    the story goes on). Not yet: a call skipped for good, which needs
+    game-master (willow) to settle a call without a yes or no.
 14. **Undoing a slip.** A "y" pressed by mistake can only be turned back
     by a later "mine stands now". **Built, on that shape:** u at a roll
     takes back the last yes made tonight, on the GM's y: a replacement
