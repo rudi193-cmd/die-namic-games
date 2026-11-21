@@ -17,7 +17,7 @@ KEEP=(--wildcards '*.md' '*.py' '*.go' '*.ts' '*.cs' '*.rs' '*.ex' '*.exs' '*.to
 if [ -d "$SRC/.git" ]; then
   git -C "$SRC" cat-file -e "$AT^{commit}" 2>/dev/null || { echo "refused: $SRC has no $AT"; rmdir "$D"; exit 2; }
   FULL=$(git -C "$SRC" rev-parse "$AT")
-  if [ "$SUB" = "." ]; then git -C "$SRC" archive "$FULL"; else git -C "$SRC" archive "$FULL" "$SUB"; fi | tar -x -C "$D" "${KEEP[@]}" 2>/dev/null
+  if [ "$SUB" = "." ]; then git -C "$SRC" archive "$FULL"; else git -C "$SRC" archive "$FULL" "$SUB" $(git -C "$SRC" ls-tree --name-only "$FULL" | grep -i "^LICENSE"); fi | tar -x -C "$D" "${KEEP[@]}" 2>/dev/null
   [ "$SUB" = "." ] || { [ -d "$D/$SUB" ] && cp -a "$D/$SUB"/. "$D"/ && rm -rf "${D:?}/${SUB%%/*}"; }
   FROM="git $(git -C "$SRC" remote get-url origin 2>/dev/null || echo "$SRC") at $FULL, folder $SUB"
 elif [ -d "$SRC" ]; then

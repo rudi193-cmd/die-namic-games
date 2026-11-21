@@ -31,3 +31,18 @@ boxes use (see [MEMORY.md](MEMORY.md)).
 
 Tried on 2026-11-21 with dndwright (whole), ink & bone's `docs/` and
 open.md: 134 files, 7 seconds, 7 of 8 steps clean.
+
+## Survey: one box per chunk, the same questions, one page
+
+    python3 boxes/pot/survey.py POT [--only NAME,...] [--top N] [--jobs N]
+
+`survey.py` lays a box over each chunk alone, asks every question in
+[survey-questions.tsv](survey-questions.tsv) (an id, what is wanted, the few
+words asked, and the regex a served passage must hold to count as a hit),
+and writes `POT/survey/survey.md`: facts counted by code, a matrix of hit and
+miss per chunk and question, and the best passage per hit with file:line.
+A hit is evidence to read, not proof; a miss is not "absent". Questions are
+kept to two to four words because the kernel serves a passage only when it
+holds half the question's content words. Eight chunks, 27 questions take
+about 5 minutes. [results-eight/](results-eight/) holds the first run over
+the eight GM projects and rules engines, and what it connects to.
