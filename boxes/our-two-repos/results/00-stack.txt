@@ -1,0 +1,17 @@
+01 all-passages: started (c083111e)
+01 all-passages: exit 0, 1 line
+02 all-passages: started (78732f2c)
+02 all-passages: exit 0, 1 line
+03 all-passages: started (4259d108)
+03 all-passages: exit 0, 1 line
+04 all-passages: started (d0dbe6e8)
+04 all-passages: exit 0, 1 line
+05 all-passages: started (fa2400d2)
+05 all-passages: exit 0, 1 line
+06 all-passages: started (851a2fac)
+06 all-passages: exit 0, 1 line
+07 first-mention: started (399b55e3)
+07 first-mention: exit 0, 2 lines
+08 all-passages: started (1ac50659)
+08 all-passages: exit 0, 1 line
+done: 0 of 8 steps flagged
