@@ -422,8 +422,9 @@ reached from the play path.
     moment can be written "when: the fight is won" (or lost); after a fight
     the GM is asked whether it stands that the party won, and that call,
     sealed or declined as an offer of the kind `fight` (game-master's own
-    `offered`), picks the moment that follows. Not yet: write.py asking
-    for it in plain words.
+    `offered`), picks the moment that follows. write.py asks for it in plain
+    words too: after the first moment, "Only if the heroes win a fight" or
+    "lose a fight", written as the `when:` lines above.
 11. **Time pressing:** the tide rising, the fair closing at midnight, a
     count the table can see.
 12. **A replaced truth no longer unlocking.** Found in the journey: "Mira

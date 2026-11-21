@@ -26,6 +26,13 @@ if one of last time's calls came out yes, or no: game-master's own
 `when: sealed story::scene::beat is sealed` (or `declined`). One moment has
 to happen whatever was decided, so the next part is never empty.
 
+**A fight.** Any moment after the first can also happen only if the heroes win
+a fight, or only if they lose one: written `when: the fight is won` (or
+`lost`), which author.py reads as a story that turns on a fight, so in play
+the table can press f and the GM says how it ended; the moment that follows
+is the one the call picks. The first moment can't follow a fight, so it is
+not asked (unless last time's calls are). A story can't be all such moments.
+
 A moment's outcome left blank is written as "(GM: you say what happens.)",
 and the story declares `offers: gm-word`: on the night, play.py rolls, then
 asks the GM what happens, and keeps what they type and say yes to as the
@@ -158,18 +165,20 @@ def ask_moments(story: dict, calls: list[dict]) -> dict:
         print("\nWhat happens next?" if story["moments"] else "\nWhat happens first?")
         kind = choose("Which? ", kinds)
         if kind == 2:
-            if calls and all(m.get("when") for m in story["moments"]):
+            if all(m.get("when") for m in story["moments"]):
                 print("  Every moment waits on last time; add one that happens whatever was decided.")  # fmt: skip
                 continue
             return story
         moment = ask_try(story) if kind == 0 else ask_question(story)
-        if calls:
+        if calls or story["moments"]:  # the first moment can't follow a fight
             print("Does this always happen, or only if…?")
             ifs = [None] + [
                 (c["key"], v) for c in calls for v in ("sealed", "declined")
-            ]
-            said_ = ["Always"] + [f"Only if the table said {'yes' if v == 'sealed' else 'no'} to: {c['fact']}" for c in calls for v in ("sealed", "declined")]  # fmt: skip
+            ] + [("fight", "won"), ("fight", "lost")]  # fmt: skip
+            said_ = ["Always"] + [f"Only if the table said {'yes' if v == 'sealed' else 'no'} to: {c['fact']}" for c in calls for v in ("sealed", "declined")] + ["Only if the heroes win a fight", "Only if the heroes lose a fight"]  # fmt: skip
             moment["when"] = ifs[choose("Which? ", said_)]
+            if moment["when"] and moment["when"][0] == "fight":
+                print("  (the table can start a fight at any moment by pressing f; the GM says how it ended)")  # fmt: skip
         story["moments"].append(moment)
 
 
@@ -222,7 +231,7 @@ def markdown(story: dict, sid: str) -> str:
     for i, m in enumerate(story["moments"], 1):
         lines += [f"### {m['prompt']}", "", f"id: m{i}", f"kind: {m['kind']}"]
         if m.get("when"):
-            lines.append(f"when: sealed {m['when'][0]} is {m['when'][1]}")
+            lines.append(f"when: the fight is {m['when'][1]}" if m["when"][0] == "fight" else f"when: sealed {m['when'][0]} is {m['when'][1]}")  # fmt: skip
         if m["kind"] == "action":
             lines += [f"by: {who[m['by']]}", f"suggests: {m['suggests']}", ""]
             lines += [f"- {k}: {m['outcomes'][k]}" for k, _ in OUTCOMES]

@@ -30,6 +30,7 @@ EGG = [
     "1", "She picks up the egg.", "3",
     "It's warm, and something inside taps back.", "", "The groundskeeper sees her.",
     "2", "Is the egg a real dragon?", "The egg is a real dragon's.",
+    "1",  # always (it follows a moment, so it is asked)
     "3",  # that's the story
 ]  # fmt: skip
 
@@ -333,3 +334,52 @@ def test_an_idea_dealt_twice_is_offered_once(monkeypatch, tmp_path):
     dealt = "# Ideas\n\n## Seeds (seed 'x')\n\n  - a door\n  - a door\n  - an egg\n  - a fair\n  - a ship\n\n## Set up, never played\n\n  - not this\n"  # fmt: skip
     monkeypatch.setattr(write.play, "run", lambda *a: subprocess.CompletedProcess(a, 0, dealt, ""))  # fmt: skip
     assert write.ideas(tmp_path) == ["a door", "an egg", "a fair"]
+
+
+FIGHT = [
+    *EGG[:9],  # about, title, place, two people, strengths
+    "1", "Mira readies her bow.", "1", "She is ready.", "She is nearly ready.", "She drops an arrow.",
+    "1", "Mira counts the horses.", "1", "Six horses.", "Five horses.", "They scatter.", "2",  # only if they win
+    "1", "Mira limps back down the pass.", "1", "By dark.", "By morning.", "In the rocks.", "3",  # only if they lose
+    "3",  # that's the story
+]  # fmt: skip
+
+
+def written_fight(home: Path) -> str:
+    got = run("write.py", home, [*FIGHT, "n"])
+    assert got.returncode == 0, got.stderr
+    return got.stdout
+
+
+def test_a_moment_can_wait_on_a_fight_in_plain_words(home):
+    out = written_fight(home)
+    assert "Does this always happen, or only if…?\n  1. Always\n  2. Only if the heroes win a fight\n  3. Only if the heroes lose a fight\n" in out  # fmt: skip
+    assert out.count("Does this always happen") == 2  # not asked of the first moment
+    for word in ("offered", "sealed", "declined"):
+        assert word not in out.split("Does this always happen")[1]
+    story = (table(home) / "stories" / "the-garden-egg.md").read_text()
+    assert story.count("when: the fight is won\n") == 1 and story.count("when: the fight is lost\n") == 1  # fmt: skip
+    assert "when: sealed" not in story
+
+
+def test_the_fight_story_is_the_file_author_reads_and_turns_on_a_fight(home):
+    written_fight(home)
+    world = json.loads((table(home) / "worlds" / "the-garden-egg.json").read_text())
+    assert "fight" in world["offers"]
+    whens = [b["when"] for sc in world["scenes"] for b in sc["beats"] if "when" in b]
+    assert whens == [{"offered": "fight", "is": ["sealed"]}, {"offered": "fight", "is": ["declined"]}]  # fmt: skip
+    again = subprocess.run([sys.executable, BOX / "author.py", table(home) / "stories" / "the-garden-egg.md"], capture_output=True, text=True, check=False)  # fmt: skip
+    assert again.returncode == 0 and json.loads(again.stdout) == world
+
+
+@pytest.mark.parametrize("call, played, not_played", [("y", "Mira counts the horses.", "Mira limps back"), ("n", "Mira limps back down the pass.", "Mira counts the horses")])  # fmt: skip
+def test_the_written_fight_story_plays_the_moment_the_gms_call_picks(home, call, played, not_played):  # fmt: skip
+    written_fight(home)
+    env = {"DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": NOW}
+    _code, out = person.at_table([BOX / "play.py"], env, person.answering([]))
+    k = next(x.split(".")[0].strip() for x in out.splitlines() if "The Garden Egg" in x and x.strip()[:1].isdigit())  # fmt: skip
+    steps = [("Which story?", k), (">", "f"), ("Which?", "3"), ("won the fight?", call), (">", ""), (">", "")]  # fmt: skip
+    answer = person.answering(steps)
+    _code, out = person.at_table([BOX / "play.py"], env, answer)
+    assert "   Does it stand that the party won the fight? (y/n) " in out
+    assert played in out and not_played not in out
