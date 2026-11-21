@@ -14,6 +14,7 @@ as you want, write them down here").
 | Box | Ask it when you want to know… | Pile | Lay it | Last run |
 |---|---|---|---|---|
 | [gm-projects/](gm-projects/) | how other open AI game masters keep a model honest, remember a campaign, roll dice, run a fight, and what they let us take | NarrativeEngine-P `6514be9`, ink & bone `653e527`, dnd_ai_dm `ea046d3`, TaleWeaver `7c12722`: only .md .py .go .ts .toml .txt and LICENSE files; 2,908 files | `bash boxes/gm-projects/rebuild.sh SCRATCH` (checkouts under `..`, or `GM_PROJECTS`); about 3 min | 10 of 10 answered, none flagged |
+| [srd-engines/](srd-engines/) | whether an outside SRD rules engine could stand under the record and seal: can the dice be handed in, is it deterministic, how is a fight's state kept, what each asks of us | OpenCombatEngine `16b45b0` (C#, MIT), jurnalis-project/engine `dbf40d4` (Rust), srd_5e `b0a2164` (Elixir, from the agentic-realms monorepo's packages/srd_5e, Apache-2.0), dndwright `6f0fb9e` (Python, MIT); 685 files | `bash boxes/srd-engines/rebuild.sh SCRATCH` (checkouts at `../OWNER/NAME`, or `ENGINES_DIR`); about 30 s | 9 of 9 answered, none flagged |
 | [our-two-repos/](our-two-repos/) | what willow and die-namic-games already hold about a fight engine, the dice, the card promises, the deps rules; the research behind open.md's fight-engines note | willow at its pin `370f74a`, die-namic-games at `3de61d2` (.md and .py, no `boxes/`); 1,984 files | `bash boxes/our-two-repos/rebuild.sh SCRATCH`; about 1 min | 8 of 8 answered, none flagged |
 
 Each folder: `stack.md` (the wants), `words.txt` (how readers ask), `rebuild.sh`,
@@ -26,6 +27,7 @@ dm` and `dm = ...` was refused).
 
 - **gm-projects/stack.md** (10 wants): honesty (1–3), memory (4–5), dice and
   fights (6–8), what we may take (9–10). Ask 1, 2, 6, 7 first.
+- **srd-engines/stack.md** (9 wants): can the dice come from outside (1–3), what a fight is to each (4–6), what we'd have to agree to (7–9). Ask 1, 2, 5 first.
 - **our-two-repos/stack.md** (8 wants): what already covers a fight (1–3),
   what an outside engine would have to be (4–6), where it came up (7–8).
 
@@ -59,16 +61,37 @@ dm` and `dm = ...` was refused).
   Wants 4–6 came back noisy (CHANGELOG and ADDONS lines): ask the rules
   page directly, not the box.
 
+- **srd-engines** (as found, from passages; nothing was built or run):
+  - **dndwright** (Python, MIT, 110 files) is the one that fits our shape:
+    each `DiceEngine` owns a private RNG, `DiceEngine(seed=42)` is
+    reproducible, and its docs say to inject an unpredictable generator for
+    live play (`src/dndwright/dice/engine.py`). Its bundled content cites
+    SRD 5.2.1, CC-BY-4.0. Alpha. Not checked: how it takes faces "as said".
+  - **OpenCombatEngine** (C#, MIT) has an `IDiceRoller` interface and a
+    settable `Seed`; a code comment admits its attack roll uses `Random`
+    (insecure). It has combat events (`docs/architecture/005-combat-events.md`)
+    and JSON save and load of an encounter. The interface is the seam the
+    dice tower would plug into.
+  - **jurnalis-project/engine** (Rust) says it is stateless: state is JSON
+    after every call and passed back (`README.md:19`), which suits the record.
+    **Its README says there is no license file, all rights reserved**, though a badge
+    says MIT: until it has one, don't copy from it. Ask the author.
+  - **srd_5e** (Elixir, Apache-2.0, early): `Srd.Dice` is a placeholder in
+    one version's docs, so its rules are content, not yet an engine.
+  - Want 2 and 5 are the strongest answers; want 4 (a fight resolved) mostly
+    reached class data, not the resolving code: ask the source for it.
+
 ## Not done, and why
 
 - **Tavern (t11z)**: `t11z/tavern` is refused to the session, both through
   `add_repo` and an anonymous clone. Its site says Apache-2.0, FastAPI, SRD
   5.2.1, rules in code; unconfirmed. Lay it in `gm-projects` once readable
   (add `tavern:COMMIT` to `PROJECTS` in `rebuild.sh`).
-- **The three SRD fight engines of open.md** (OpenCombatEngine C#,
-  srd_5e Elixir, jurnalis Rust): not cloned, so no box over them. A box over
-  their READMEs and rules is the next one to lay, with a stack asking how each
-  rolls dice and whether it is deterministic.
-- **dndkit** (a PyPI package a search surfaced): unread; the one pure-Python
-  SRD library lead. Check first.
+- **dndkit**: a search listed such a package, but a second search found no
+  PyPI project of that name; dndwright (above) is the Python one that exists.
+  Other Python leads, unread: `dnd-character` (EPL-2.0, fetches SRD data from
+  an API, so it goes online), `dnd5epy` (an API client).
+- **Ideas for the next boxes:** a box over the willow add-on cards alone
+  (what promises each makes); one over Datasworn and the Ironsworn oracle
+  tools; one over the Discord and chat GMs (samvoisin, MyGameMaster).
 - Nothing was run through willow's forge add-on, and no stack was sealed.
