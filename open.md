@@ -310,9 +310,9 @@ At the table, in its own words:
 > **[ Yes, it's true ]**
 > 🎲 **Lift the cup:** Juno rolled 12. **Great!**
 
-**Later:** the GM's screen roll, a roll only the GM sees, and the GM's word
-over the dice ("the dice said miss; I say she makes it") as a kept call of
-its own, never a roll quietly changed.
+**Later:** the GM's screen roll, a roll only the GM sees. (The GM's word
+over the dice ("the dice said miss; I say she makes it") is built: a kept
+call of its own, never a roll quietly changed.)
 
 Table dice are willow's (`play-dice`, the seeding in `game-master`,
 `play-dice5e`) and the one-script's, so the cup is a change in willow, not
@@ -380,8 +380,11 @@ reached from the play path.
    dice, above. **The cup is built:** every moment's dice go into willow's
    dice-tower when the moment is posed and come out on the roll, so no
    call or row can steer them and nobody reads them first. Not yet: the
-   GM's screen roll, and the GM's word over the dice, except over a fight:
-   a call on how a fight stands, against the dice, is kept beside it (10).
+   GM's screen roll. **The GM's word over the dice is built:** g at the
+   next roll prompt, over the roll just read, is kept as a `gm-word` call of
+   its own (sealed on the GM's yes; said aloud only in a story with no
+   gm-word), and the roll and its beat are never edited; over a fight, a
+   call on how it stands, against the dice, is kept beside it (10).
 
 **The characters**
 
@@ -588,4 +591,5 @@ again from the record, and the chain (102 rows, 7 sealed).
 - **Two kinds of dice.** Table dice go in **the cup**: unknown until thrown,
   thrown after the GM's call, seen by all, kept. Prompt dice stay seeded:
   surprising, free to reroll, repeatable.
-- The GM's screen roll, and the GM's word over the dice, come **later**.
+- The GM's screen roll comes **later**. The GM's word over the dice is
+  built (g at the next roll).

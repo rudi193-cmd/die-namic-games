@@ -470,3 +470,11 @@ def test_a_story_that_turns_on_a_fight_takes_fight_among_its_offers(tmp_path):
         b.get("when") for sc in world["scenes"] for b in sc["beats"] if "when" in b
     ]
     assert whens == [{"offered": "fight", "is": ["sealed"]}, {"offered": "fight", "is": ["declined"]}]  # fmt: skip
+
+
+def test_a_yes_taken_back_reads_as_pressed_by_mistake_on_the_next_night(home):
+    steps = [*LADDER, (">", "u"), ("Take back", "y"), (">", "")]
+    table_turn(home, steps, {">": "", "That's our night?": "y", "remember": ""})
+    _code, out, _left = table_turn(home, [], now="2026-11-21T19:00:00Z")
+    assert "(taken back on 2026-11-20, pressed by mistake)" in out
+    assert "replaced on" not in out and "nothing: that yes was pressed" not in out

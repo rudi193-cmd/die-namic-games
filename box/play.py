@@ -58,10 +58,17 @@ its end goes to the GM as a call: "Does it stand that the party won?" Their
 yes or no is sealed or declined as an offer of the kind `fight`, so the
 moment that follows is the one the call says; a call against the dice is
 the GM's word over them, kept beside the fight, never the fight changed.
+g, once a roll has been read, is the GM's word over it: "the dice said miss;
+I say she makes it". The roll and its moment stay exactly as they went; what
+the GM types is a kept call of its own (an offer of the kind `gm-word`, at
+the character's moment, sealed on the GM's yes, with the heads-up first), in
+a story that declares gm-word; in any other it is said aloud and nothing is
+kept. It reads in the night's summary as made true, beside the roll.
 h is how the character meets it: the story's stats, each with the
 character's bonus and its exact chances (2d6 counted, as play-odds would),
 the story's own first; game-master's act takes any of them. u undoes a yes pressed by mistake: the last thing made true tonight, taken
-back on the GM's y. Nothing takes a seal back; a replacement whose new word
+back on the GM's y. On the next night's opening screen it reads "taken back on
+<day>, pressed by mistake", not as a replacement. Nothing takes a seal back; a replacement whose new word
 is nothing stands over it (clash.py's take_back, the "mine stands now"
 shape, as willow's decisions keep a replaced row), so the old yes stays on
 the record and no longer stands. After the sheets, the GM can write on them, a line each ("Tamsin finds a
@@ -417,13 +424,15 @@ def waiting_blank(game: dict) -> bool:
     return not any(o["n"] > beat["n"] and o.get("as") == GM_WORD for o in game["offers"])  # fmt: skip
 
 
-def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str) -> bool | None:  # fmt: skip
+def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str, over: bool = False) -> bool | None:  # fmt: skip
     """A moment left blank: the GM says what happens. What they type and say
     yes to is the rule of the table, kept as an offer of the GM's word, made
     at the moment of the character whose turn it was, and sealed on that yes.
     Enter keeps nothing (said aloud only); None if the person left. In a
     story with no GM's word to keep (it names no gm-word offer: a part set
-    aside in a story written before), it's said aloud, and nothing kept."""
+    aside in a story written before), it's said aloud, and nothing kept.
+    With `over`, the moment was read and its roll stands as it went: this
+    is the GM's word over it, a row of its own, never the roll changed."""
     if GM_WORD not in world.get("offers", []):
         said = ask("✋ GM, what happens instead? (say it aloud, then press Enter) ")
         if said is None:
@@ -432,7 +441,9 @@ def gm_says(box: Path, world: dict, world_file: Path, beat: dict, now: str) -> b
         return False
     while True:
         line = ask(
-            "✋ GM, what happens? (say it, and type it to keep it; or press Enter) "
+            "✋ GM, what happens instead? (the roll stands as it went; say it, and type it to keep it; or press Enter) "
+            if over
+            else "✋ GM, what happens? (say it, and type it to keep it; or press Enter) "
         )
         if line is None:
             return None
@@ -587,11 +598,14 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
     die = in_tower(table, game, now)
     fights = world["id"] in FIGHTS or "fight" in world.get("offers", [])
     how = b["suggests"]
+    last = next((x for x in reversed(game["beats"]) if x["beat_kind"] == "action"), None)  # fmt: skip
     hint = (
         "  Enter: roll, or type the two dice you threw (like 4 6)\n"
         + "  h: how · o: someone brings something in"
         + (" · f: a fight" if fights else "")
-        + " · s: sheets · u: undo a yes · x: set it aside"
+        + " · s: sheets · u: undo a yes"
+        + (" · g: the GM's word over the last roll" if last else "")
+        + " · x: set it aside"
     )
     while True:
         print(hint)
@@ -624,6 +638,9 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
         elif got.lower() == "u":
             if undo(table / "record", now) is None:
                 return None
+        elif got.lower() == "g" and last:
+            if gm_says(table / "record", world, world_file, last, now, over=True) is None:  # fmt: skip
+                return None
         elif got.lower() == "x":
             if not line:
                 aside(table, now, game)
@@ -632,7 +649,8 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
         else:
             print(
                 "  Press Enter to roll, type your two dice (like 4 6), or "
-                + ("h, o, f, s, u or x." if fights else "h, o, s, u or x.")
+                + ("h, o, f, s, u" if fights else "h, o, s, u")
+                + (", g or x." if last else " or x.")
             )
 
 
