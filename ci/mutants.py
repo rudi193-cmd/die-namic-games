@@ -151,7 +151,10 @@ def run(files: list[str], per: int | str | None, limit: int) -> int:
     with tempfile.TemporaryDirectory() as tmp:
         copy = Path(tmp) / "die-namic-games"
         shutil.copytree(REPO, copy, ignore=lambda _d, names: SKIP & set(names))
-        env = {**os.environ, "WILLOW_ROOT": str(WILLOW), "PYTHONDONTWRITEBYTECODE": "1"}
+        # the copy has no willow-bot beside it, so the one-script the fights
+        # roll with is named where the checkout's sibling has it
+        bot = os.environ.get("ONESCRIPT_HOME") or str(REPO.parent / "willow-bot" / "one-script")  # fmt: skip
+        env = {**os.environ, "WILLOW_ROOT": str(WILLOW), "ONESCRIPT_HOME": bot, "PYTHONDONTWRITEBYTECODE": "1"}  # fmt: skip
         tests = [str(copy / t) for t in cfg["tests"]]
         pytest = [sys.executable, "-m", "pytest", "-q", "-x", "-p", "no:cacheprovider",
                   "--rootdir", str(copy), *tests]  # fmt: skip
