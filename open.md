@@ -785,3 +785,54 @@ list is not proof.
 **Next.** Read layforge's tool-call gate code and its `store.go`; read
 OpenCombatEngine's `ResolveCheck`/`Attack` for how dice enter; box layforge
 alone with the survey questions (it is in the pot, not yet surveyed).
+
+### Round 3: the three next steps, read (2026-11-21)
+
+1. **Layforge's gate and its log.** The gate is code, not prompting. The PvP
+   check (`master/internal/server/dm_tools.go:700`, again at 852 and 972)
+   switches on the policy and **fails closed**: "PvPPolicyPveOnly, or an
+   unrecognized/unspecified value" is denied, and a campaign with no
+   configuration "gets the strictest PvP setting by default, not an open
+   one" (`README.md:300`). Its README says a tool is re-checked inside the
+   call, "so a stray/hallucinated call can't succeed just because the tool
+   wasn't offered this turn", "gates over prompting" (`master/README.md:1333`).
+   A human can override the model: the operator lists imported characters and
+   overrides the model's verdict through the admin API (`master/README.md:1786`).
+   Its **log** is an event store described as "a campaign's append-only event
+   log", with a strictly increasing `Sequence`, a refused duplicate message id
+   (`ErrDuplicateMessage`), paged reads; **no hash chain, no signature**.
+   Lines and veils are even model-authored: its pack generator is told to
+   pre-declare them "ONLY when the adventure's content genuinely calls for
+   them" (`campaignpack/generate.go:93`), so a model proposes the family's
+   limits where ours are the family's own page.
+   *For us:* fail-closed on an unknown setting is worth copying in
+   `safety.py`; an append-only log with sequence numbers is what our record
+   already is, plus a chain and a seal.
+2. **How dice enter OpenCombatEngine.** They don't, through its contract.
+   `ResolveCheck` in the gRPC sidecar takes a `checkType`, an `ability` and a
+   `skill`; the engine rolls (`creature.Checks.RollAbilityCheck`) and the
+   sidecar copies the dice it rolled into the answer
+   (`SystemEngineGrpcService.cs:256`). There is no field for a seed or for
+   faces; the `params` doc's "roll-spec overrides" isn't read there. The seam
+   is in the .NET library (`IDiceRoller`, settable `Seed`), so a sidecar with
+   our roller registered **in-process** could take typed faces, but the
+   wire contract can't. Compare dndwright, where `DiceEngine(rng=...)` is the
+   public parameter. **For our purpose, dndwright is the easier engine to
+   put under the record.**
+3. **The survey over layforge alone** (`boxes/pot/results-layforge/`): 21 of
+   27 cells hit, and the same over-count caveat applies (B1's hit is a
+   sentence about pre-seeding a cache; B2's is about injecting a text
+   constraint). The real ones are above, plus: typed dice (B3), unpredictable
+   randomness (B5), and the SRD version (F1) all miss. **Layforge never says
+   which SRD it plays; it leaves that to its engine**, which is the same shape
+   as our decision: an edition belongs to the engine, so ours is chosen by
+   the engine we pick.
+
+**What this changes.** The nearest design to ours now has: an engine that
+answers "what would happen", a host that decides "is it allowed", safety
+tools, a human veto, scoped knowledge, an append-only log, fail-closed gates.
+What it does not have, and the box does: a seal that is a person's and no
+one else's; a chain that makes the log checkable; typed or committed dice; and
+lines and veils read structurally rather than injected into a prompt. Those
+four are the box's reasons to exist beside it, not instead of it. Worth asking
+the maintainer whether to talk to its author, or to borrow its engine contract.

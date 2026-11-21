@@ -104,6 +104,12 @@ dm` and `dm = ...` was refused).
   Ask with `ask.py`-style batches over `POT/survey/box-NAME` (about 25 s a
   question across eight chunks).
 
+- **Round 3 (2026-11-21):** layforge's gate is code that fails closed, its log
+  is append-only with sequence numbers but no chain or signature; OpenCombatEngine
+  rolls its own dice and its gRPC contract has no way to pass faces in (dndwright
+  has); layforge never names an SRD, its engine decides. Notes in open.md,
+  "Round 3"; survey in [pot/results-layforge/](pot/results-layforge/).
+
 ## Not done, and why
 
 - **Tavern (t11z)**: `t11z/tavern` is refused to the session, both through
