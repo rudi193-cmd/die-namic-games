@@ -1,5 +1,10 @@
 # What the survey of the eight says, and what it connects to
 
+> **Corrected 2026-11-21:** "what none of them has" below is true of these eight
+> only. Layforge, a ninth, has safety tools, a human veto and knowledge scoping
+> (see open.md, "Round 2"). jurnalis-engine's 5.1 label is also wrong: it is
+> mostly 2024 rules.
+
 Read from `survey.md` (this folder) on 2026-11-21: eight chunks, 27 questions,
 top 8 each, 133 of 216 cells hit. **The matrix over-counts.** A hit means a
 passage held the rule's words, and some are accidents (A1's "enforce" hit a

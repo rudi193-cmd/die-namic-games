@@ -653,7 +653,7 @@ Questions to settle before building anything:
 and rules engines, 27 questions each; hits are evidence to read, not proof) and
 [boxes/MEMORY.md](boxes/MEMORY.md), its twin.*
 
-**Built here, and nothing like it in any of the eight:** typed real dice (1),
+**Built here, and nothing like it in any of the eight** *(corrected 2026-11-21, see "Round 2" below: a ninth project, layforge, has safety tools and a human veto)*: typed real dice (1),
 the tower and the cup (4), lines, veils, x and p (13), taking back a yes (14),
 the GM's yes under a seal, carry-over as rows (5).
 
@@ -709,3 +709,79 @@ or is shown to the GM as advice meanwhile.
 jurnalis-engine has no licence file; the survey's hit rule over-counts, read
 the passages. When a want here is built or closed, change its row and say
 when.
+
+### Round 2: asking the box until the good questions ran out (2026-11-21)
+
+Fifteen more questions asked of each chunk's own box (the pot's
+`survey/box-NAME`), then the leads read. Same caveat: a hit is a passage to
+read. Updating the earlier claims:
+
+**Corrections.**
+- **Layforge** (`jamesplotts/layforge`, MIT, 249 files, now the ninth chunk of
+  the pot), by the author of OpenCombatEngine, is the closest sibling found. A
+  *Master* holds the authoritative state and the model's credentials; thin
+  clients hold neither; "everything mechanically consequential (dice, rules
+  resolution, PvP, character validation, content policy) is a gate enforced in
+  code at the tool-call layer, not left to the model's discretion." Its
+  design.md section 9 has **safety tools** (`safety.flag` from any player,
+  interrupts the scene; pre-declared lines and veils in campaign front
+  matter), **character import veto** (a human operator approves or rejects
+  before a character enters play), **knowledge scoping** (`strict`: chat log
+  entries keep the visibility they had live, so history can't leak what was
+  private; the same problem as the `kids` leak) and a **`family_friendly`
+  maturity tier**. So the earlier "none of the eight has lines, veils or a
+  person's yes" is true of the eight and **false of this ninth**.
+- **How it differs from ours:** its safety flag is "injected as a hard
+  constraint into the DM's next generation", and its maturity tiers are
+  "prompt-constraint text", which its own docs call "behavior-shaping rather
+  than a hard filter": the behavioural layer. Ours (a part that touches a line
+  is never read) is the structural one. Its approvals are an operator panel;
+  none of its code found is a hash-chained record or a seal. No commit-reveal
+  dice either (the only hash/seed hits are auth and settings).
+- **Edition labels were wrong.** *jurnalis-engine* says SRD 5.1 but its code
+  has Weapon Mastery "per 2024 SRD" (`class.rs:251`), exhaustion as "2024 SRD
+  unified formula" (`conditions/mod.rs:491`), a Warhammer weight "per the
+  2024 SRD" and origin feats; one comment still says 5.1. It is mostly 2024.
+  *dndwright* carries a full `dnd_5e_2024` ruleset graph (`rules/
+  dnd_5e_2024.py`) and Heroic Inspiration in its species, though its
+  conditions catalog is 5.1 wording. *OpenCombatEngine* is 5.1 under the OGL
+  (`LEGAL.md`). *srd_5e* is 5.2 and says the experience table is the same in
+  both. *narrativeengine-p* ships a 5.2.1 ability compendium. *aetheris5e* names
+  no edition: a d20-versus-AC fight with advantage, nat-20 crits and no death
+  saves, which reads the same in both. **So for 5.2.1: dndwright, srd_5e and
+  (mostly) jurnalis are the better fits; OpenCombatEngine is 5.1.**
+
+**What the engines hand us (new).**
+- **OpenCombatEngine is built as the rules half of a host/engine split.**
+  `protocol/system_engine.proto` (a gRPC contract, 1,225 lines): `ResolveCheck`,
+  `Attack`, `StartTurn`, `StreamEvents`, `ToJson`/`FromJson`; each call is
+  stateless; the proto says the engine "answers *what would happen*, Master
+  decides *is this allowed to happen*". An `Outcome` returns the dice it rolled
+  (`DieRoll` sides, result, label). The request's `params` are "engine-defined",
+  with "roll-spec overrides" mentioned; whether a caller can pass the faces
+  in is **not found**: read `SystemEngineGrpcService.cs` `ResolveCheck`/`Attack`.
+  That is the same seam as our tower and seal, written by someone else.
+- **Rests:** jurnalis eases exhaustion by one on a long rest
+  (`rest/mod.rs:309`), OpenCombatEngine has a resting ADR (`017`). The rule is now in
+  `box/exhaustion.py` (`after_long_rest`).
+
+**Leads for the still-open items.**
+
+| Item | Lead |
+|---|---|
+| 3, help and a reroll | narrativeengine-p has a built-in Help ability in its combat actions (`BUILTIN_HELP_ID`, `packages/engine/src/combat/__tests__/tabletopActions.test.ts:406`: it costs the action); jurnalis has the Lucky feat (3 luck points, reroll an attack, check or save: `character/feat.rs:91`) |
+| 4 (rest), a GM screen roll | ink & bone: a hidden roll shows `[GM]` and `?` to others (`e2e/tests/smoke.spec.ts:162`): hidden in the UI, with no proof it wasn't changed |
+| 8, growing | ink & bone's XP design with the standard 5e thresholds (`docs/superpowers/specs/2026-04-06-xp-advancement-design.md`), OpenCombatEngine ADR 0050, jurnalis XP drives level |
+| 9, a scene made up | ink & bone: `POST /api/sessions/{id}/improvise` returns a 2 to 3 sentence suggestion from the last five messages: it suggests, a person decides; dnd_ai_dm builds its world from one seeded generator |
+| 11, time pressing | taleweaver: an in-game clock, minutes-per-tick, and `on_time_reached` deadline triggers (`RELEASE_NOTES_v0.7.0-beta.md:102`) |
+| 16, 17, map | ink & bone: draggable tokens with positions kept per map, synced to every window over a WebSocket; OpenCombatEngine ADR 0028: a 3D integer grid, Chebyshev distance |
+| 6, 15 | no seat or co-GM model found in any of the nine; layforge has many players and an operator |
+
+**Asked, and nothing found in any chunk:** a commit-then-reveal or hashed roll;
+an audit trail or tamper-evident log; a check that narration's numbers match
+state. These look like the real gaps the box fills. Absence from a top-ten
+list is not proof.
+
+**Next.** Read layforge's tool-call gate code and its `store.go`; read
+OpenCombatEngine's `ResolveCheck`/`Attack` for how dice enter; box layforge
+alone with the survey questions (it is in the pot, not yet surveyed).

@@ -92,7 +92,17 @@ dm` and `dm = ...` was refused).
     `pydantic` and `pyyaml` (a `deps` add-on).
   - Exhaustion written as `box/exhaustion.py` in both SRD editions: dndwright
     is 5.1, srd_5e is 5.2. Not wired into play (item 3 first).
-- **Decided 2026-11-21: the box plays SRD 5.2.1**, 5.1 only where an engine forces it. Engine pick follows: srd_5e (5.2) and dndwright's 5.2.1 content fit; jurnalis-engine and OpenCombatEngine are 5.1, so ideas to borrow, not drop-ins. Still to check: what aetheris5e's fights follow.
+- **Decided 2026-11-21: the box plays SRD 5.2.1**, 5.1 only where an engine forces it. Engine pick follows: srd_5e (5.2) and dndwright's 5.2.1 content fit; OpenCombatEngine is 5.1, so an idea to borrow, not a drop-in; jurnalis is mostly 2024 despite its 5.1 label. Still to check: what aetheris5e's fights follow.
+
+- **Round 2 (2026-11-21), the box asked until the good questions ran out**
+  (full notes in [../open.md](../open.md), "Round 2"): layforge
+  (`jamesplotts/layforge`, MIT) poured as a ninth chunk; it has safety tools,
+  an operator veto and knowledge scoping, so the "none of the eight" claims
+  above hold for the eight only; jurnalis-engine is mostly 2024 rules despite
+  its 5.1 label; OpenCombatEngine is the engine half of a host/engine split
+  with a stateless gRPC contract; leads found for items 3, 4, 8, 9, 11, 16, 17.
+  Ask with `ask.py`-style batches over `POT/survey/box-NAME` (about 25 s a
+  question across eight chunks).
 
 ## Not done, and why
 

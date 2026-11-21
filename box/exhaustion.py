@@ -48,6 +48,12 @@ def dead(level: int) -> bool:
     return _level(level) >= MAX_LEVEL
 
 
+def after_long_rest(level: int) -> int:
+    """A finished long rest eases exhaustion by one level (never below 0), in
+    both editions. (5.1 also asks for food and drink; that is not modelled.)"""
+    return max(0, _level(level) - 1)
+
+
 def d20_modifier(level: int, edition: str = DEFAULT) -> int:
     """What every d20 test is changed by. 5.2: -2 a level. 5.1 has none: it
     gives disadvantage instead (see roll_mode)."""
