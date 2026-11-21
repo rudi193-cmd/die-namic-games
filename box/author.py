@@ -35,7 +35,7 @@ The shape, in order:
     kind: action                        (or: decision)
     by: juno                            (whose beat it is; optional)
     suggests: Wit                       (an action's approach)
-    when: up::climb is weak, miss       (or: offered guest is sealed;
+    when: up::climb is weak, miss       (or: offered guest is sealed; the fight is won;
                                          or: sealed clockwork-cellar::room::free is sealed,
                                          a ruling in an earlier chapter)
     - strong: what happens
@@ -112,7 +112,14 @@ def character(cid: str, text: str, at: int) -> dict:
     return c
 
 
+FIGHT_WHEN = re.compile(r"^the fight is (won|lost)$", re.IGNORECASE)
+
+
 def when_of(text: str, at: int) -> dict:
+    if m := FIGHT_WHEN.match(
+        text.strip()
+    ):  # the GM's answer to how the last fight stands
+        return {"offered": "fight", "is": ["sealed" if m.group(1).lower() == "won" else "declined"]}  # fmt: skip
     if m := SEALED_WHEN.match(text):
         return {"sealed": m.group(1), "is": listed(m.group(2))}
     if m := OFFER_WHEN.match(text):
@@ -120,8 +127,8 @@ def when_of(text: str, at: int) -> dict:
     if m := BEAT_WHEN.match(text):
         return {"beat": m.group(1), "is": listed(m.group(2))}
     raise StoryError(
-        f"line {at}: when is `scene::beat is strong, weak`, `offered KIND is sealed`"
-        " or `sealed story::scene::beat is sealed`"
+        f"line {at}: when is `scene::beat is strong, weak`, `offered KIND is sealed`,"
+        " `the fight is won` or `sealed story::scene::beat is sealed`"
     )
 
 
@@ -212,6 +219,11 @@ def read(text: str, lines: dict | None = None) -> dict:
         else:
             raise StoryError(f"line {at}: {line[:60]!r} isn't part of a story here{why_not(line, section)}")  # fmt: skip
     world.setdefault("base_stat", 1)
+    fought = any(b.get("when", {}).get("offered") == "fight" for sc in world["scenes"] for b in sc.get("beats", []))  # fmt: skip
+    if fought and "fight" not in world.get(
+        "offers", []
+    ):  # a story that turns on a fight takes its ending as an offer
+        world["offers"] = [*world.get("offers", []), "fight"]
     return world
 
 

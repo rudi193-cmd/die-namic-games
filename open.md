@@ -380,7 +380,8 @@ reached from the play path.
    dice, above. **The cup is built:** every moment's dice go into willow's
    dice-tower when the moment is posed and come out on the roll, so no
    call or row can steer them and nobody reads them first. Not yet: the
-   GM's screen roll, and the GM's word over the dice.
+   GM's screen roll, and the GM's word over the dice, except over a fight:
+   a call on how a fight stands, against the dice, is kept beside it (10).
 
 **The characters**
 
@@ -414,7 +415,12 @@ reached from the play path.
    story is its scenes in order; the GM can say one line (a blank moment),
    not open a new place or moment.
 10. **Fights that change the story.** Won or lost, the next moment is the
-    same. *(Nearest so far: a blank moment, and the GM's word.)*
+    same. *(Nearest so far: a blank moment, and the GM's word.)* **Built:** a
+    moment can be written "when: the fight is won" (or lost); after a fight
+    the GM is asked whether it stands that the party won, and that call,
+    sealed or declined as an offer of the kind `fight` (game-master's own
+    `offered`), picks the moment that follows. Not yet: write.py asking
+    for it in plain words.
 11. **Time pressing:** the tide rising, the fair closing at midnight, a
     count the table can see.
 12. **A replaced truth no longer unlocking.** Found in the journey: "Mira

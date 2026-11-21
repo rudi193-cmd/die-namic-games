@@ -373,3 +373,100 @@ def test_a_moment_asked_for_its_dice_again_finds_them_still_in_the_tower(home, c
     assert (
         nxt != first and len([r for r in rows(home) if r["kind"] == "tower-drop"]) == 2
     )
+
+
+AMBUSH = """# The Ambush
+
+id: the-ambush
+setting: A pass in the hills. Every name here is a character, never a player.
+stats: Grit, Wit
+base stat: 1
+
+## Characters
+
+- rhea: Rhea | scout | seated | Grit 2
+
+## Places
+
+- the-pass: The pass
+
+## Scene pass: The pass @ the-pass
+
+Raiders come down the slope.
+
+### Rhea readies her bow.
+
+id: ready
+kind: action
+suggests: Grit
+
+- strong: She is ready.
+- weak: She is nearly ready.
+- miss: She drops an arrow.
+
+## Scene after: After the fight @ the-pass
+
+### Rhea counts the raiders' horses.
+
+id: horses
+kind: action
+suggests: Wit
+when: the fight is won
+
+- strong: Six horses, and one of them friendly.
+- weak: Five horses.
+- miss: The horses scatter.
+
+### Rhea limps back down the pass.
+
+id: retreat
+kind: action
+suggests: Grit
+when: the fight is lost
+
+- strong: She makes the camp by dark.
+- weak: She makes the camp by morning.
+- miss: She hides in the rocks till dawn.
+"""
+
+
+def ambush(home: Path) -> str:
+    """The ambush laid in the table's stories, and its number in the picker."""
+    story = home / "table" / "stories" / "the-ambush.md"
+    story.parent.mkdir(exist_ok=True)
+    story.write_text(AMBUSH)
+    made = subprocess.run([sys.executable, BOX / "author.py", story, "--to", home / "table" / "worlds" / "the-ambush.json"], capture_output=True, text=True, check=False)  # fmt: skip
+    assert made.returncode == 0, made.stderr
+    _code, out, _left = table_turn(home, [])
+    return next(x.split(".")[0].strip() for x in out.splitlines() if "The Ambush" in x and x.strip()[:1].isdigit())  # fmt: skip
+
+
+@pytest.mark.parametrize("call, played, not_played", [("y", "Rhea counts the raiders' horses.", "Rhea limps back"), ("n", "Rhea limps back down the pass.", "raiders' horses")])  # fmt: skip
+def test_a_fight_the_story_turns_on_is_the_gms_call_and_the_next_moment_follows_it(home, call, played, not_played):  # fmt: skip
+    k = ambush(home)
+    steps = [("Which story?", k), (">", "f"), ("Which?", "3"), ("won the fight?", call), (">", ""), (">", "")]  # fmt: skip
+    _code, out, _left = table_turn(home, steps)
+    assert "✋ Your call, GM. The dice say the party " in out and "   Does it stand that the party won the fight? (y/n) " in out  # fmt: skip
+    assert f"   It stands: the party {'won' if call == 'y' else 'lost'}.\n" in out
+    assert played in out and not_played not in out
+    offer = next(r for r in rows(home) if r["kind"] == "table-offer" and r.get("as") == "fight")  # fmt: skip
+    answer = [r["kind"] for r in rows(home) if r.get("subject") == offer["subject"] and r["kind"] in ("seal", "decline")]  # fmt: skip
+    assert answer == ["seal" if call == "y" else "decline"]
+    end = next(r for r in rows(home) if r["kind"] == "fight-end")["result"]["outcome"]
+    assert ("Your word over the dice" in out) == ((end == "party") != (call == "y"))
+    assert all(c.returncode == 0 for c in checks(home)), [
+        c.stderr for c in checks(home)
+    ]
+
+
+def test_a_story_that_turns_on_a_fight_takes_fight_among_its_offers(tmp_path):
+    story = tmp_path / "s.md"
+    story.write_text(AMBUSH)
+    made = subprocess.run([sys.executable, BOX / "author.py", story, "--to", tmp_path / "s.json"], capture_output=True, text=True, check=False)  # fmt: skip
+    assert made.returncode == 0, made.stderr
+    world = json.loads((tmp_path / "s.json").read_text())
+    assert world["offers"] == ["fight"]
+    whens = [
+        b.get("when") for sc in world["scenes"] for b in sc["beats"] if "when" in b
+    ]
+    assert whens == [{"offered": "fight", "is": ["sealed"]}, {"offered": "fight", "is": ["declined"]}]  # fmt: skip

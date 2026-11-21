@@ -52,7 +52,12 @@ first (with the heads-up when it meets what the table holds true), and only
 then is it handed in and answered, so leaving midway leaves nothing behind.
 f is a fight played by fight.py onto the record, blow by blow, then drawn
 as a board (box/board.py: who's hurt, who's down, whose turn); what it
-means for the story is the GM's to say.
+means for the story is the GM's to say. In a story that turns on a fight
+(a moment written "when: the fight is won", or lost), f is there too, and
+its end goes to the GM as a call: "Does it stand that the party won?" Their
+yes or no is sealed or declined as an offer of the kind `fight`, so the
+moment that follows is the one the call says; a call against the dice is
+the GM's word over them, kept beside the fight, never the fight changed.
 h is how the character meets it: the story's stats, each with the
 character's bonus and its exact chances (2d6 counted, as play-odds would),
 the story's own first; game-master's act takes any of them. u undoes a yes pressed by mistake: the last thing made true tonight, taken
@@ -580,7 +585,7 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
         if veil:
             print(f"   🌫 ({veil}: it happens off-screen.)")
     die = in_tower(table, game, now)
-    fights = world["id"] in FIGHTS
+    fights = world["id"] in FIGHTS or "fight" in world.get("offers", [])
     how = b["suggests"]
     hint = (
         "  Enter: roll, or type the two dice you threw (like 4 6)\n"
@@ -610,7 +615,7 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
             if bring_in(table / "record", world, world_file, now) is None:
                 return None
         elif got.lower() == "f" and fights:
-            if fight(table, now) is None:
+            if fight(table, now, world, world_file, game) is None:
                 return None
         elif got.lower() == "s":
             print(sheets(table, world))
@@ -748,9 +753,12 @@ def bring_in(box: Path, world: dict, world_file: Path, now: str) -> bool | None:
     return answer
 
 
-def fight(table: Path, now: str) -> bool | None:
+def fight(table: Path, now: str, world: dict | None = None, world_file: Path | None = None, game: dict | None = None) -> bool | None:  # fmt: skip
     """A fight from aetheris5e, played by fight.py onto the record, blow by
-    blow. True once fought, False if it couldn't be, None if the person left."""
+    blow, then drawn as a board. In a story that turns on a fight (one whose
+    offers name `fight`: a moment written "when: the fight is won"), its end
+    goes to the GM as a call (fight_stands). True once fought, False if it
+    couldn't be, None if the person left."""
     listed = run(HERE / "fight.py", "list")
     names = [line.split()[0] for line in listed.stdout.splitlines() if line.strip()]
     descs = [line.strip().split(None, 1)[1] for line in listed.stdout.splitlines() if line.strip()]  # fmt: skip
@@ -775,7 +783,38 @@ def fight(table: Path, now: str) -> bool | None:
     said = {"party": "The party won", "foe": "The party fell", "stalemate": "Neither side fell"}.get(res["outcome"], "It ended")  # fmt: skip
     standing = ", ".join(res["party_survivors"] + res["foe_survivors"]) or "no one"
     print(f"⚔️  {said} in {res['rounds']} rounds. Still standing: {standing}.")
+    if world is not None and "fight" in world.get("offers", []):
+        return fight_stands(table / "record", world, world_file, game, res["outcome"] == "party", now)  # fmt: skip
     print("   (What the fight means for the story is yours to say, GM.)")
+    return True
+
+
+def fight_stands(box: Path, world: dict, world_file: Path, game: dict, won: bool, now: str) -> bool | None:  # fmt: skip
+    """The GM's call on how a fight stands for the story: "the party won",
+    handed in as an offer of the kind `fight` and sealed on the GM's yes or
+    declined on their no, so the moments written "when: the fight is won" (or
+    lost) are the ones played. Answered against the dice, it's the GM's word
+    over them: the fight stays on the record as it went, and the call beside
+    it. True once answered, None if the person left."""
+    who = gm.now_in(world, game)[2]["id"]
+    print(f"\n✋ Your call, GM. The dice say the party {'won' if won else 'fell'}.")
+    answer = yes("   Does it stand that the party won the fight? (y/n) ")
+    if answer is None:
+        return None
+    done = session.step(box, world_file, now, "offer", who, "The party won the fight.", "--as", "fight")  # fmt: skip
+    if done.returncode == kernel.REFUSED:
+        raise RuntimeError(done.stderr.strip())
+    _, game, _ = gm.current(box, world)
+    subject = game["offers"][-1]["subject"]
+    answered = run(KERNEL, "seal" if answer else "decline", "--box", box, "--now", now, subject)  # fmt: skip
+    if answered.returncode != kernel.ALIVE:
+        raise RuntimeError((answered.stderr or answered.stdout).strip())
+    heard = session.step(box, world_file, now, "settle")
+    if heard.returncode == kernel.REFUSED:
+        raise RuntimeError(heard.stderr.strip())
+    if answer != won:
+        print("   Your word over the dice: the fight stays on the record as it went, and your call beside it.")  # fmt: skip
+    print("   It stands: the party " + ("won." if answer else "lost."))
     return True
 
 
