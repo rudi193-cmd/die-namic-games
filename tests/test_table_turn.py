@@ -25,7 +25,7 @@ import willow_pin
 
 NOW = "2026-11-20T19:00:00Z"
 VELL = "Old Vell from the lantern fair comes down the stair."
-HINT = "  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside\n> "
+HINT = "  Enter: roll, or type the two dice you threw (like 4 6)\n  h: how · o: someone brings something in · s: sheets · u: undo a yes · x: set it aside · p: pause the night\n> "
 
 
 def table_turn(home: Path, steps: list, every: dict | None = None, now: str = NOW):
@@ -65,7 +65,7 @@ def test_each_roll_waits_for_enter_and_a_word_that_isnt_one_is_asked_again(home)
         out.count(HINT) >= 2 and "f: a fight" not in out
     )  # the lantern fair has no fights
     assert (
-        "  Press Enter to roll, type your two dice (like 4 6), or h, o, s, u or x.\n"
+        "  Press Enter to roll, type your two dice (like 4 6), or h, o, s, u, x or p.\n"
         in out
         and not left
     )
@@ -140,7 +140,7 @@ def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
     _code, out, left = table_turn(home, steps)
     assert not left, out
     assert (
-        "o: someone brings something in · f: a fight · s: sheets · u: undo a yes · x: set it aside\n> "
+        "o: someone brings something in · f: a fight · s: sheets · u: undo a yes · x: set it aside · p: pause the night\n> "
         in out
     )
     assert "⚔️  the party ambushed by 4 Scorched Belt Raiders" in out
@@ -158,7 +158,7 @@ def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
 
 def test_no_fight_where_it_doesnt_belong(home):
     _code, out, _left = table_turn(home, [("Which story?", ""), (">", "f")])
-    assert "Press Enter to roll, type your two dice (like 4 6), or h, o, s, u or x." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
+    assert "Press Enter to roll, type your two dice (like 4 6), or h, o, s, u, x or p." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
 
 
 LAMP = (
@@ -470,3 +470,56 @@ def test_a_story_that_turns_on_a_fight_takes_fight_among_its_offers(tmp_path):
         b.get("when") for sc in world["scenes"] for b in sc["beats"] if "when" in b
     ]
     assert whens == [{"offered": "fight", "is": ["sealed"]}, {"offered": "fight", "is": ["declined"]}]  # fmt: skip
+
+
+def test_p_at_a_roll_pauses_the_whole_night_and_it_is_picked_up_again(home):
+    code, out, left = table_turn(home, [("Which story?", ""), (">", "p")])
+    assert code == 42 and not left
+    assert "Paused. Nobody needs to say why. Run this again when you're ready." in out
+    pauses = [r for r in rows(home) if r["kind"] == "table-pause"]
+    assert len(pauses) == 1 and pauses[0]["who"] == "table"
+    assert not {"why", "reason", "for", "because", "name", "character", "by"} & set(pauses[0])  # fmt: skip
+    assert not [r for r in rows(home) if r["kind"] == "table-x"]
+    _code, again, _ = table_turn(home, [("Which story?", ""), (">", "")])
+    assert HINT in again
+
+
+def test_p_at_the_gms_call_pauses_and_nothing_is_decided(home):
+    steps = [CELLAR, (">", "o"), ("Who?", "1"), ("bring in?", VELL), ("Which?", "2"), ("(y/n)", "p")]  # fmt: skip
+    code, out, _ = table_turn(home, steps)
+    assert code == 42 and "Paused. Nobody needs to say why." in out
+    assert len([r for r in rows(home) if r["kind"] == "table-pause"]) == 1
+    assert not [r for r in rows(home) if r["kind"] == "table-offer"]
+    assert "It's true now." not in out and "It didn't happen." not in out
+
+
+def test_x_at_the_gms_call_sets_it_aside_and_decides_nothing(home):
+    before = [r["kind"] for r in rows(home)]
+    steps = [CELLAR, (">", "o"), ("Who?", "1"), ("bring in?", VELL), ("Which?", "2"), ("(y/n)", "x")]  # fmt: skip
+    _code, out, left = table_turn(home, steps)
+    assert not left
+    assert "Set aside. Nobody needs to say why. Nothing is handed in or decided." in out
+    assert "It's true now." not in out and "It didn't happen." not in out
+    new = rows(home)[len(before) :]
+    xs = [r for r in new if r["kind"] == "table-x"]
+    assert len(xs) == 1 and xs[0]["part"] == "call" and xs[0]["who"] == "table"
+    assert not [r for r in new if r["kind"] in ("seal", "decline")]
+    assert not {"why", "reason", "for", "because", "name", "character", "by"} & set(xs[0])  # fmt: skip
+
+
+def test_x_and_p_at_the_gms_moment(home):
+    steps = [("Which story?", ""), (">", "x"), ("happens instead?", "x")]
+    _code, out, _left = table_turn(home, steps)
+    assert "Nothing is kept; the story goes on." in out
+    kinds = [(r["kind"], r.get("part")) for r in rows(home) if r["kind"] == "table-x"]
+    assert kinds == [("table-x", None), ("table-x", "moment")]
+
+
+def test_p_at_the_gms_moment_pauses_and_the_night_picks_up_again(home):
+    steps = [("Which story?", ""), (">", "x"), ("happens instead?", "p")]
+    code, out, _ = table_turn(home, steps)
+    assert code == 42 and "Paused. Nobody needs to say why." in out
+    assert not [r for r in rows(home) if r["kind"] == "table-offer"]
+    again = [("Which story?", "1"), ("happens instead?", "")]
+    _code, out, _left = table_turn(home, again)
+    assert "Something went wrong" not in out and "Which story?" in out

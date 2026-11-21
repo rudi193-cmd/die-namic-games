@@ -22,6 +22,14 @@ doesn't trip it.
 The X-card is the other half: at any roll, x sets the next part aside, no
 reason asked. Only that it happened is kept (play.py's `table-x` row):
 never who, never why.
+
+So is the pause: p at a roll, a GM's call or a GM's moment stops the whole
+night, no reason asked, and the night is picked up again by running it
+again. Only that it happened is kept (a `table-pause` row, no one named).
+x at a GM's call or moment sets that part aside the same way (the row says
+only which kind of part): at a call nothing is decided and the call waits
+(a call can't be skipped, only the GM's yes or no settles it); at a moment
+nothing is kept and the story goes on.
 """
 
 from __future__ import annotations
@@ -31,6 +39,7 @@ from pathlib import Path
 
 PAGE = "our-lines.md"
 X = "table-x"
+PAUSE = "table-pause"
 QUIET = frozenset({"a", "an", "the", "of", "to", "and", "or", "in", "on", "at", "for", "with", "by", "any", "no", "not", "being", "getting", "get", "gets", "is", "are", "be"})  # fmt: skip
 
 
