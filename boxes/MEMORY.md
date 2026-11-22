@@ -17,7 +17,7 @@ as you want, write them down here").
 | [srd-engines/](srd-engines/) | whether an outside SRD rules engine could stand under the record and seal: can the dice be handed in, is it deterministic, how is a fight's state kept, what each asks of us | OpenCombatEngine `16b45b0` (C#, MIT), jurnalis-project/engine `dbf40d4` (Rust), srd_5e `b0a2164` (Elixir, from the agentic-realms monorepo's packages/srd_5e, Apache-2.0), dndwright `6f0fb9e` (Python, MIT); 685 files | `bash boxes/srd-engines/rebuild.sh SCRATCH` (checkouts at `../OWNER/NAME`, or `ENGINES_DIR`); about 30 s | 9 of 9 answered, none flagged |
 | [pot/](pot/) | anything: an empty box you throw chunks into with `pour.sh`, swirled with `swirl.sh` and its general stack; chunks are yours, not pinned | whatever you pour, kept in a folder outside the repo (`POT`) | `bash boxes/pot/pour.sh POT NAME SOURCE`, then `bash boxes/pot/swirl.sh POT` (`--ask "..."` for a one-off want); seconds | tried once: 134 files, 7 of 8 steps clean; also `survey.py POT`, one box per chunk and 27 questions, first run over the eight in [pot/results-eight/](pot/results-eight/) (read `connections.md` first) |
 | [our-two-repos/](our-two-repos/) | what willow and die-namic-games already hold about a fight engine, the dice, the card promises, the deps rules; the research behind open.md's fight-engines note | willow at its pin `370f74a`, die-namic-games at `3de61d2` (.md and .py, no `boxes/`); 1,984 files | `bash boxes/our-two-repos/rebuild.sh SCRATCH`; about 1 min | 8 of 8 answered, none flagged |
-| [looks/](looks/) | how game pages are dressed and laid out, for Die-Namic's redesign: the other GMs' screens, our own pages, and published GM screens brought in for the art on them | the four gm-projects at the same pins (.tsx .vue .css .scss .html .md only), Die-Namic's `ui/` sources at HEAD, and GM screen art from `SCREEN_ART` (default `../screen-art`, outside git: each picture with a `.md` note; pictures read by willow's ocr when tesseract is there); 1,217 files with no screen art yet, with `my-table.md`, the maintainer's own GM side in their words, and Die-Namic's design pages | `bash boxes/looks/rebuild.sh SCRATCH`, about 10 s (the index, kept in SCRATCH, rebuilds only when the pile changed: 8 s); then `bash boxes/looks/ask.sh SCRATCH "your words" ...`, about a second | 6 wants, 20 questions, none flagged |
+| [looks/](looks/) | how game pages are dressed and laid out, for Die-Namic's redesign: the other GMs' screens, our own pages, and published GM screens brought in for the art on them | the four gm-projects at the same pins (.tsx .vue .css .scss .html .md only), Die-Namic's `ui/` sources at HEAD, and GM screen art from `SCREEN_ART` (default `../screen-art`, outside git: each picture with a `.md` note; pictures read by willow's ocr when tesseract is there); 1,217 files with no screen art yet, with `my-table.md`, the maintainer's own GM side in their words, and Die-Namic's design pages | `bash boxes/looks/rebuild.sh SCRATCH`, about 10 s (the index, kept in SCRATCH, rebuilds only when the pile changed: 8 s); then `bash boxes/looks/ask.sh SCRATCH "your words" ...`, about a second | 7 wants, 24 questions, none flagged |
 
 Each folder: `stack.md` (the wants), `words.txt` (how readers ask), `rebuild.sh`,
 `results/` (last `page.md` and step log, the machine's paths written
@@ -121,6 +121,19 @@ dm` and `dm = ...` was refused).
   index-cache index, the kernel's own answers, in about a second.
   Decided by the maintainer: the lookup lives in the left panel and comes
   into the centre when called (my-table.md).
+- **looks, want 7** (pictures the table makes: a creature's, a kid's own
+  drawing). tesseract is on the table already: a table laid by
+  open_table.py has `scans/` (box/open_table.py:114), and the end of the
+  night's first want reads the GM's handwritten pages from it into
+  `pile/scanned` with willow's `ocr` (box/gm-end.md:12; "OCR guesses: the
+  binder cites the line tesseract read"). A drawing brought in by a player
+  is an `offer`: something brought to the table as their character, handed
+  to the GM, canon that night only on the GM's seal (box/README.md:235).
+  `kids` (an idea) is the seat that asks and never seals (open.md:530). Not
+  yet: a picture kept as a picture (the pile and the kernel read only its
+  words), a drawing read during the night rather than at its end, and a
+  page that shows it; ink & bone keeps a portrait per character, an 80px
+  circle uploaded from the sheet (README.md:326).
 
 - **TaleWeaver** enforces rules after the model speaks: a "deterministic
   enforcement" pass, rule violations fed back into a second narration pass,

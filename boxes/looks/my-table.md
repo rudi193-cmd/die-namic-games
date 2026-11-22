@@ -37,3 +37,10 @@ the binder, the rules, the rulebooks.
 Where the lookup sits (2026-11-22): "I think it should live in the left,
 that comes into the center when called." The lookup is part of the left
 panel's quick reference; an answer, called, moves into the centre panel.
+
+Pictures the table makes (2026-11-22): "Since we already have the
+tesseract in, that should really be included, because I was just thinking
+about images for the creatures, and how a kid could draw their own, with
+their character, and put it in." A creature's picture in the bestiary; a
+kid's own drawing of their character, or of a creature, brought to the
+table and put in.

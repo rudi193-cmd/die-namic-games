@@ -33,3 +33,6 @@ players = seats, seated, characters, sheets
 lookup = ask, binder, rules
 rulebook = rules, compendium, srd
 books = rulebook, pdf
+drawing = picture, portrait, image
+drew = drawing
+creature = monster, foes

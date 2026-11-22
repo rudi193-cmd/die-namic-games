@@ -52,3 +52,10 @@ Want 6: "What do we already have for a quick lookup of everything that
 might turn up: the rules, the books, asked on demand?" (the maintainer,
 2026-11-22)
 - batch-ask -- scan --index {box}/../index --words {box}/../words.txt --top 8 --questions {box}/../questions/want6.tsv
+
+## pictures the table makes
+
+Want 7: "What do we already have for pictures: a creature's, and a kid's
+own drawing of their character, read and put in?" (the maintainer,
+2026-11-22: tesseract is in already)
+- batch-ask -- scan --index {box}/../index --words {box}/../words.txt --top 8 --questions {box}/../questions/want7.tsv
