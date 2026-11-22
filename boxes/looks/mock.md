@@ -90,10 +90,11 @@ your call, GM: [ Yes, it's true ] → bestiary card with Biscuit's picture
 different tables" (the maintainer). The same three panels, from the seat:
 left, my quick reference; centre, the table (what the GM put on it, the
 dice box, my hand); right, my character. Juno plays Tamsin; her buttons
-suggest, never decide.
+suggest, never decide. Placeholders: the Thursday table, Juno's notes, "no
+spiders" as a line, the hand of cards.
 
 ```
-┌─ Juno · at Sean's table: The Lantern Fair ─── [ my tables ▾ ] ────────────────┐
+┌─ Juno · at the Thursday table: The Lantern Fair ─ [ my tables ▾ ] ────────────┐
 │ ┌─ LEFT: my quick ref ──┐ ┌─ CENTRE: the table ─────────────┐ ┌─ RIGHT: me ────┐│
 │ │ ⌕ ask… ____________   │ │ FROM THE GM                     │ │ Tamsin         ││
 │ │  (what's on the table │ │ ▸ Dusk at the stalls            │ │ lamp-lighter   ││
