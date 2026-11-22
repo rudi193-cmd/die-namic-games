@@ -17,7 +17,7 @@ as you want, write them down here").
 | [srd-engines/](srd-engines/) | whether an outside SRD rules engine could stand under the record and seal: can the dice be handed in, is it deterministic, how is a fight's state kept, what each asks of us | OpenCombatEngine `16b45b0` (C#, MIT), jurnalis-project/engine `dbf40d4` (Rust), srd_5e `b0a2164` (Elixir, from the agentic-realms monorepo's packages/srd_5e, Apache-2.0), dndwright `6f0fb9e` (Python, MIT); 685 files | `bash boxes/srd-engines/rebuild.sh SCRATCH` (checkouts at `../OWNER/NAME`, or `ENGINES_DIR`); about 30 s | 9 of 9 answered, none flagged |
 | [pot/](pot/) | anything: an empty box you throw chunks into with `pour.sh`, swirled with `swirl.sh` and its general stack; chunks are yours, not pinned | whatever you pour, kept in a folder outside the repo (`POT`) | `bash boxes/pot/pour.sh POT NAME SOURCE`, then `bash boxes/pot/swirl.sh POT` (`--ask "..."` for a one-off want); seconds | tried once: 134 files, 7 of 8 steps clean; also `survey.py POT`, one box per chunk and 27 questions, first run over the eight in [pot/results-eight/](pot/results-eight/) (read `connections.md` first) |
 | [our-two-repos/](our-two-repos/) | what willow and die-namic-games already hold about a fight engine, the dice, the card promises, the deps rules; the research behind open.md's fight-engines note | willow at its pin `370f74a`, die-namic-games at `3de61d2` (.md and .py, no `boxes/`); 1,984 files | `bash boxes/our-two-repos/rebuild.sh SCRATCH`; about 1 min | 8 of 8 answered, none flagged |
-| [looks/](looks/) | how game pages are dressed and laid out, for Die-Namic's redesign: the other GMs' screens, our own pages, and published GM screens brought in for the art on them | the four gm-projects at the same pins (.tsx .vue .css .scss .html .md only), Die-Namic's `ui/` sources at HEAD, and GM screen art from `SCREEN_ART` (default `../screen-art`, outside git: each picture with a `.md` note; pictures read by willow's ocr when tesseract is there); 1,537 files with no screen art yet, with `my-table.md`, the maintainer's own GM side in their words, and Die-Namic's design pages | `bash boxes/looks/rebuild.sh SCRATCH`, about 10 s (the index, kept in SCRATCH, rebuilds only when the pile changed: 8 s); then `bash boxes/looks/ask.sh SCRATCH "your words" ...`, about a second | 9 wants, 38 questions, none flagged |
+| [looks/](looks/) | how game pages are dressed and laid out, for Die-Namic's redesign: the other GMs' screens, our own pages, and published GM screens brought in for the art on them | the four gm-projects at the same pins (.tsx .vue .css .scss .html .md only), Die-Namic's `ui/` sources at HEAD, and GM screen art from `SCREEN_ART` (default `../screen-art`, outside git: each picture with a `.md` note; pictures read by willow's ocr when tesseract is there); 1,537 files with no screen art yet, with `my-table.md`, the maintainer's own GM side in their words, and Die-Namic's design pages | `bash boxes/looks/rebuild.sh SCRATCH`, about 10 s (the index, kept in SCRATCH, rebuilds only when the pile changed: 8 s); then `bash boxes/looks/ask.sh SCRATCH "your words" ...`, about a second | 10 wants, 46 questions, none flagged |
 
 Each folder: `stack.md` (the wants), `words.txt` (how readers ask), `rebuild.sh`,
 `results/` (last `page.md` and step log, the machine's paths written
@@ -166,6 +166,26 @@ dm` and `dm = ...` was refused).
   and isn't built. One person at many tables in many seats: sharing the
   GM's chair is item 15, not built (open.md:462); `grant` and `witness` are
   ideas. The player's screen is in mock.md.
+- **looks, want 10** (share, done in willow's demos; the pile holds share
+  whole and the blackout, annex and johnson demos). **Each seat its own
+  box:** annex's compartments are each "a pile, a record, a key of its own,
+  so access to one is never access to another"; material crosses only as a
+  sealed package, a `sent` row on one chain and a `received` on the other
+  (demo/annex/README.md). So a player's lookup asks their own box, which
+  holds what the GM sent them and their own notes, and can't reach the GM's
+  binder by construction: the answer to want 9's `gm-only/` leak, built,
+  where `kids` isn't. **One person, many tables:** an identity is a key
+  pair kept outside the box; `rotate` changes it loudly, and a package for
+  a key you rotated from is still yours (share/README.md:75). **A page per
+  person, already built twice:** annex_os.py (a green-screen terminal) and
+  blackout's kiosk.py (a 2013 office PC) are one self-contained page each,
+  built from what the scene wrote, never reading a box, a key or a pile:
+  choose your badge or log on, and see only your own sealed answers, what
+  you sent and what arrived; anyone else's is "nothing on record". The
+  look is the point: each is dressed as the machine it pretends to run on.
+  That is the GM's and the players' screens, and the screen art is their
+  dress. **Johnson:** one report through five people, forwarded, each chain
+  knowing only its own hop; a correction follows the same path.
 
 - **TaleWeaver** enforces rules after the model speaks: a "deterministic
   enforcement" pass, rule violations fed back into a second narration pass,

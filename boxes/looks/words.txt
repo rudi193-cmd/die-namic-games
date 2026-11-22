@@ -36,3 +36,5 @@ books = rulebook, pdf
 drawing = picture, portrait, image
 drew = drawing
 creature = monster, foes
+badge = logon, door
+seat = badge, logon

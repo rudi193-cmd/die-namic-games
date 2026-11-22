@@ -74,3 +74,9 @@ tables: what does a seat already have, and what must a player's lookup
 never reach?" (the maintainer: "think of it like their own screen. A gm can
 be a player sometimes too, at different tables")
 - batch-ask -- scan --index {box}/../index --words {box}/../words.txt --top 8 --questions {box}/../questions/want9.tsv
+
+## share, as willow's demos already do it
+
+Want 10: "Share is done, in willow's demos: what do they show for the
+tables, the seats and the page each person sees?" (the maintainer)
+- batch-ask -- scan --index {box}/../index --words {box}/../words.txt --top 8 --questions {box}/../questions/want10.tsv

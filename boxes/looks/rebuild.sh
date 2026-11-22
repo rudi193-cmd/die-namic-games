@@ -17,6 +17,9 @@
 #                 maintainer's own GM side of the table, in their words.
 #   willow/       willow's demo/craft-assembly at the pin: the image suite
 #                 (the Craft apps), its README, report, background and sources.
+#                 And share, as the demos use it: adapters/stdlib/share whole,
+#                 and blackout's, annex's and johnson's README, story and scene,
+#                 and the pages two of them build (annex_os.py, kiosk.py).
 #   craft/NAME    its four image apps (photocraft, drawcraft, artcraft,
 #                 designcraft), their .md at the commits the demo pinned, from
 #                 checkouts at CRAFT (default ../craft).
@@ -73,7 +76,11 @@ cp "$HERE/mock.md" "$S/pile/ours/mock.md"
 # Photoshop and Premiere rebuilt in Rust, taken apart and assembled into one)
 mkdir -p "$S/pile/willow" && git -C "$W" archive HEAD demo/craft-assembly/README.md \
   demo/craft-assembly/REPORT.md demo/craft-assembly/BACKGROUND.md demo/craft-assembly/sources.json \
-  demo/craft-assembly/composite.json | tar -x -C "$S/pile/willow"
+  demo/craft-assembly/composite.json \
+  adapters/stdlib/share demo/blackout/README.md demo/blackout/STORY.md demo/blackout/scene.py \
+  demo/annex/README.md demo/annex/STORY.md demo/annex/scene.py demo/annex/annex_os.py \
+  demo/blackout/kiosk.py demo/johnson/README.md \
+  | tar -x -C "$S/pile/willow" --exclude='*/__pycache__*'
 laid="$laid willow-craft-assembly@$(git -C "$W" rev-parse --short HEAD)"
 # The four image apps of it, their .md at the commits the demo pinned
 # (sources.json), from checkouts at CRAFT/NAME (default ../craft/NAME).
