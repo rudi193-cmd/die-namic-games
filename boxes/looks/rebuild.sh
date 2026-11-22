@@ -1,6 +1,6 @@
 #!/bin/bash
 # Lay a box over how game pages look: the four open AI game masters'
-# screens, Die-Namic's own pages, and book designs brought in for
+# screens, Die-Namic's own pages, and GM screen art brought in for
 # inspiration. Run its stack.
 # Usage: rebuild.sh SCRATCH
 #
@@ -15,15 +15,16 @@
 #                 worlds, the-table's README, boxes/MEMORY.md) at this checkout's
 #                 HEAD, and my-table.md: the
 #                 maintainer's own GM side of the table, in their words.
-#   books/        book designs, from a folder outside the repository (BOOKS,
-#                 or ../book-designs): each picture with a note beside it
+#   screen-art/   published GM screens, the art on them, from a folder outside
+#                 the repository (SCREEN_ART,
+#                 or ../screen-art): each picture with a note beside it
 #                 (same name, .md) saying what it is and what to take from
 #                 it. The notes are laid as written; the pictures are read by
-#                 willow's ocr add-on into books-read/ when tesseract is
+#                 willow's ocr add-on into screen-art-read/ when tesseract is
 #                 installed, and left out, and said, when it isn't. No add-on
 #                 reads colour or layout from a picture: the note carries it.
 #
-# The pictures are someone else's work: they stay in BOOKS and the scratch
+# The pictures are someone else's work: they stay in SCREEN_ART and the scratch
 # folder, never in git. A fresh box each time. The key is a scratch key init
 # makes, in SCRATCH, outside the box; nothing is ever sealed with it.
 # SCRATCH/index is kept between runs (index-cache rebuilds it only when the
@@ -38,7 +39,7 @@ taleweaver:7c12722"
 HERE=$(cd "$(dirname "$0")" && pwd)
 R=$(cd "$HERE/../.." && pwd)
 BASE=${GM_PROJECTS:-$R/..}
-BOOKS=${BOOKS:-$R/../book-designs}
+ART=${SCREEN_ART:-$R/../screen-art}
 W=$(cd "$R" && python3 -c 'import sys; sys.path.insert(0, "box"); import willow_pin; print(willow_pin.root())') || exit 2
 mkdir -p "$1" && S=$(cd "$1" && pwd) || exit 2
 case "$S/" in "$R"/*) echo "refused: SCRATCH is inside the repository"; exit 2;; esac
@@ -63,18 +64,18 @@ git -C "$R" archive HEAD ui/index.src.html ui/tables ui/build.py \
   the-table/README.md boxes/MEMORY.md | tar -x -C "$S/pile/ours"
 cp "$HERE/my-table.md" "$S/pile/ours/my-table.md"
 laid="$laid ours@$head"
-if [ -d "$BOOKS" ]; then
-  mkdir -p "$S/pile/books"
-  (cd "$BOOKS" && find . -type f \( -name '*.md' -o -name '*.txt' \) -exec cp --parents {} "$S/pile/books/" \;)
-  pics=$(find "$BOOKS" -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.gif' -o -iname '*.tif' -o -iname '*.tiff' \) | wc -l)
+if [ -d "$ART" ]; then
+  mkdir -p "$S/pile/screen-art"
+  (cd "$ART" && find . -type f \( -name '*.md' -o -name '*.txt' \) -exec cp --parents {} "$S/pile/screen-art/" \;)
+  pics=$(find "$ART" -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.gif' -o -iname '*.tif' -o -iname '*.tiff' \) | wc -l)
   if [ "$pics" -gt 0 ] && command -v tesseract >/dev/null; then
-    python3 "$W/adapters/deps/ocr/ocr.py" mirror --from "$BOOKS" --to "$S/pile/books-read" > "$S/run/ocr.txt" 2>&1
-    laid="$laid books($pics pictures, read by ocr: $(tail -1 "$S/run/ocr.txt"))"
+    python3 "$W/adapters/deps/ocr/ocr.py" mirror --from "$ART" --to "$S/pile/screen-art-read" > "$S/ocr.log" 2>&1
+    laid="$laid screen-art($pics pictures, read by ocr: $(tail -1 "$S/ocr.log"))"
   else
-    laid="$laid books($pics pictures, notes only: $( [ "$pics" -gt 0 ] && echo 'no tesseract' || echo 'none yet'))"
+    laid="$laid screen-art($pics pictures, notes only: $( [ "$pics" -gt 0 ] && echo 'no tesseract' || echo 'none yet'))"
   fi
 else
-  laid="$laid (books left out: no folder at $BOOKS)"
+  laid="$laid (screen art left out: no folder at $ART)"
 fi
 cp "$HERE/words.txt" "$S/words.txt" && chmod 600 "$S/words.txt"
 rm -rf "$S/questions" && cp -r "$HERE/questions" "$S/questions"
