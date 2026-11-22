@@ -67,7 +67,7 @@ for pc in $PROJECTS; do
   fi
 done
 head=$(git -C "$R" rev-parse --short HEAD)
-git -C "$R" archive HEAD ui/index.src.html ui/tables ui/build.py \
+git -C "$R" archive HEAD ui/index.src.html ui/tables ui/build.py ui/screen.py \
   README.md open.md open-gaps-from-the-boxes.md box/worlds $(cd "$R" && ls box/*.md box/*.py) \
   the-table/README.md boxes/MEMORY.md | tar -x -C "$S/pile/ours"
 cp "$HERE/my-table.md" "$S/pile/ours/my-table.md"

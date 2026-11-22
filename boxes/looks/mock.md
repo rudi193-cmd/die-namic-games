@@ -46,8 +46,8 @@ The lookup lives in the left panel and comes into the centre when called
 │ ⌕ hound stats ↵       │ │ ◂ back to scene 1               │ │ PLAYERS        │
 │                       │ │ ─────────────────────────────── │ │ Tamsin …       │
 │ where to look:        │ │ CLOCKWORK HOUND                 │ │ Oro …          │
-│  ▸ monsters/          │ │ Grit 3, Wit 1, Heart 0,         │ │                │
-│    clockwork-hound    │ │ Weird 2. Hits 6.                │ │                │
+│  ▸ monsters/          │ │ Grit 3, Wit 0, Heart 0,         │ │                │
+│    clockwork-hound    │ │ Weird 1. Hits 6.                │ │                │
 │  ▸ house rules §     │ │                                 │ │                │
 │    Draws              │ │   monsters/clockwork-hound.md:5 │ │                │
 │                       │ │                                 │ │                │

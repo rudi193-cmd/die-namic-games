@@ -197,6 +197,30 @@ dm` and `dm = ...` was refused).
   sent (to whom, when), received (from whom, good). Both are built once
   from a finished scene; a table's page would follow packages arriving
   during the night.
+- **looks, built: the seat boxes and the GM's screen** (2026-11-22, the
+  session after the handoff). Every box rebuilt in a fresh cloud session at
+  the pin, each as its last committed run said (looks, gm-projects,
+  our-two-repos and srd-engines flag nothing; session-2026-11-20 and
+  safe-app-store flag box-health, as before). Asked first, the box pointed
+  at what the house already had: open_table.py lays the GM's box (the
+  binder, the prep sheet, house rules waiting), annex's scene.py lays a box
+  per compartment, annex_os.py builds a page from what a scene wrote, and
+  the table frame (ui/tables/frame.src.html) is the dress. And it said the
+  fork: `share` sends only sealed answers, and a box laid in a cloud
+  session has the machine's key (open.md:492). **The maintainer chose
+  annex-style demo keys:** fictional seats, keys the scene makes and throws
+  away, seals that stand in for a GM's yes. So `box/table_scene.py` lays
+  the GM's seat by open_table, two players' seats over piles of their own
+  (`box/seat-stack.md` their stack), seals the hound's page into the screen
+  and the Draws rule to the table (received `good` by both), plays
+  Tamsin's first beat on the record (game-master's `act`, the dice box's
+  roll), shows the wall (a player asked about the hound: exit 42), and
+  writes table.json; `ui/screen.py` builds the GM's screen from it alone,
+  no network. 7 tests (tests/test_table_scene.py); whole suite 23 failed
+  (`ONESCRIPT_HOME`, as before) and 338 passed. `share` is pinned now.
+  Two things the box caught: mock.md's hound line was not the binder's
+  (Wit 0, Weird 1; corrected), and the binder's notes have a Juno and a
+  Pell, so the placeholder players are Ash and Wren.
 
 - **TaleWeaver** enforces rules after the model speaks: a "deterministic
   enforcement" pass, rule violations fed back into a second narration pass,

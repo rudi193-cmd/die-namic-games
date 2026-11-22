@@ -9,6 +9,20 @@ line).
 Branch: `ccr-c3a67a77-ubjzyq` in die-namic-games, pushed. No pull request.
 Nothing was changed in willow. Nothing was sealed; no key was read.
 
+## Since: the seat boxes and the GM's screen (2026-11-22, the next session)
+
+Every box rebuilt here at the pin, then the boxes behind the screens, then
+the GM's screen; see the `looks, built` entry in [../MEMORY.md](../MEMORY.md).
+
+    python box/table_scene.py run --to /tmp/night          # ~2 s, demo keys
+    python ui/screen.py build --table /tmp/night/table.json --to /tmp/night/screen.html
+
+Demo keys are the maintainer's choice for this: fictional seats, seals that
+stand in for a GM's yes, keys thrown away with the folder. The page rolls
+nothing (a roll not on the record didn't happen) and seals nothing: its
+buttons say what to run. Next: the player's screen from the same
+table.json, `[ my tables ▾ ]`, and a page that follows packages arriving.
+
 ## What was made
 
 `boxes/looks/`, a box and a stack for Die-Namic's redesign, built one want
