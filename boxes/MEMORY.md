@@ -17,7 +17,7 @@ as you want, write them down here").
 | [srd-engines/](srd-engines/) | whether an outside SRD rules engine could stand under the record and seal: can the dice be handed in, is it deterministic, how is a fight's state kept, what each asks of us | OpenCombatEngine `16b45b0` (C#, MIT), jurnalis-project/engine `dbf40d4` (Rust), srd_5e `b0a2164` (Elixir, from the agentic-realms monorepo's packages/srd_5e, Apache-2.0), dndwright `6f0fb9e` (Python, MIT); 685 files | `bash boxes/srd-engines/rebuild.sh SCRATCH` (checkouts at `../OWNER/NAME`, or `ENGINES_DIR`); about 30 s | 9 of 9 answered, none flagged |
 | [pot/](pot/) | anything: an empty box you throw chunks into with `pour.sh`, swirled with `swirl.sh` and its general stack; chunks are yours, not pinned | whatever you pour, kept in a folder outside the repo (`POT`) | `bash boxes/pot/pour.sh POT NAME SOURCE`, then `bash boxes/pot/swirl.sh POT` (`--ask "..."` for a one-off want); seconds | tried once: 134 files, 7 of 8 steps clean; also `survey.py POT`, one box per chunk and 27 questions, first run over the eight in [pot/results-eight/](pot/results-eight/) (read `connections.md` first) |
 | [our-two-repos/](our-two-repos/) | what willow and die-namic-games already hold about a fight engine, the dice, the card promises, the deps rules; the research behind open.md's fight-engines note | willow at its pin `370f74a`, die-namic-games at `3de61d2` (.md and .py, no `boxes/`); 1,984 files | `bash boxes/our-two-repos/rebuild.sh SCRATCH`; about 1 min | 8 of 8 answered, none flagged |
-| [looks/](looks/) | how game pages are dressed and laid out, for Die-Namic's redesign: the other GMs' screens, our own pages, and book designs brought in for inspiration | the four gm-projects at the same pins (.tsx .vue .css .scss .html .md only), Die-Namic's `ui/` sources at HEAD, and book designs from `BOOKS` (default `../book-designs`, outside git: each picture with a `.md` note; pictures read by willow's ocr when tesseract is there); 1,191 files with no books yet, with `my-table.md`, the maintainer's own GM side in their words, and Die-Namic's design pages | `bash boxes/looks/rebuild.sh SCRATCH`; about 90 s | 4 wants, 10 steps, none flagged |
+| [looks/](looks/) | how game pages are dressed and laid out, for Die-Namic's redesign: the other GMs' screens, our own pages, and book designs brought in for inspiration | the four gm-projects at the same pins (.tsx .vue .css .scss .html .md only), Die-Namic's `ui/` sources at HEAD, and book designs from `BOOKS` (default `../book-designs`, outside git: each picture with a `.md` note; pictures read by willow's ocr when tesseract is there); 1,191 files with no books yet, with `my-table.md`, the maintainer's own GM side in their words, and Die-Namic's design pages | `bash boxes/looks/rebuild.sh SCRATCH`, about 10 s (the index, kept in SCRATCH, rebuilds only when the pile changed: 8 s); then `bash boxes/looks/ask.sh SCRATCH "your words" ...`, about a second | 4 wants, 10 questions, none flagged |
 
 Each folder: `stack.md` (the wants), `words.txt` (how readers ask), `rebuild.sh`,
 `results/` (last `page.md` and step log, the machine's paths written
@@ -46,6 +46,14 @@ dm` and `dm = ...` was refused).
   NarrativeEngine-P's beta skin, a light "parchment" and a dark "ink" palette
   (`src/styles/beta.css:44`, `:96`). Five of the ten passages are its glyph and command
   palettes, not colours: "palette" means three things there.
+- **looks: ask the index, not the box.** The kernel reads the whole pile
+  for every question: 10 to 30 s each over 1,191 files, 134 s for the stack.
+  From 2026-11-22 rebuild.sh lays an index with willow's `index-cache` (8 s,
+  then only when a file changed) and every want is a `batch-ask` scan of its
+  `questions/wantN.tsv`: the kernel's own answers, in the same order, in
+  about a second (the stack, 4 s). Ask your own with `ask.sh`. The pile holds
+  this file, so the box also serves back what was written here about it:
+  read past a `ours/boxes/MEMORY.md` hit to the page it cites.
 - **looks: ask our own pages first.** Wants 2 and 3 were first answered
   from a pile without Die-Namic's design pages, and both answers were wrong
   where open.md already said otherwise (the maintainer caught it). From

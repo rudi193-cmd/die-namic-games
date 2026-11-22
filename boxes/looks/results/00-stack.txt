@@ -1,21 +1,9 @@
-01 all-passages: started (3f27225d)
-01 all-passages: exit 0, 1 line
-02 all-passages: started (f4ea1d89)
-02 all-passages: exit 0, 1 line
-03 all-passages: started (acdce411)
-03 all-passages: exit 0, 1 line
-04 all-passages: started (baf2c3c6)
-04 all-passages: exit 0, 1 line
-05 all-passages: started (fe36dfce)
-05 all-passages: exit 0, 1 line
-06 all-passages: started (1edca4e0)
-06 all-passages: exit 0, 1 line
-07 all-passages: started (f1623639)
-07 all-passages: exit 0, 1 line
-08 all-passages: started (381f64d7)
-08 all-passages: exit 0, 1 line
-09 all-passages: started (0401678a)
-09 all-passages: exit 0, 1 line
-10 all-passages: started (ebf0ae4b)
-10 all-passages: exit 0, 1 line
-done: 0 of 10 steps flagged
+01 batch-ask: started (53ba90ef, fed 3de75d2a)
+01 batch-ask: exit 0, 1 line
+02 batch-ask: started (c79a9f1a, fed f15ade91)
+02 batch-ask: exit 0, 4 lines
+03 batch-ask: started (3df4f011, fed 90f2839f)
+03 batch-ask: exit 0, 2 lines
+04 batch-ask: started (98703d53, fed b0877bd4)
+04 batch-ask: exit 0, 3 lines
+done: 0 of 4 steps flagged

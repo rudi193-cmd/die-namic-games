@@ -26,6 +26,8 @@
 # The pictures are someone else's work: they stay in BOOKS and the scratch
 # folder, never in git. A fresh box each time. The key is a scratch key init
 # makes, in SCRATCH, outside the box; nothing is ever sealed with it.
+# SCRATCH/index is kept between runs (index-cache rebuilds it only when the
+# pile changed); everything else in SCRATCH is laid fresh.
 set -u
 # folder  commit (the same pins as ../gm-projects)
 PROJECTS="narrativeengine-p:6514be9fd60165462513fb7dee5b613135c21625
@@ -75,12 +77,18 @@ else
   laid="$laid (books left out: no folder at $BOOKS)"
 fi
 cp "$HERE/words.txt" "$S/words.txt" && chmod 600 "$S/words.txt"
+rm -rf "$S/questions" && cp -r "$HERE/questions" "$S/questions"
 python3 "$W/kernel.py" init --box "$S/box" --pile "$S/pile" --key "$S/scratch.key" --words "$S/words.txt" >/dev/null || exit 2
+# The index: willow's index-cache, kept in SCRATCH between runs and rebuilt
+# only when a file in the pile changed; the stack asks it through batch-ask.
+python3 "$W/adapters/stdlib/index-cache/index_cache.py" --from "$S/pile" --to "$S/index" > "$S/index.log" || exit 2
 start=$(date +%s)
 python3 "$W/adapters/stdlib/stack/stack.py" --box "$S/box" --stack "$HERE/stack.md" --to "$S/run" > "$S/page.md" 2> "$S/page.err"
 code=$?
 python3 "$W/kernel.py" verify --box "$S/box"
 echo "pile:$laid; $(find "$S/pile" -type f | wc -l) files"
 echo "stack: exit $code, $(( $(date +%s) - start )) s; $(tail -1 "$S/run/00-stack.txt")"
+echo "index: $(cat "$S/index.log")"
 echo "page: $S/page.md  each step: $S/run/"
+echo "ask it: bash $HERE/ask.sh $S \"your words\""
 exit $code
