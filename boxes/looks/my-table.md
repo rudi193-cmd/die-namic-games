@@ -13,3 +13,7 @@ Laid out:
   into the screen (the GM's reference, unseen by the table) or laid on the
   table (reference everyone can see).
 - **The dice box**, centre of the table, centre of the view.
+
+How the table sees it (2026-11-22): "The GM would share from their device to
+others." One device is the GM's: the screen, the binder and every page. What
+the GM puts on the table goes from that device to the others'.

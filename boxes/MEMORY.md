@@ -17,7 +17,7 @@ as you want, write them down here").
 | [srd-engines/](srd-engines/) | whether an outside SRD rules engine could stand under the record and seal: can the dice be handed in, is it deterministic, how is a fight's state kept, what each asks of us | OpenCombatEngine `16b45b0` (C#, MIT), jurnalis-project/engine `dbf40d4` (Rust), srd_5e `b0a2164` (Elixir, from the agentic-realms monorepo's packages/srd_5e, Apache-2.0), dndwright `6f0fb9e` (Python, MIT); 685 files | `bash boxes/srd-engines/rebuild.sh SCRATCH` (checkouts at `../OWNER/NAME`, or `ENGINES_DIR`); about 30 s | 9 of 9 answered, none flagged |
 | [pot/](pot/) | anything: an empty box you throw chunks into with `pour.sh`, swirled with `swirl.sh` and its general stack; chunks are yours, not pinned | whatever you pour, kept in a folder outside the repo (`POT`) | `bash boxes/pot/pour.sh POT NAME SOURCE`, then `bash boxes/pot/swirl.sh POT` (`--ask "..."` for a one-off want); seconds | tried once: 134 files, 7 of 8 steps clean; also `survey.py POT`, one box per chunk and 27 questions, first run over the eight in [pot/results-eight/](pot/results-eight/) (read `connections.md` first) |
 | [our-two-repos/](our-two-repos/) | what willow and die-namic-games already hold about a fight engine, the dice, the card promises, the deps rules; the research behind open.md's fight-engines note | willow at its pin `370f74a`, die-namic-games at `3de61d2` (.md and .py, no `boxes/`); 1,984 files | `bash boxes/our-two-repos/rebuild.sh SCRATCH`; about 1 min | 8 of 8 answered, none flagged |
-| [looks/](looks/) | how game pages are dressed and laid out, for Die-Namic's redesign: the other GMs' screens, our own pages, and book designs brought in for inspiration | the four gm-projects at the same pins (.tsx .vue .css .scss .html .md only), Die-Namic's `ui/` sources at HEAD, and book designs from `BOOKS` (default `../book-designs`, outside git: each picture with a `.md` note; pictures read by willow's ocr when tesseract is there); 1,182 files with no books yet, with `my-table.md`, the maintainer's own GM side in their words | `bash boxes/looks/rebuild.sh SCRATCH`; about 15 s | 2 of 2 answered, none flagged |
+| [looks/](looks/) | how game pages are dressed and laid out, for Die-Namic's redesign: the other GMs' screens, our own pages, and book designs brought in for inspiration | the four gm-projects at the same pins (.tsx .vue .css .scss .html .md only), Die-Namic's `ui/` sources at HEAD, and book designs from `BOOKS` (default `../book-designs`, outside git: each picture with a `.md` note; pictures read by willow's ocr when tesseract is there); 1,182 files with no books yet, with `my-table.md`, the maintainer's own GM side in their words | `bash boxes/looks/rebuild.sh SCRATCH`; about 15 s | 3 of 3 answered, none flagged (3 answers with nothing to take) |
 
 Each folder: `stack.md` (the wants), `words.txt` (how readers ask), `rebuild.sh`,
 `results/` (last `page.md` and step log, the machine's paths written
@@ -35,8 +35,8 @@ dm` and `dm = ...` was refused).
 
 - **looks/stack.md** (2 wants, built one at a time with the maintainer, 2026-11-22):
   how each dresses its pages (1); where each puts the GM's screen, pulled-out
-  pages and dice, against the maintainer's own table (2). The next wants wait
-  on their yes.
+  pages and dice, against the maintainer's own table (2); how each sends what the GM
+  shows to the others' devices (3). The next wants wait on their yes.
 
 ## What they said (as found, not tuned)
 
@@ -57,6 +57,16 @@ dm` and `dm = ...` was refused).
   doesn't see. Its dice sit in a sidebar, never the centre. Asked in the
   maintainer's own words ("screen binder pages reference dice tray"), the box
   serves their own note and our dice pages: the others don't use those words.
+- **looks, want 3** (from the GM's device to the others'): none of the four
+  does it. ink & bone syncs map tokens to every window over a WebSocket
+  (`docs/superpowers/specs/2026-06-25-group-b-interactivity-design.md:225`),
+  one person's windows, not a table's. Asked of willow's list too
+  (`similar.py near`, three ways): nothing close. willow's `browse` is the
+  page that seals, and is loopback by design ("from this machine only");
+  `record-sync` (planned) keeps a record on two devices through a synced
+  folder. Sending to another device on the same Wi-Fi would be willow's
+  first add-on on the local network: an idea for `adapters/planned.json`,
+  on the maintainer's yes.
 
 - **TaleWeaver** enforces rules after the model speaks: a "deterministic
   enforcement" pass, rule violations fed back into a second narration pass,

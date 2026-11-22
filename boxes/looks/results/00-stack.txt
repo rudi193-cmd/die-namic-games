@@ -2,4 +2,6 @@
 01 all-passages: exit 0, 1 line
 02 all-passages: started (f4ea1d89)
 02 all-passages: exit 0, 1 line
-done: 0 of 2 steps flagged
+03 all-passages: started (f1623639)
+03 all-passages: exit 0, 1 line
+done: 0 of 3 steps flagged

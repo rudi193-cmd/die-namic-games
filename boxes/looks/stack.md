@@ -19,3 +19,9 @@ pages pulled out for reference, the dice?" (the maintainer's own side,
 ours/my-table.md: a three-panel screen, a three-ring binder behind it,
 pages taken out to the screen or the table, the dice box centre)
 - all-passages -- --box {box} --top 8 "sidebar handout reference dice"
+
+## from the GM's device to the table's
+
+Want 3: "How does each send what the GM shows from their device to the
+others'?" (the maintainer: "the GM would share from their device to others")
+- all-passages -- --box {box} --top 8 "websocket players window sync"
