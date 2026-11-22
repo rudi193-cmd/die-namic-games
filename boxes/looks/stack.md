@@ -59,3 +59,10 @@ Want 7: "What do we already have for pictures: a creature's, and a kid's
 own drawing of their character, read and put in?" (the maintainer,
 2026-11-22: tesseract is in already)
 - batch-ask -- scan --index {box}/../index --words {box}/../words.txt --top 8 --questions {box}/../questions/want7.tsv
+
+## the picture is just a picture
+
+Want 8: "What can willow's image suite do with a kid's drawing?" (the
+maintainer: typing is the main way in, the picture is just a picture, and
+the image suite is willow's demo/craft-assembly)
+- batch-ask -- scan --index {box}/../index --words {box}/../words.txt --top 8 --questions {box}/../questions/want8.tsv

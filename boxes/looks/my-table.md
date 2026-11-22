@@ -44,3 +44,9 @@ about images for the creatures, and how a kid could draw their own, with
 their character, and put it in." A creature's picture in the bestiary; a
 kid's own drawing of their character, or of a creature, brought to the
 table and put in.
+
+Typing first (2026-11-22): "typing should be the main way. the picture is
+just a picture." A kid's creature or character comes in as typed words (its
+name, what it's good at), with its picture beside it; nothing is read from
+the picture. The pictures can be worked on with willow's image suite, the
+Craft apps of demo/craft-assembly.

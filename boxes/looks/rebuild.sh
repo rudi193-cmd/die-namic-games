@@ -15,6 +15,11 @@
 #                 worlds, the-table's README, boxes/MEMORY.md) at this checkout's
 #                 HEAD, and my-table.md: the
 #                 maintainer's own GM side of the table, in their words.
+#   willow/       willow's demo/craft-assembly at the pin: the image suite
+#                 (the Craft apps), its README, report, background and sources.
+#   craft/NAME    its four image apps (photocraft, drawcraft, artcraft,
+#                 designcraft), their .md at the commits the demo pinned, from
+#                 checkouts at CRAFT (default ../craft).
 #   screen-art/   published GM screens, the art on them, from a folder outside
 #                 the repository (SCREEN_ART,
 #                 or ../screen-art): each picture with a note beside it
@@ -63,6 +68,24 @@ git -C "$R" archive HEAD ui/index.src.html ui/tables ui/build.py \
   README.md open.md open-gaps-from-the-boxes.md box/worlds $(cd "$R" && ls box/*.md box/*.py) \
   the-table/README.md boxes/MEMORY.md | tar -x -C "$S/pile/ours"
 cp "$HERE/my-table.md" "$S/pile/ours/my-table.md"
+# willow's craft-assembly demo, at the pin: the image suite (the Craft apps,
+# Photoshop and Premiere rebuilt in Rust, taken apart and assembled into one)
+mkdir -p "$S/pile/willow" && git -C "$W" archive HEAD demo/craft-assembly/README.md \
+  demo/craft-assembly/REPORT.md demo/craft-assembly/BACKGROUND.md demo/craft-assembly/sources.json \
+  demo/craft-assembly/composite.json | tar -x -C "$S/pile/willow"
+laid="$laid willow-craft-assembly@$(git -C "$W" rev-parse --short HEAD)"
+# The four image apps of it, their .md at the commits the demo pinned
+# (sources.json), from checkouts at CRAFT/NAME (default ../craft/NAME).
+CRAFT=${CRAFT:-$R/../craft}
+for n in photocraft drawcraft artcraft designcraft; do
+  at=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['sources'][sys.argv[2]]['commit'])" "$W/demo/craft-assembly/sources.json" "$n")
+  if git -C "$CRAFT/$n" cat-file -e "$at^{commit}" 2>/dev/null; then
+    mkdir -p "$S/pile/craft/$n" && git -C "$CRAFT/$n" archive "$at" | tar -x -C "$S/pile/craft/$n" --wildcards '*.md' 2>/dev/null
+    laid="$laid $n@${at:0:7}"
+  else
+    laid="$laid ($n left out: no checkout at $CRAFT/$n holding ${at:0:7})"
+  fi
+done
 laid="$laid ours@$head"
 if [ -d "$ART" ]; then
   mkdir -p "$S/pile/screen-art"
