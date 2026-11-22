@@ -116,7 +116,7 @@ jobs:
         run: |
           sudo apt-get update -q && sudo apt-get install -y -q tesseract-ocr
           python -m pip install --upgrade pip >/dev/null
-          pip install pytest -r willow/adapters/deps/ocr/requirements.txt -r the-table/aetheris5e/requirements.txt -c lock/requirements.txt
+          pip install pytest -r willow/adapters/deps/ocr/requirements.txt -r the-table/aetheris5e/requirements.txt -r box/requirements-dndwright.txt -c lock/requirements.txt
           python -c "import PIL, pypdf, dice; print('ocr can read here, and the fights can roll')"
 
       - name: Die-Namic's tests (the box, the games, the core), on the pinned willow
@@ -352,7 +352,7 @@ jobs:
         run: |
           sudo apt-get update -q && sudo apt-get install -y -q tesseract-ocr
           python -m pip install --upgrade pip >/dev/null
-          pip install pytest -r willow/adapters/deps/ocr/requirements.txt -r die-namic-games/the-table/aetheris5e/requirements.txt -c die-namic-games/lock/requirements.txt
+          pip install pytest -r willow/adapters/deps/ocr/requirements.txt -r die-namic-games/the-table/aetheris5e/requirements.txt -r die-namic-games/box/requirements-dndwright.txt -c die-namic-games/lock/requirements.txt
 
       - name: Its breaks, each against its tests
         run: python die-namic-games/ci/mutants.py run "${{ matrix.file }}"

@@ -1,0 +1,21 @@
+01 all-passages: started (7a51414c)
+01 all-passages: exit 0, 1 line
+02 all-passages: started (712d4090)
+02 all-passages: exit 0, 1 line
+03 all-passages: started (016f3642)
+03 all-passages: exit 0, 1 line
+04 all-passages: started (7db856ab)
+04 all-passages: exit 0, 1 line
+05 all-passages: started (6a23a111)
+05 all-passages: exit 0, 1 line
+06 all-passages: started (d74a3bbf)
+06 all-passages: exit 0, 1 line
+07 all-passages: started (42160196)
+07 all-passages: exit 0, 1 line
+08 all-passages: started (a127d28f)
+08 all-passages: exit 0, 1 line
+09 all-passages: started (c2c153da)
+09 all-passages: exit 0, 1 line
+10 all-passages: started (fe578a4e)
+10 all-passages: exit 0, 1 line
+done: 0 of 10 steps flagged

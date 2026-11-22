@@ -1,0 +1,9 @@
+# How someone asks about SRD rules engines, then the words these engines use.
+# The kernel reads every question through this list.
+
+fight = combat, initiative
+dice = roll, rolls, rng
+random = rng, seed, seeded
+deterministic = seeded, reproducible, stateless
+hit = attack, armor
+history = replay, log, serialize

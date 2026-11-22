@@ -400,7 +400,10 @@ reached from the play path.
    reads what carried over aloud. Read as willow's `lending` reads a loan
    (every line stays; a return listed under it) and `livestock` an
    animal's treatments. Not yet: a wound that changes a roll, and spent
-   strength.
+   strength. *(2026-11-21: the rule for one wound, exhaustion, is written as
+   a pure module, `box/exhaustion.py`, in both SRD editions; it is not wired
+   into a roll, because that is item 3's willow change first. See "Open
+   records" at the bottom.)*
 6. **Who is at the table.** One player or five; a friend for one night;
    someone leaving. The seats are fixed by the story, and every fight brings
    the same three.
@@ -599,5 +602,423 @@ again from the record, and the chain (102 rows, 7 sealed).
 - **Two kinds of dice.** Table dice go in **the cup**: unknown until thrown,
   thrown after the GM's call, seen by all, kept. Prompt dice stay seeded:
   surprising, free to reroll, repeatable.
+- **The box plays SRD 5.2.1** (decided 2026-11-21, the maintainer agreeing
+  to the recommendation). New rules and content come from 5.2.1, CC-BY-4.0:
+  any content taken carries the attribution Wizards of the Coast asks for
+  ("This work includes material from the System Reference Document 5.2.1 ...
+  licensed under CC-BY-4.0"; read the exact wording from the SRD itself).
+  SRD 5.1 is used only where an engine forces it, named as such, never mixed
+  in one stat block. Nothing already built declares an edition; aetheris5e
+  names none, so what it plays is still to be checked against 5.2.1.
 - The GM's screen roll comes **later**. The GM's word over the dice is
   built (g at the next roll).
+
+## Note: other people's SRD 5.1 fight engines (research, not a plan)
+
+Added from a web search on 2026-11-21, to read and decide on later. Nothing
+below has been opened, run or checked: the licences and activity come from
+search snippets only, so check each repo's LICENSE and history first.
+
+The idea: the box's fights today are aetheris5e's (`f`, `box/fight.py`). Other
+open projects implement the same SRD 5.1 d20 rules. The interest is
+engineering: the kernel's record and seal could stand over any of them, each a
+swappable rules engine whose every blow lands on the record, and none of them
+the authority. Not as the kernel works today; that is the open part.
+
+| Project | Language | Licence (per search) | Note |
+|---|---|---|---|
+| [OpenCombatEngine](https://github.com/jamesplotts/opencombatengine) | C# / .NET 8 | MIT | Interface-driven combat engine, SRD 5.1. Closest match. |
+| [srd_5e](https://hex.pm/packages/srd_5e/0.2.0/files) | Elixir | Apache-2.0 | Newer releases model SRD 5.2 by default, with 5.1 rules as opt-ins. |
+| [jurnalis-project/engine](https://awesome.ecosyste.ms/projects/github.com%2Fjurnalis-project%2Fengine) | Rust | not shown | Stateless, deterministic text CRPG engine, SRD 5.1 (d20). Licence unknown: read LICENSE before anything else. |
+
+Left out on purpose: [libsrd5](https://github.com/kupka/libsrd5) (C#, AGPL).
+
+Questions to settle before building anything:
+
+- None is Python, and willow's stdlib add-ons need nothing beyond Python. A
+  deps add-on would need a pinned install and a licence on its card; a run
+  of a foreign binary would need a `network:`-style line of its own. Or the
+  rules are read and rewritten in Python, with credit.
+- A deterministic, stateless engine (the Rust one says it is) fits the record
+  best: the same inputs give the same blow, so a seal can be checked again.
+- The dice must still come out of the tower, not from the engine's own
+  generator (see "The dice").
+- How this sits beside aetheris5e's fights, and the open point that the
+  fight is fought by its own party, not the story's characters.
+
+## Open records: the survey of the eight, against what is open and built
+
+*A living section: update it, don't rewrite it. First written 2026-11-21 from
+[boxes/pot/results-eight/](boxes/pot/results-eight/) (eight open GM projects
+and rules engines, 27 questions each; hits are evidence to read, not proof) and
+[boxes/MEMORY.md](boxes/MEMORY.md), its twin.*
+
+**Built here, and nothing like it in any of the eight** *(corrected 2026-11-21, see "Round 2" below: a ninth project, layforge, has safety tools and a human veto)*: typed real dice (1),
+the tower and the cup (4), lines, veils, x and p (13), taking back a yes (14),
+the GM's yes under a seal, carry-over as rows (5).
+
+**Open, and what the eight add:**
+
+| Open | What they add | State |
+|---|---|---|
+| 5 (rest): a wound that changes a roll | the rule is in two engines, in two editions that disagree (below) | rule written, `box/exhaustion.py`, 14 tests; **not wired**: blocked by 3 |
+| 3 and 12 | nothing found; advantage/disadvantage hits everywhere, so help as advantage is one shape to try | open, willow first |
+| 8 growing | class data by level in dndwright (`classes.json`), srd_5e, OpenCombatEngine (ADR 0054) | unread beyond the hit |
+| 9 a scene made up | taleweaver, narrativeengine-p are built on it, with a person confirming (`core/prompts.py, line 513`) | unread |
+| 4 (rest): screen roll | the tower hides a roll from everyone; a screen roll is the same, opened by the GM only | open |
+| 16, 17 (map) | narrativeengine-p's world-map mod (MIT) | unread |
+| 6, 11, 15 | not surveyed | open |
+
+**Read in full on 2026-11-21 (the three next steps):**
+
+1. **narrativeengine-p `mobile/docs/WITNESS_INTEGRITY.md`.** Two layers. A
+   *structural* one: scenes are filtered at retrieval by `npcsWitnessed`, and
+   a scene no on-stage NPC witnessed is never put in the model's context, so
+   it cannot be leaked. A *behavioural* one: a register of diverged facts
+   with `knownBy`, sent whole in one system message, so the split is advice
+   the model is trusted to follow. Its own text says so ("advisory rather
+   than structurally isolating"). **For the `kids` leak** (a child's question
+   answered from `gm-only/`): the structural layer is the shape that held
+   there too (a second box over the binder's folders without `gm-only/`); the
+   behavioural one is the shape that would have leaked. Same conclusion,
+   reached by them in prose and by us in an incident.
+2. **dndwright's dice and combat (run, not just read).** `DiceEngine(rng=...)`
+   takes any `random.Random`; a subclass whose `randint` hands out the faces a
+   table said, in order, and refuses when it is out, made a 2d6 of 4 and 6 and
+   an attack of 13 +5 = 18 against AC 16 a hit. So **typed dice can drive its
+   rolls, with a small adapter.** Its `apply_damage` is a pure function of a
+   frozen state (8 hp, 3 temp, 10 damage gives 1). It needs `pydantic>=2.5`
+   and `pyyaml>=6.0`, so it would be a `deps` add-on, pinned, with a licence
+   on its card, not a stdlib one. Not yet checked: that a fight can be run on
+   the *story's* characters rather than aetheris5e's own party; the state is
+   a plain value, which is hopeful.
+3. **Exhaustion, written** (`box/exhaustion.py`, `tests/test_exhaustion.py`).
+   The two engines disagree: **dndwright's catalog is the SRD 5.1 rule**
+   (cumulative: disadvantage on ability checks, speed halved, disadvantage on
+   attacks and saves, hit point maximum halved, speed 0, death) and
+   **srd_5e's is 5.2** (-2 on every d20 per level, -5 feet, death at 6). The
+   module keeps both, named, never mixed. *The box plays 5.2.1* (decided
+   2026-11-21, see Decided), so 5.2 is the module's default.
+
+**Decided 2026-11-21:** the box plays SRD 5.2.1 (see Decided). **Still open:**
+whether aetheris5e's fights already match it; whether an outside engine is a
+`deps` add-on or a port; and whether a wound's change to a roll waits on item 3
+or is shown to the GM as advice meanwhile.
+
+**Notes for later updates.** Tavern (t11z) was unreadable from the session;
+jurnalis-engine has no licence file; the survey's hit rule over-counts, read
+the passages. When a want here is built or closed, change its row and say
+when.
+
+### Round 2: asking the box until the good questions ran out (2026-11-21)
+
+Fifteen more questions asked of each chunk's own box (the pot's
+`survey/box-NAME`), then the leads read. Same caveat: a hit is a passage to
+read. Updating the earlier claims:
+
+**Corrections.**
+- **Layforge** (`jamesplotts/layforge`, MIT, 249 files, now the ninth chunk of
+  the pot), by the author of OpenCombatEngine, is the closest sibling found. A
+  *Master* holds the authoritative state and the model's credentials; thin
+  clients hold neither; "everything mechanically consequential (dice, rules
+  resolution, PvP, character validation, content policy) is a gate enforced in
+  code at the tool-call layer, not left to the model's discretion." Its
+  design.md section 9 has **safety tools** (`safety.flag` from any player,
+  interrupts the scene; pre-declared lines and veils in campaign front
+  matter), **character import veto** (a human operator approves or rejects
+  before a character enters play), **knowledge scoping** (`strict`: chat log
+  entries keep the visibility they had live, so history can't leak what was
+  private; the same problem as the `kids` leak) and a **`family_friendly`
+  maturity tier**. So the earlier "none of the eight has lines, veils or a
+  person's yes" is true of the eight and **false of this ninth**.
+- **How it differs from ours:** its safety flag is "injected as a hard
+  constraint into the DM's next generation", and its maturity tiers are
+  "prompt-constraint text", which its own docs call "behavior-shaping rather
+  than a hard filter": the behavioural layer. Ours (a part that touches a line
+  is never read) is the structural one. Its approvals are an operator panel;
+  none of its code found is a hash-chained record or a seal. No commit-reveal
+  dice either (the only hash/seed hits are auth and settings).
+- **Edition labels were wrong.** *jurnalis-engine* says SRD 5.1 but its code
+  has Weapon Mastery "per 2024 SRD" (`class.rs, line 251`), exhaustion as "2024 SRD
+  unified formula" (`conditions/mod.rs, line 491`), a Warhammer weight "per the
+  2024 SRD" and origin feats; one comment still says 5.1. It is mostly 2024.
+  *dndwright* carries a full `dnd_5e_2024` ruleset graph (`rules/
+  dnd_5e_2024.py`) and Heroic Inspiration in its species, though its
+  conditions catalog is 5.1 wording. *OpenCombatEngine* is 5.1 under the OGL
+  (`LEGAL.md`). *srd_5e* is 5.2 and says the experience table is the same in
+  both. *narrativeengine-p* ships a 5.2.1 ability compendium. *aetheris5e* names
+  no edition: a d20-versus-AC fight with advantage, nat-20 crits and no death
+  saves, which reads the same in both. **So for 5.2.1: dndwright, srd_5e and
+  (mostly) jurnalis are the better fits; OpenCombatEngine is 5.1.**
+
+**What the engines hand us (new).**
+- **OpenCombatEngine is built as the rules half of a host/engine split.**
+  `protocol/system_engine.proto` (a gRPC contract, 1,225 lines): `ResolveCheck`,
+  `Attack`, `StartTurn`, `StreamEvents`, `ToJson`/`FromJson`; each call is
+  stateless; the proto says the engine "answers *what would happen*, Master
+  decides *is this allowed to happen*". An `Outcome` returns the dice it rolled
+  (`DieRoll` sides, result, label). The request's `params` are "engine-defined",
+  with "roll-spec overrides" mentioned; whether a caller can pass the faces
+  in is **not found**: read `SystemEngineGrpcService.cs` `ResolveCheck`/`Attack`.
+  That is the same seam as our tower and seal, written by someone else.
+- **Rests:** jurnalis eases exhaustion by one on a long rest
+  (`rest/mod.rs, line 309`), OpenCombatEngine has a resting ADR (`017`). The rule is now in
+  `box/exhaustion.py` (`after_long_rest`).
+
+**Leads for the still-open items.**
+
+| Item | Lead |
+|---|---|
+| 3, help and a reroll | narrativeengine-p has a built-in Help ability in its combat actions (`BUILTIN_HELP_ID`, `packages/engine/src/combat/__tests__/tabletopActions.test.ts, line 406`: it costs the action); jurnalis has the Lucky feat (3 luck points, reroll an attack, check or save: `character/feat.rs, line 91`) |
+| 4 (rest), a GM screen roll | ink & bone: a hidden roll shows `[GM]` and `?` to others (`e2e/tests/smoke.spec.ts, line 162`): hidden in the UI, with no proof it wasn't changed |
+| 8, growing | ink & bone's XP design with the standard 5e thresholds (`docs/superpowers/specs/2026-04-06-xp-advancement-design.md`), OpenCombatEngine ADR 0050, jurnalis XP drives level |
+| 9, a scene made up | ink & bone: `POST /api/sessions/{id}/improvise` returns a 2 to 3 sentence suggestion from the last five messages: it suggests, a person decides; dnd_ai_dm builds its world from one seeded generator |
+| 11, time pressing | taleweaver: an in-game clock, minutes-per-tick, and `on_time_reached` deadline triggers (`RELEASE_NOTES_v0.7.0-beta.md, line 102`) |
+| 16, 17, map | ink & bone: draggable tokens with positions kept per map, synced to every window over a WebSocket; OpenCombatEngine ADR 0028: a 3D integer grid, Chebyshev distance |
+| 6, 15 | no seat or co-GM model found in any of the nine; layforge has many players and an operator |
+
+**Asked, and nothing found in any chunk:** a commit-then-reveal or hashed roll;
+an audit trail or tamper-evident log; a check that narration's numbers match
+state. These look like the real gaps the box fills. Absence from a top-ten
+list is not proof.
+
+**Next.** Read layforge's tool-call gate code and its `store.go`; read
+OpenCombatEngine's `ResolveCheck`/`Attack` for how dice enter; box layforge
+alone with the survey questions (it is in the pot, not yet surveyed).
+
+### Round 3: the three next steps, read (2026-11-21)
+
+1. **Layforge's gate and its log.** The gate is code, not prompting. The PvP
+   check (`master/internal/server/dm_tools.go, line 700`, again at 852 and 972)
+   switches on the policy and **fails closed**: "PvPPolicyPveOnly, or an
+   unrecognized/unspecified value" is denied, and a campaign with no
+   configuration "gets the strictest PvP setting by default, not an open
+   one" (`README.md, line 300`). Its README says a tool is re-checked inside the
+   call, "so a stray/hallucinated call can't succeed just because the tool
+   wasn't offered this turn", "gates over prompting" (`master/README.md, line 1333`).
+   A human can override the model: the operator lists imported characters and
+   overrides the model's verdict through the admin API (`master/README.md, line 1786`).
+   Its **log** is an event store described as "a campaign's append-only event
+   log", with a strictly increasing `Sequence`, a refused duplicate message id
+   (`ErrDuplicateMessage`), paged reads; **no hash chain, no signature**.
+   Lines and veils are even model-authored: its pack generator is told to
+   pre-declare them "ONLY when the adventure's content genuinely calls for
+   them" (`campaignpack/generate.go, line 93`), so a model proposes the family's
+   limits where ours are the family's own page.
+   *For us:* fail-closed on an unknown setting is worth copying in
+   `safety.py`; an append-only log with sequence numbers is what our record
+   already is, plus a chain and a seal.
+2. **How dice enter OpenCombatEngine.** They don't, through its contract.
+   `ResolveCheck` in the gRPC sidecar takes a `checkType`, an `ability` and a
+   `skill`; the engine rolls (`creature.Checks.RollAbilityCheck`) and the
+   sidecar copies the dice it rolled into the answer
+   (`SystemEngineGrpcService.cs, line 256`). There is no field for a seed or for
+   faces; the `params` doc's "roll-spec overrides" isn't read there. The seam
+   is in the .NET library (`IDiceRoller`, settable `Seed`), so a sidecar with
+   our roller registered **in-process** could take typed faces, but the
+   wire contract can't. Compare dndwright, where `DiceEngine(rng=...)` is the
+   public parameter. **For our purpose, dndwright is the easier engine to
+   put under the record.**
+3. **The survey over layforge alone** (`boxes/pot/results-layforge/`): 21 of
+   27 cells hit, and the same over-count caveat applies (B1's hit is a
+   sentence about pre-seeding a cache; B2's is about injecting a text
+   constraint). The real ones are above, plus: typed dice (B3), unpredictable
+   randomness (B5), and the SRD version (F1) all miss. **Layforge never says
+   which SRD it plays; it leaves that to its engine**, which is the same shape
+   as our decision: an edition belongs to the engine, so ours is chosen by
+   the engine we pick.
+
+**What this changes.** The nearest design to ours now has: an engine that
+answers "what would happen", a host that decides "is it allowed", safety
+tools, a human veto, scoped knowledge, an append-only log, fail-closed gates.
+What it does not have, and the box does: a seal that is a person's and no
+one else's; a chain that makes the log checkable; typed or committed dice; and
+lines and veils read structurally rather than injected into a prompt. Those
+four are the box's reasons to exist beside it, not instead of it. Worth asking
+the maintainer whether to talk to its author, or to borrow its engine contract.
+
+### Round 4: read in the source, and one run (2026-11-21)
+
+**dndwright can fight the story's characters, with typed dice (run).**
+Open point from the PR: "the fight is fought by aetheris5e's own party, not
+the story's characters". dndwright's combat types carry no identity:
+`InitiativeEntry` is "no IDs, just what ordering needs" (a name, a total, a
+Dexterity modifier); `CombatantState` is "just the numbers, no identity or
+persistence" (hp, max hp, temp hp, death-save tallies, resistances,
+immunities, vulnerabilities); `weapon_attack` takes the attacker's modifiers
+and a weapon name. And `roll_initiative(engine, modifier, manual_roll=...)`
+already takes a rolled number as said. Run with three made-up story
+characters (Tamsin, Oro, a goblin), faces typed in: initiative came out
+Tamsin 16, goblin 11, Oro 9; Tamsin's shortsword attack (+4, `1d6 + 2`,
+mastery Vex, the 2024 rule) with a typed 15 made 19, a hit; a typed 4 on the
+damage die made 6. *Slip in my run:* it then took the 4 rather than the 6
+off the goblin's 7 hit points, because I read the damage total from the wrong
+field; the library's own `apply_damage` was correct for the number it was
+given. So: the story's characters can be fought, and dice can be typed or
+dropped from the tower by an adapter; **what is not checked is the fit to our
+sheets** (our characters carry a bonus per stat, not a Strength modifier) and
+a whole fight loop.
+
+**Layforge's tool gate, read.** One switch (`callDMTool`, `dm_tools.go, line 478`)
+names about 45 tools (`resolve_check`, `apply_effect`, attacks, grapple,
+equip, loot, currency, `start_combat`, `advance_turn`, `create_npc`,
+vendors, `travel_to`, `stash_*`); each handler enforces its own gate and
+returns a reason code on refusal (`pvp_blocked`, `internal_error`), which is
+the "log with caller, args, success or reason code" its design describes.
+*For us:* a refusal with a named reason is what `safety.py`'s x and our
+declines already do; copying the **reason codes** as a small fixed list would
+make declines countable.
+
+**Edition, closed for dndwright.** Its weapons carry 2024 Weapon Mastery
+(Vex on the shortsword) and its species Heroic Inspiration, so the code is
+2024; only its conditions catalog is 5.1 wording. Rule: use dndwright for
+5.2.1 and read the conditions text against the SRD before trusting it.
+
+**Still unread:** layforge's state machine for turns (`dmStartCombat`,
+`dmAdvanceTurn`); aetheris5e's stat blocks against the 5.2.1 monster list;
+dndwright's `rules/dnd_5e_2024.py` graph, to see whether a story character's
+bonus-per-stat can be a graph input.
+
+### Round 5: dndwright's sheet graph against our sheets (2026-11-21)
+
+Read `rules/schema.py` and the README's quickstart. The graph is a character
+*sheet* computer: its inputs are ability scores, class, species and level, and
+it computes modifiers, proficiency, armor class, hit points, saves and
+spellcasting (`evaluate_character({...})`). A story character here is a name
+and a bonus on each of a story's own stats (the lantern fair: Grit, Wit,
+Heart) over `base_stat`, a 2d6-band system, not 5e ability scores. So **the
+graph does not take our sheets** without an arbitrary map from Grit, Wit and
+Heart to Strength through Charisma, and that map is a design decision, not
+a plumbing one.
+
+**It isn't needed for a fight.** The pieces a fight uses take plain numbers:
+`roll_initiative(engine, modifier, manual_roll=)`, `weapon_attack(...,
+strength_mod=, dexterity_mod=, proficiency_bonus=)`, `roll_attack(modifier,
+target_ac=)`, `roll_damage(expr)`, `apply_damage(CombatantState, n)`. And
+aetheris5e's stat blocks already are numbers: armor class, hit points,
+initiative, saves, attacks (`statblocks.py`). So a fight is: a story
+character's hit points and a chosen attack bonus, in; blows, hit points and
+status, out, each blow a row on the record.
+
+**State of the question "can an outside engine fight the story's characters":**
+yes for the fight, no for the sheet. What it would cost: a `deps` add-on
+(pydantic, pyyaml pinned, licence on the card), an adapter that hands it the
+tower's or the table's faces, and a decision on what a story character's
+attack bonus and damage are. Not built; nothing in `box/` calls dndwright.
+**Decision for the maintainer:** build that adapter as a spike (a short
+module with a test, outside the play path), or leave aetheris5e's fights as
+they are and keep dndwright as the reference for rules.
+
+### Round 6: the spike (2026-11-21)
+
+`spikes/dndwright/` (outside `tests/`, nothing in `box/` imports it; see its
+README): a fight on three story characters (Tamsin, Oro, a goblin) run by
+dndwright on a list of faces handed in, every blow a row, and a `check` that
+replays the rows' own faces and finds an edited hit point or a changed die.
+**7 tests pass, lint clean.** Held: dice come only from outside (out of faces
+raises, a face off the die is refused); same faces give the same fight; a crit
+doubles the damage dice. **Not done:** the tower (the next step is to fill the
+faces from willow's `dice-tower`, one drop per roll), the kernel's record and
+seal, a person choosing the target, conditions and death saves, our sheets.
+The wider `tests/` shows 23 failures in the fight tests with or without the
+spike: `box/fight.py` needs `ONESCRIPT_HOME`, which this session lacks, so
+those were not run green here.
+
+**Open question the spike leaves:** on the tower, a die is dropped for a stated
+roll (`2d6`) before it is thrown, so a fight drops many small dice, one per
+attack and per damage; how that reads on the record, and whether a round's
+dice can be dropped together, is for willow's dice-tower to say.
+
+### Round 7: the spike on the tower (2026-11-22)
+
+`spikes/dndwright/tower_faces.py` fills the spike's faces from willow's
+`dice-tower`: each die the engine asks for is dropped (a hash and what it is
+for) and brought out. A run: Tamsin hit the goblin on the first blow (11, +4 =
+15 against AC 13, 7 damage, goblin down), five dice dropped and five out,
+`dice_tower check` says "5 dice out of the tower, every one holds", and
+`tower_match` ties the fight's rows to the tower's out rows. **12 spike tests
+pass** (7 on listed faces, 5 on the tower), lint clean.
+
+**What this settles:** an outside engine (dndwright) can run a fight on the
+story's characters with every face coming out of the tower and every die held
+to its drop, with a small adapter and no change to willow or to the engine.
+**What it doesn't:** the drop-to-out window is an instant, so "nobody read it
+first" is only as good as the die files' keeping; the fight's rows are not
+kernel rows and are not sealed; targets are fixed; no conditions or death saves.
+
+**Answers to the open question from Round 6:** a fight needs many small drops;
+nothing in the tower stops that (five drops in a one-blow fight), and its
+`check` lists any left inside, so a round's speculative damage dice would show
+as "still in the tower" until they are brought out unused, which play.py
+already does ("the tower's unused dice come out"). The remaining design choice
+is when to drop: per roll, as here, or a round at a time.
+
+**Next, if wanted:** put the fight's rows on the kernel's record as
+`table-fight` rows beside box/fight.py's, so `check` can hold them; map a
+story character's stats to `Fighter` numbers; a person choosing the target.
+
+### Round 8: the two next steps (2026-11-22)
+
+Both are in `spikes/dndwright/`; **23 spike tests pass**, 30 runs in a row,
+lint clean.
+
+1. **The fight on the kernel's record** (`record_fight.py`): an `xfight-open`
+   row naming the engine and the fighters whole, the tower's drop and out rows
+   as the engine asks for dice, one `xfight-row` per row of the fight. The
+   kinds are not box/fight.py's, so its `check` and `board` never read them.
+   `check_record` reads only the record: chain, tower, the rows' faces against
+   the tower's, then a replay. A real run (Tamsin and Oro against a Scorched
+   Belt Raider, six rounds): 1 open row, 26 drops and 26 outs, 21 fight rows,
+   and `check_record` returns None. Tested: an edit in the file breaks the
+   chain; rows written honestly to the chain but with a blow changed, and no
+   tower dice behind them, are refused; a die left in the tower is named.
+2. **Story characters as Fighters** (`story_fighters.py`): by the story's own
+   stats, by position (body, mind, heart), hit points 8 + 2 per point of bonus,
+   armor class 11 + the best bonus, initiative the second stat, attack 2 + the
+   first stat; a character's own `"fight": {...}` wins; aetheris5e's stat
+   blocks by their numbers, first attack, multiattack as blows a turn.
+   **These defaults are mine and made up** (Tamsin: 14 hp, AC 13, +4, 1d6+2;
+   Oro: 12 hp, AC 13, +2 to hit, initiative +2). They are a design decision
+   for the table to take or change, not an SRD rule.
+
+**Also changed:** `Fighter` has `attacks` (blows a turn); a flaky test of mine
+(it assumed Tamsin attacked, and Oro can end the fight first) is fixed.
+
+**Still open from this:** a person chooses the target; conditions and death
+saves; hurt characters (carry.py's wounds) start a fight at full hit points;
+whether the fight's rows should become `fight-*` rows box/fight.py can `check`
+and `board` can draw (that would need its engine seam, aetheris5e's, to change);
+the drop-to-out window; and putting any of it on the play path, which this
+spike deliberately does not.
+
+### Round 9: wired (2026-11-22)
+
+The spike is on the play path, off unless asked for (`box/dw-fights.md`).
+The four modules moved from `spikes/dndwright/` to `box/dw_*.py`, the tests to
+`tests/test_dw_*.py`.
+
+- **`f`:** a story that names its foes (`"foes": [...]` in its world file; no
+  existing story does, so none changes) and has dndwright installed offers a
+  fight of its own, after aetheris5e's encounters in the menu. The heroes fight
+  the chosen foe on dice dropped one at a time in the tower; the blows print;
+  "Still standing" prints; a story that turns on a fight asks the GM how it
+  stands, as for any fight (`fight_stands`).
+- **Record:** `xfight-open`, the tower's rows, `xfight-row`s. Not `fight-*`.
+- **`session.fights`** (the recap, the GM's opening screen) lists them.
+- **`open_table.py check`** reads them from the record alone and fails, with a
+  reason, if one doesn't hold or can't be read for lack of dndwright.
+- **Tests:** 30 new (7 + 5 + 11 spike tests moved, 7 on the play path: a story
+  that names foes offers f and one that doesn't doesn't; a real fight at the
+  keyboard checks from the record and by `open_table.py check`; the GM's call;
+  the recap; a bad foe key left out; no foes, no fight). **Whole suite: 23
+  failed, 287 passed; before the change 23 failed, 257 passed.** The 23 are the
+  same fight tests that need `ONESCRIPT_HOME`; none is new.
+
+**Did not change:** aetheris5e's encounters, fight.py, board.py, any story
+file, the willow pin, willow.
+
+**Decisions this leaves for the maintainer:** which stories should name
+foes (none does now; the lantern fair is a kids' fair, and its tests say it has
+no fights); whether the made-up defaults (hit points, armor, attack) are the
+table's; whether dndwright goes in a requirements file (it is not in one: the
+repo has none); and the PR.
