@@ -1,0 +1,9 @@
+# How someone asks about AI game masters, then the words these projects use.
+# The kernel reads every question through this list.
+
+gm = dungeon, narrator
+invent = hallucinate, hallucination
+cheat = hallucinate, hallucination
+remember = memory, persistent, summary
+fight = combat, initiative
+dice = roll, rolls

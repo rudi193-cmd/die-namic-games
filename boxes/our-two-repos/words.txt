@@ -1,0 +1,7 @@
+# How someone asks about our two repositories, then the words their pages use.
+# The kernel reads every question through this list.
+
+fight = combat, initiative
+engine = addon, adapter
+foreign = deps, pinned
+cheat = steer, steered

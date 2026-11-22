@@ -2,6 +2,7 @@
   "_what": "What ci/mutants.py breaks, and the tests that must notice. targets: Die-Namic's own code, a file at a time, each with how many of its breaks a run takes: \"all\", or the first N by id (the box's files, whose suite takes a minute a break). tests: the suite every break runs against, whole, fastest file first so a break is caught soonest (pytest stops at the first failure). accepted: a surviving break's id and why no test could tell it from the code; never a way to quiet one a test should catch.",
   "limit": 600,
   "tests": [
+    "tests/test_xfight_summary.py",
     "tests/test_safety_carry.py",
     "tests/test_willow_pin.py",
     "tests/test_binder.py",
@@ -12,7 +13,8 @@
     "tests/test_play.py",
     "tests/test_write.py",
     "tests/test_clash.py",
-    "tests/test_table_turn.py"
+    "tests/test_table_turn.py",
+    "tests/test_dw_play.py"
   ],
   "targets": {
     "box/willow_pin.py": "all",

@@ -38,7 +38,7 @@ ends, each run kept in DIR/end/NNN; and last, what the table holds true.
 
 `check` runs the table's own check page,
 check.md: every game on the record played again from its first row, and
-every fight fight.py kept, when there are any. `family` runs
+every fight fight.py kept, and every one of the story's own (dw-fights.md), when there are any. `family` runs
 family-night.md, the page for a family's own table (box/play.py's): before
 the night, what was promised and what waits; after it, every story and roll
 played again, a copy kept and the record's end pinned, each run in
@@ -172,6 +172,16 @@ def cmd_page(table: Path, which: str) -> int:
         print("\n## the fights\n" + (fights.stdout or fights.stderr).rstrip())
         if fights.returncode != kernel.ALIVE:
             return fail(f"the fights: {fights.stderr.strip()}")
+    if which == "check" and any(r["kind"] == "xfight-open" for r in rows):
+        try:
+            import dw_record  # the story's own fights need dndwright (dw-fights.md)
+        except ImportError as e:
+            return fail(f"the story's own fights are on the record, and can't be read again here: {e}")  # fmt: skip
+        bad = dw_record.check_record(box)
+        count = sum(1 for r in rows if r["kind"] == "xfight-open")
+        print(f"\n## the story's own fights\n{count} on the record, " + (f"and one doesn't hold: {bad}" if bad else "every one played again on the tower's own dice and holds"))  # fmt: skip
+        if bad:
+            return fail(f"the story's own fights: {bad}")
     if which == "end":  # what the table made true, to close the night on
         canon = run(str(SESSION), "--table", str(table), "canon")
         print("\n## what the table holds true\n" + canon.stdout.rstrip())
