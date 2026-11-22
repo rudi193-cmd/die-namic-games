@@ -49,6 +49,18 @@
       "where": "tests/test_play.py",
       "what": "value not shown",
       "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is a path joined with pathlib's /, pile / sessions, no credential"
+    },
+    {
+      "group": "a password typed with its label",
+      "where": "box/dw_story.py",
+      "what": "value not shown",
+      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here a path built from a folder and two names, `parents[1] / \"the-table\" / \"aetheris5e\"`, no credential"
+    },
+    {
+      "group": "a password typed with its label",
+      "where": "box/dw_tower.py",
+      "what": "value not shown",
+      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here a die file's path, `self.die_dir / f\"die-{n}.json\"`, no credential"
     }
   ],
   "ref-check": [
@@ -198,6 +210,60 @@
       "where": "boxes/session-2026-11-20/results/page.md",
       "what": "games/: not there",
       "why": "a passage the box served, quoted from open.md as it stood; the link is to a folder beside open.md, not one beside this results page"
+    },
+    {
+      "group": "link",
+      "where": "boxes/our-two-repos/results/page.md",
+      "what": "../dice-tower/: not there",
+      "why": "a passage the box served, quoted as it stands in the repository it was asked over (willow or dndwright); the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/our-two-repos/results/page.md",
+      "what": "../the-table/aetheris5e/: not there",
+      "why": "a passage the box served, quoted as it stands in the repository it was asked over (willow or dndwright); the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/our-two-repos/results/page.md",
+      "what": "adapters/stdlib/daily-word/: not there",
+      "why": "a passage the box served, quoted as it stands in the repository it was asked over (willow or dndwright); the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/our-two-repos/results/page.md",
+      "what": "adapters/stdlib/dice-tower/: not there",
+      "why": "a passage the box served, quoted as it stands in the repository it was asked over (willow or dndwright); the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/our-two-repos/results/page.md",
+      "what": "docs/agents/add-ons.md: not there",
+      "why": "a passage the box served, quoted as it stands in the repository it was asked over (willow or dndwright); the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/our-two-repos/results/page.md",
+      "what": "fight.py: not there",
+      "why": "a passage the box served, quoted as it stands in the repository it was asked over (willow or dndwright); the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/our-two-repos/results/page.md",
+      "what": "test_kept.py: not there",
+      "why": "a passage the box served, quoted as it stands in the repository it was asked over (willow or dndwright); the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/srd-engines/results/page.md",
+      "what": "docs/adr/0056-spellcasting-refinements.md: not there",
+      "why": "a passage the box served, quoted as it stands in the repository it was asked over (willow or dndwright); the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/srd-engines/results/page.md",
+      "what": "docs/architecture/001-creature-interfaces.md: not there",
+      "why": "a passage the box served, quoted as it stands in the repository it was asked over (willow or dndwright); the link holds there, beside that passage, not in Die-Namic"
     }
   ]
 }

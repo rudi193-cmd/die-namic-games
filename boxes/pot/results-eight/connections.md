@@ -15,14 +15,14 @@ below were checked by eye. A miss is "not in the top 8", not "absent".
 ## The shared shape: code decides, the model tells
 
 - **dnd_ai_dm**: "The game engine is deterministic and owns all rules. A
-  pluggable narrator writes the prose" (`AGENTS.md:5`); all randomness goes
-  through an injected `random.Random` or `Dice` (`AGENTS.md:37`).
+  pluggable narrator writes the prose" (`AGENTS.md, line 5`); all randomness goes
+  through an injected `random.Random` or `Dice` (`AGENTS.md, line 37`).
 - **narrativeengine-p**: the model is handed `DICE OUTCOMES` or `RESOLVED
   ROLL` tags: "The engine already rolled; you narrate. Never reroll, change
-  tier" (`Example_Setup/Ruleset/4.4_Fable5_PVP_mode.md:193`).
+  tier" (`Example_Setup/Ruleset/4.4_Fable5_PVP_mode.md, line 193`).
 - **taleweaver**: a second pass narrates rule violations the code found
-  (`backend/api/routes/adventures/turn_pass_flow.py:55`), and its release
-  notes claim "zero dropped or hallucinated mechanics" (`v0.7.0-beta.md:130`).
+  (`backend/api/routes/adventures/turn_pass_flow.py, line 55`), and its release
+  notes claim "zero dropped or hallucinated mechanics" (`v0.7.0-beta.md, line 130`).
 - **Connection:** four independent projects land on Die-Namic's rule underneath,
   the code owns the rule and the model only proposes or tells. None goes the
   last step: nobody can check afterwards that the roll the model was told is
@@ -31,16 +31,16 @@ below were checked by eye. A miss is "not in the top 8", not "absent".
 ## Dice: the seam we need exists in four, the tower in none
 
 - Injectable: dnd_ai_dm (injected `Dice`), dndwright (`DiceEngine(rng=...)`,
-  "inject any `random.Random`", `CHANGELOG.md:537`), OpenCombatEngine
+  "inject any `random.Random`", `CHANGELOG.md, line 537`), OpenCombatEngine
   (`IDiceRoller`, settable `Seed`). jurnalis-engine is seeded from a `u64`
   but no way to hand it faces was found.
 - Reproducible: dndwright says "ideal for tests, replay, and audit trails";
   jurnalis: "replay any session exactly by replaying the seed and input
-  sequence" (`README.md:19`); dnd_ai_dm saves don't keep RNG state, so replay
-  needs the seed (`docs/guides/save-and-load.md:44`).
+  sequence" (`README.md, line 19`); dnd_ai_dm saves don't keep RNG state, so replay
+  needs the seed (`docs/guides/save-and-load.md, line 44`).
 - **Typed faces from physical dice (B3): no hit in any.** Every rival rolls
   its own. ink & bone's README says systems can be rolled manually with
-  buttons (`README.md:849`, found under A1): a lead, not checked.
+  buttons (`README.md, line 849`, found under A1): a lead, not checked.
 - **Connection:** an engine whose roller can be replaced (dndwright, dnd_ai_dm,
   OpenCombatEngine) could be fed the tower's faces, or faces typed from a
   table's own dice, and every blow still land on the record. A seed-only
@@ -64,18 +64,18 @@ below were checked by eye. A miss is "not in the top 8", not "absent".
 ## What none of them has
 
 - **A person's yes** (A3): nothing like a seal. Closest is taleweaver asking
-  the player to confirm a blueprint in a review dialog (`core/prompts.py:513`),
+  the player to confirm a blueprint in a review dialog (`core/prompts.py, line 513`),
   which is a UI step, not a record.
 - **Lines and veils** (E1): none. Die-Namic's `safety.py` has no counterpart
   here.
 - **Hiding what a character could not know:** narrativeengine-p's
-  `mobile/docs/WITNESS_INTEGRITY.md:25`: "The LLM cannot hallucinate or act on
+  `mobile/docs/WITNESS_INTEGRITY.md, line 25`: "The LLM cannot hallucinate or act on
   verbatim scene details that the current scene's NPCs could not possibly know
   because that text is completely omitted from the context." This is the same
   problem as the `kids` leak in open.md (a child's question answered from
   `gm-only/`), solved by leaving text out of the context. Read it next.
 - **Undo** (D5): hits are accidents except taleweaver's inventory change-set
-  (`player_inventory.py:43`) and narrativeengine-p's cancel-without-revert;
+  (`player_inventory.py, line 43`) and narrativeengine-p's cancel-without-revert;
   nothing like "kept, no longer standing".
 
 ## The law
@@ -85,7 +85,7 @@ below were checked by eye. A miss is "not in the top 8", not "absent".
   `LICENSE-OGL` and a `LEGAL.md`; **jurnalis-engine has none** (its README says
   all rights reserved). taleweaver adds CC-BY-NC for assets.
 - SRD: dndwright cites SRD 5.2.1 CC-BY-4.0; jurnalis implements 5.1 ("one long
-  rest per 24 hours", `src/state/mod.rs:49`); OpenCombatEngine and srd_5e hit
+  rest per 24 hours", `src/state/mod.rs, line 49`); OpenCombatEngine and srd_5e hit
   F1. Dying engines to rank by version: not yet done.
 
 ## Next questions the survey can't answer

@@ -27,7 +27,7 @@ chunks (willow's `contradictions` reads only lines with a date or an amount,
 so it often finds none), what each chunk is, its licence, how it installs,
 where its dice come from, how it keeps state. Add wants of your own; each is
 a proposal. To compare chunks you already know, pour the same ones the other
-boxes use (see [MEMORY.md](MEMORY.md)).
+boxes use (see [MEMORY.md](../MEMORY.md)).
 
 Tried on 2026-11-21 with dndwright (whole), ink & bone's `docs/` and
 open.md: 134 files, 7 seconds, 7 of 8 steps clean.

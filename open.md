@@ -664,7 +664,7 @@ the GM's yes under a seal, carry-over as rows (5).
 | 5 (rest): a wound that changes a roll | the rule is in two engines, in two editions that disagree (below) | rule written, `box/exhaustion.py`, 14 tests; **not wired**: blocked by 3 |
 | 3 and 12 | nothing found; advantage/disadvantage hits everywhere, so help as advantage is one shape to try | open, willow first |
 | 8 growing | class data by level in dndwright (`classes.json`), srd_5e, OpenCombatEngine (ADR 0054) | unread beyond the hit |
-| 9 a scene made up | taleweaver, narrativeengine-p are built on it, with a person confirming (`core/prompts.py:513`) | unread |
+| 9 a scene made up | taleweaver, narrativeengine-p are built on it, with a person confirming (`core/prompts.py, line 513`) | unread |
 | 4 (rest): screen roll | the tower hides a roll from everyone; a screen roll is the same, opened by the GM only | open |
 | 16, 17 (map) | narrativeengine-p's world-map mod (MIT) | unread |
 | 6, 11, 15 | not surveyed | open |
@@ -739,8 +739,8 @@ read. Updating the earlier claims:
   none of its code found is a hash-chained record or a seal. No commit-reveal
   dice either (the only hash/seed hits are auth and settings).
 - **Edition labels were wrong.** *jurnalis-engine* says SRD 5.1 but its code
-  has Weapon Mastery "per 2024 SRD" (`class.rs:251`), exhaustion as "2024 SRD
-  unified formula" (`conditions/mod.rs:491`), a Warhammer weight "per the
+  has Weapon Mastery "per 2024 SRD" (`class.rs, line 251`), exhaustion as "2024 SRD
+  unified formula" (`conditions/mod.rs, line 491`), a Warhammer weight "per the
   2024 SRD" and origin feats; one comment still says 5.1. It is mostly 2024.
   *dndwright* carries a full `dnd_5e_2024` ruleset graph (`rules/
   dnd_5e_2024.py`) and Heroic Inspiration in its species, though its
@@ -762,18 +762,18 @@ read. Updating the earlier claims:
   in is **not found**: read `SystemEngineGrpcService.cs` `ResolveCheck`/`Attack`.
   That is the same seam as our tower and seal, written by someone else.
 - **Rests:** jurnalis eases exhaustion by one on a long rest
-  (`rest/mod.rs:309`), OpenCombatEngine has a resting ADR (`017`). The rule is now in
+  (`rest/mod.rs, line 309`), OpenCombatEngine has a resting ADR (`017`). The rule is now in
   `box/exhaustion.py` (`after_long_rest`).
 
 **Leads for the still-open items.**
 
 | Item | Lead |
 |---|---|
-| 3, help and a reroll | narrativeengine-p has a built-in Help ability in its combat actions (`BUILTIN_HELP_ID`, `packages/engine/src/combat/__tests__/tabletopActions.test.ts:406`: it costs the action); jurnalis has the Lucky feat (3 luck points, reroll an attack, check or save: `character/feat.rs:91`) |
-| 4 (rest), a GM screen roll | ink & bone: a hidden roll shows `[GM]` and `?` to others (`e2e/tests/smoke.spec.ts:162`): hidden in the UI, with no proof it wasn't changed |
+| 3, help and a reroll | narrativeengine-p has a built-in Help ability in its combat actions (`BUILTIN_HELP_ID`, `packages/engine/src/combat/__tests__/tabletopActions.test.ts, line 406`: it costs the action); jurnalis has the Lucky feat (3 luck points, reroll an attack, check or save: `character/feat.rs, line 91`) |
+| 4 (rest), a GM screen roll | ink & bone: a hidden roll shows `[GM]` and `?` to others (`e2e/tests/smoke.spec.ts, line 162`): hidden in the UI, with no proof it wasn't changed |
 | 8, growing | ink & bone's XP design with the standard 5e thresholds (`docs/superpowers/specs/2026-04-06-xp-advancement-design.md`), OpenCombatEngine ADR 0050, jurnalis XP drives level |
 | 9, a scene made up | ink & bone: `POST /api/sessions/{id}/improvise` returns a 2 to 3 sentence suggestion from the last five messages: it suggests, a person decides; dnd_ai_dm builds its world from one seeded generator |
-| 11, time pressing | taleweaver: an in-game clock, minutes-per-tick, and `on_time_reached` deadline triggers (`RELEASE_NOTES_v0.7.0-beta.md:102`) |
+| 11, time pressing | taleweaver: an in-game clock, minutes-per-tick, and `on_time_reached` deadline triggers (`RELEASE_NOTES_v0.7.0-beta.md, line 102`) |
 | 16, 17, map | ink & bone: draggable tokens with positions kept per map, synced to every window over a WebSocket; OpenCombatEngine ADR 0028: a 3D integer grid, Chebyshev distance |
 | 6, 15 | no seat or co-GM model found in any of the nine; layforge has many players and an operator |
 
@@ -789,21 +789,21 @@ alone with the survey questions (it is in the pot, not yet surveyed).
 ### Round 3: the three next steps, read (2026-11-21)
 
 1. **Layforge's gate and its log.** The gate is code, not prompting. The PvP
-   check (`master/internal/server/dm_tools.go:700`, again at 852 and 972)
+   check (`master/internal/server/dm_tools.go, line 700`, again at 852 and 972)
    switches on the policy and **fails closed**: "PvPPolicyPveOnly, or an
    unrecognized/unspecified value" is denied, and a campaign with no
    configuration "gets the strictest PvP setting by default, not an open
-   one" (`README.md:300`). Its README says a tool is re-checked inside the
+   one" (`README.md, line 300`). Its README says a tool is re-checked inside the
    call, "so a stray/hallucinated call can't succeed just because the tool
-   wasn't offered this turn", "gates over prompting" (`master/README.md:1333`).
+   wasn't offered this turn", "gates over prompting" (`master/README.md, line 1333`).
    A human can override the model: the operator lists imported characters and
-   overrides the model's verdict through the admin API (`master/README.md:1786`).
+   overrides the model's verdict through the admin API (`master/README.md, line 1786`).
    Its **log** is an event store described as "a campaign's append-only event
    log", with a strictly increasing `Sequence`, a refused duplicate message id
    (`ErrDuplicateMessage`), paged reads; **no hash chain, no signature**.
    Lines and veils are even model-authored: its pack generator is told to
    pre-declare them "ONLY when the adventure's content genuinely calls for
-   them" (`campaignpack/generate.go:93`), so a model proposes the family's
+   them" (`campaignpack/generate.go, line 93`), so a model proposes the family's
    limits where ours are the family's own page.
    *For us:* fail-closed on an unknown setting is worth copying in
    `safety.py`; an append-only log with sequence numbers is what our record
@@ -812,7 +812,7 @@ alone with the survey questions (it is in the pot, not yet surveyed).
    `ResolveCheck` in the gRPC sidecar takes a `checkType`, an `ability` and a
    `skill`; the engine rolls (`creature.Checks.RollAbilityCheck`) and the
    sidecar copies the dice it rolled into the answer
-   (`SystemEngineGrpcService.cs:256`). There is no field for a seed or for
+   (`SystemEngineGrpcService.cs, line 256`). There is no field for a seed or for
    faces; the `params` doc's "roll-spec overrides" isn't read there. The seam
    is in the .NET library (`IDiceRoller`, settable `Seed`), so a sidecar with
    our roller registered **in-process** could take typed faces, but the
@@ -859,7 +859,7 @@ dropped from the tower by an adapter; **what is not checked is the fit to our
 sheets** (our characters carry a bonus per stat, not a Strength modifier) and
 a whole fight loop.
 
-**Layforge's tool gate, read.** One switch (`callDMTool`, `dm_tools.go:478`)
+**Layforge's tool gate, read.** One switch (`callDMTool`, `dm_tools.go, line 478`)
 names about 45 tools (`resolve_check`, `apply_effect`, attacks, grapple,
 equip, loot, currency, `start_combat`, `advance_turn`, `create_npc`,
 vendors, `travel_to`, `stash_*`); each handler enforces its own gate and

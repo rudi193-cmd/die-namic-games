@@ -1,0 +1,6 @@
+# What the story's own fights need (box/dw-fights.md): dndwright, at the commit
+# box/dw_*.py and tests/test_dw_*.py were written against, and the two packages
+# it asks for, pinned. Not needed unless a story names its "foes".
+dndwright @ git+https://github.com/sligara7/dndwright.git@6f0fb9e8a6cb6e25f45dd5b6262050b7d64ad1e1
+pydantic==2.13.5
+PyYAML==6.0.3
