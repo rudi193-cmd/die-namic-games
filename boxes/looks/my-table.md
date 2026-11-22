@@ -28,3 +28,8 @@ can all go in the center panel."
 - **Centre:** what's happening now: the binder's planned story, and active
   combat when there is one.
 - **Right:** the players.
+
+A quick lookup (2026-11-22): "We also should keep a quick lookup for all
+the other things that might turn up, the rules, the books, being able to
+ask them on demand." Whatever comes up at the table, asked then and there:
+the binder, the rules, the rulebooks.

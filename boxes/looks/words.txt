@@ -30,3 +30,6 @@ beastiary = monster, monsters, foes, creature
 loot = treasure, items, carry
 battles = fight, fights, combat, foes
 players = seats, seated, characters, sheets
+lookup = ask, binder, rules
+rulebook = rules, compendium, srd
+books = rulebook, pdf

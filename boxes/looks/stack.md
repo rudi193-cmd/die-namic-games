@@ -45,3 +45,10 @@ panels?" (the maintainer's screen: left, quick reference: the bestiary,
 upcoming loot, planned battles; centre, the binder's planned story and
 active combat; right, the players)
 - batch-ask -- scan --index {box}/../index --words {box}/../words.txt --top 8 --questions {box}/../questions/want5.tsv
+
+## a quick lookup
+
+Want 6: "What do we already have for a quick lookup of everything that
+might turn up: the rules, the books, asked on demand?" (the maintainer,
+2026-11-22)
+- batch-ask -- scan --index {box}/../index --words {box}/../words.txt --top 8 --questions {box}/../questions/want6.tsv
