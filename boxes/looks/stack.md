@@ -25,3 +25,6 @@ pages taken out to the screen or the table, the dice box centre)
 Want 3: "How does each send what the GM shows from their device to the
 others'?" (the maintainer: "the GM would share from their device to others")
 - all-passages -- --box {box} --top 8 "websocket players window sync"
+# The card that answers it is willow's share (sealed answers packed for each
+# person's key, checked on receipt); it runs on the GM's own box at the
+# table, not over this one, so it is not a step here.
