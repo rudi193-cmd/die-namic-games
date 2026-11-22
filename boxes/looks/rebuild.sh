@@ -11,8 +11,8 @@
 #                 .css .scss .html .md, without node_modules or lockfiles.
 #   ours/         Die-Namic's own page sources (ui/*.src.html, ui/tables/,
 #                 ui/build.py) and its design pages (README.md, open.md,
-#                 open-gaps-from-the-boxes.md, box/'s and the-table's
-#                 READMEs and stacks, boxes/MEMORY.md) at this checkout's
+#                 open-gaps-from-the-boxes.md, box/'s pages, code and
+#                 worlds, the-table's README, boxes/MEMORY.md) at this checkout's
 #                 HEAD, and my-table.md: the
 #                 maintainer's own GM side of the table, in their words.
 #   books/        book designs, from a folder outside the repository (BOOKS,
@@ -59,7 +59,7 @@ for pc in $PROJECTS; do
 done
 head=$(git -C "$R" rev-parse --short HEAD)
 git -C "$R" archive HEAD ui/index.src.html ui/tables ui/build.py \
-  README.md open.md open-gaps-from-the-boxes.md box/README.md box/family-night.md box/gm-stack.md box/gm-end.md \
+  README.md open.md open-gaps-from-the-boxes.md box/worlds $(cd "$R" && ls box/*.md box/*.py) \
   the-table/README.md boxes/MEMORY.md | tar -x -C "$S/pile/ours"
 cp "$HERE/my-table.md" "$S/pile/ours/my-table.md"
 laid="$laid ours@$head"

@@ -17,3 +17,14 @@ Laid out:
 How the table sees it (2026-11-22): "The GM would share from their device to
 others." One device is the GM's: the screen, the binder and every page. What
 the GM puts on the table goes from that device to the others'.
+
+The screen's three panels (2026-11-22): "On the left, I usually have my
+quick ref for anything from the bestiary or upcoming loot and planned
+battles. In my binder, I have my planned story, on the right is players,
+and in the center is active combat. So I guess my binder and the active
+can all go in the center panel."
+
+- **Left:** quick reference: the bestiary, upcoming loot, planned battles.
+- **Centre:** what's happening now: the binder's planned story, and active
+  combat when there is one.
+- **Right:** the players.

@@ -37,3 +37,11 @@ Want 4: "Blind deal happens all the time in card games: where do our games
 already deal something only one seat sees?" (the maintainer's connection,
 2026-11-22: the GM's screen roll, the cup and a dealt hand)
 - batch-ask -- scan --index {box}/../index --words {box}/../words.txt --top 8 --questions {box}/../questions/want4.tsv
+
+## the screen's three panels
+
+Want 5: "What does the box already hold for each of my screen's three
+panels?" (the maintainer's screen: left, quick reference: the bestiary,
+upcoming loot, planned battles; centre, the binder's planned story and
+active combat; right, the players)
+- batch-ask -- scan --index {box}/../index --words {box}/../words.txt --top 8 --questions {box}/../questions/want5.tsv
