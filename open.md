@@ -956,3 +956,37 @@ is when to drop: per roll, as here, or a round at a time.
 **Next, if wanted:** put the fight's rows on the kernel's record as
 `table-fight` rows beside box/fight.py's, so `check` can hold them; map a
 story character's stats to `Fighter` numbers; a person choosing the target.
+
+### Round 8: the two next steps (2026-11-22)
+
+Both are in `spikes/dndwright/`; **23 spike tests pass**, 30 runs in a row,
+lint clean.
+
+1. **The fight on the kernel's record** (`record_fight.py`): an `xfight-open`
+   row naming the engine and the fighters whole, the tower's drop and out rows
+   as the engine asks for dice, one `xfight-row` per row of the fight. The
+   kinds are not box/fight.py's, so its `check` and `board` never read them.
+   `check_record` reads only the record: chain, tower, the rows' faces against
+   the tower's, then a replay. A real run (Tamsin and Oro against a Scorched
+   Belt Raider, six rounds): 1 open row, 26 drops and 26 outs, 21 fight rows,
+   and `check_record` returns None. Tested: an edit in the file breaks the
+   chain; rows written honestly to the chain but with a blow changed, and no
+   tower dice behind them, are refused; a die left in the tower is named.
+2. **Story characters as Fighters** (`story_fighters.py`): by the story's own
+   stats, by position (body, mind, heart), hit points 8 + 2 per point of bonus,
+   armor class 11 + the best bonus, initiative the second stat, attack 2 + the
+   first stat; a character's own `"fight": {...}` wins; aetheris5e's stat
+   blocks by their numbers, first attack, multiattack as blows a turn.
+   **These defaults are mine and made up** (Tamsin: 14 hp, AC 13, +4, 1d6+2;
+   Oro: 12 hp, AC 13, +2 to hit, initiative +2). They are a design decision
+   for the table to take or change, not an SRD rule.
+
+**Also changed:** `Fighter` has `attacks` (blows a turn); a flaky test of mine
+(it assumed Tamsin attacked, and Oro can end the fight first) is fixed.
+
+**Still open from this:** a person chooses the target; conditions and death
+saves; hurt characters (carry.py's wounds) start a fight at full hit points;
+whether the fight's rows should become `fight-*` rows box/fight.py can `check`
+and `board` can draw (that would need its engine seam, aetheris5e's, to change);
+the drop-to-out window; and putting any of it on the play path, which this
+spike deliberately does not.

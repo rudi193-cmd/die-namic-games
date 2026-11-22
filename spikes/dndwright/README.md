@@ -7,7 +7,7 @@ is a spike: **nothing in `box/` imports it**, and it is outside `tests/` so the
 suite doesn't need dndwright; it is run by name.
 
     pip install git+https://github.com/sligara7/dndwright.git@6f0fb9e   # needs pydantic>=2.5, pyyaml>=6.0
-    python3 -m pytest spikes/dndwright -q                                # 12 tests (7 on listed faces, 5 on the tower)
+    python3 -m pytest spikes/dndwright -q                                # 23 tests (7 listed faces, 5 tower, 11 story fighters and the record)
 
 ## What it shows (each held by a test)
 
@@ -39,14 +39,29 @@ suite doesn't need dndwright; it is run by name.
   the die files can look first (the tower's own README: that is the game
   master's screen, not a seal). A play path would drop a round's d20s when
   the round is posed, and the damage dice when a hit is known.
-- **The fight is not on the record as rows.** The tower's drops and outs are
-  kernel rows; the fight's own rows (`init`, `blow`, `down`, `end`) are plain
-  dicts, not kernel rows, and nothing is sealed.
+- **The fight is on the record, unsealed.** `record_fight.py` writes an
+  `xfight-open` row (the engine and its commit, and the fighters, whole), the
+  tower's own drop and out rows as the engine asks for dice, then one
+  `xfight-row` per row of the fight. Its kinds are not `fight-open`,
+  `fight-blow` or `fight-end`, so box/fight.py never reads them and this never
+  writes theirs. `check_record` reads only the record: the chain holds, every
+  tower die holds to its drop with none inside, the faces the tower brought
+  out are the faces the rows say, and the fight played again on those faces
+  comes out as written. Nothing is sealed, and no one decides what the fight
+  means for the story: that is the GM's.
+- **Story characters and stat blocks as Fighters** (`story_fighters.py`).
+  A character's hit points, armor class, initiative and attack are made up
+  from the bonuses on the story's own stats (by position: body, mind, heart);
+  the defaults are the spike's, written at the top of the file, and a
+  character's own `"fight": {...}` in the world file overrides them. An
+  aetheris5e stat block becomes a Fighter by its numbers and its first attack,
+  with multiattack as blows a turn.
 - **Fixed choices.** A fighter hits the first one standing on the other side;
   in play that is a person's call. No advantage, no conditions, no death saves
   (a fighter drops at 0 hit points, as in aetheris5e), no reactions, no map.
-- **Our sheets** (a bonus on each of a story's stats) are not mapped; a
-  `Fighter`'s numbers are given by hand. dndwright's sheet graph is not used.
+- **dndwright's sheet graph is not used**, and the defaults that turn a bonus
+  into hit points are made up here, not a rule from any SRD. A stat block's
+  specials, saves and resistances are not carried.
 - **Edition:** attack and damage rules here are plain d20-versus-AC, the same
   in 5.1 and 5.2.1; dndwright's 2024 specifics (Weapon Mastery and the rest)
   are untouched.

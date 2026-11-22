@@ -131,6 +131,12 @@ dm` and `dm = ...` was refused).
   tower's outs; 12 spike tests. Window between drop and out is an instant.
   Next: fight rows on the kernel's record, stats to `Fighter` numbers.
 
+- **Round 8 (2026-11-22), the two next steps done in the spike:** fight rows on
+  the kernel's record (`xfight-*`, checked from the record alone, a real run
+  was 26 tower dice and 21 rows) and story characters and stat blocks as
+  Fighters (defaults made up, overridable per character); 23 tests. Still
+  spike-only; nothing in box/ calls it.
+
 ## Not done, and why
 
 - **Tavern (t11z)**: `t11z/tavern` is refused to the session, both through

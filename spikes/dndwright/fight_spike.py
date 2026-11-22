@@ -12,8 +12,9 @@ so the faces come from `Faces`, and the engine has no generator of its own to
 fall back on: out of faces, it refuses.
 
 Order of faces, fixed so a replay can read them back: initiative d20s in the
-order the fighters are listed; then, in turn order, per blow one d20, and when
-it hits, the damage dice. A fighter at 0 hit points is down (no death saves,
+order the fighters are listed; then, in turn order, per blow (a fighter's
+`attacks` a turn, each at the first one standing) one d20, and when it hits,
+the damage dice. A fighter at 0 hit points is down (no death saves,
 as in aetheris5e). Whom a fighter hits is the first one standing on the other
 side: in play that is the GM's or the player's call, here it is fixed so the
 spike has one answer.
@@ -87,6 +88,7 @@ class Fighter:
     init_mod: int
     attack_bonus: int
     damage: str  # e.g. "1d6+2"
+    attacks: int = 1  # blows a turn (a stat block's multiattack)
 
 
 def fight(fighters: list[Fighter], faces) -> list[dict]:
@@ -130,29 +132,39 @@ def fight(fighters: list[Fighter], faces) -> list[dict]:
             if not foes:
                 row(kind="end", round=rnd, winner=me.side)
                 return rows
-            target = foes[0]
-            src.say(f"{name} attacks {target}")
-            atk = engine.roll_attack(modifier=me.attack_bonus, target_ac=by[target].ac)
-            blow = {
-                "kind": "blow",
-                "round": rnd,
-                "who": name,
-                "target": target,
-                "d20": atk.roll.natural_roll,
-                "total": atk.roll.total,
-                "ac": by[target].ac,
-                "hit": bool(atk.is_hit),
-                "crit": atk.roll.is_critical,
-            }
-            if atk.is_hit:
-                src.say(f"{name}'s damage to {target}")
-                dmg = engine.roll_damage(me.damage, is_critical=atk.roll.is_critical)
-                state[target], _ = apply_damage(state[target], dmg.roll.total)
-                blow.update(damage=dmg.roll.total, dice=list(dmg.roll.individual_rolls))
-            blow["hp_after"] = state[target].current_hp
-            row(**blow)
-            if state[target].current_hp <= 0:
-                row(kind="down", who=target)
+            for _ in range(me.attacks):
+                foes = standing(other)
+                if not foes:
+                    break
+                target = foes[0]
+                src.say(f"{name} attacks {target}")
+                atk = engine.roll_attack(
+                    modifier=me.attack_bonus, target_ac=by[target].ac
+                )
+                blow = {
+                    "kind": "blow",
+                    "round": rnd,
+                    "who": name,
+                    "target": target,
+                    "d20": atk.roll.natural_roll,
+                    "total": atk.roll.total,
+                    "ac": by[target].ac,
+                    "hit": bool(atk.is_hit),
+                    "crit": atk.roll.is_critical,
+                }
+                if atk.is_hit:
+                    src.say(f"{name}'s damage to {target}")
+                    dmg = engine.roll_damage(
+                        me.damage, is_critical=atk.roll.is_critical
+                    )
+                    state[target], _ = apply_damage(state[target], dmg.roll.total)
+                    blow.update(
+                        damage=dmg.roll.total, dice=list(dmg.roll.individual_rolls)
+                    )
+                blow["hp_after"] = state[target].current_hp
+                row(**blow)
+                if state[target].current_hp <= 0:
+                    row(kind="down", who=target)
     row(kind="end", round=MAX_ROUNDS, winner="stalemate")
     return rows
 

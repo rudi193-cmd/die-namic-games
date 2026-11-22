@@ -45,9 +45,7 @@ def test_a_fight_on_the_tower_ends_and_every_face_is_on_the_record(tmp_path):
     rec, _ = tf.kernel.read(box / "record.jsonl")
     drops = [r for r in rec if r["kind"] == "tower-drop"]
     assert len(drops) == len(fs.faces_of(rows)) >= 5
-    assert any(
-        "Tamsin attacks" in d.get("for", "") for d in drops
-    )  # what each die was for
+    assert any(" attacks " in d.get("for", "") for d in drops)  # what each die was for
 
 
 def test_every_die_was_a_hash_on_the_record_before_it_was_out(tmp_path):
