@@ -11,3 +11,11 @@ box and runs it.
 
 Want 1: "How does each one dress its pages: colours, fonts, themes?"
 - all-passages -- --box {box} --top 10 "theme colour palette font"
+
+## the GM's side of the table
+
+Want 2: "Where does each put the GM's things: the screen, the binder's
+pages pulled out for reference, the dice?" (the maintainer's own side,
+ours/my-table.md: a three-panel screen, a three-ring binder behind it,
+pages taken out to the screen or the table, the dice box centre)
+- all-passages -- --box {box} --top 8 "sidebar handout reference dice"

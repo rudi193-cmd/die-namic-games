@@ -10,7 +10,8 @@
 #                 keeping what a page is made of and said about: .tsx .vue
 #                 .css .scss .html .md, without node_modules or lockfiles.
 #   ours/         Die-Namic's own page sources (ui/*.src.html, ui/tables/,
-#                 ui/build.py) at this checkout's HEAD.
+#                 ui/build.py) at this checkout's HEAD, and my-table.md: the
+#                 maintainer's own GM side of the table, in their words.
 #   books/        book designs, from a folder outside the repository (BOOKS,
 #                 or ../book-designs): each picture with a note beside it
 #                 (same name, .md) saying what it is and what to take from
@@ -53,6 +54,7 @@ for pc in $PROJECTS; do
 done
 head=$(git -C "$R" rev-parse --short HEAD)
 git -C "$R" archive HEAD ui/index.src.html ui/tables ui/build.py | tar -x -C "$S/pile/ours"
+cp "$HERE/my-table.md" "$S/pile/ours/my-table.md"
 laid="$laid ours@$head"
 if [ -d "$BOOKS" ]; then
   mkdir -p "$S/pile/books"
