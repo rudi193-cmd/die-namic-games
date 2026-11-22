@@ -93,3 +93,44 @@ def test_a_night_is_laid_fresh_and_never_inside_the_repository(tmp_path):
     assert run(SCENE, "run", "--to", tmp_path / "there").returncode == 2
     assert run(SCENE, "run", "--to", REPO / "night-here").returncode == 2
     assert not (REPO / "night-here").exists()
+
+
+def test_an_offer_waits_on_the_gms_call_and_nothing_answers_it(night):
+    t = json.loads((night / "table.json").read_text())
+    (offer,) = t["gm"]["offers"]
+    assert t["seats"][0]["offered"] == [offer] and t["seats"][1]["offered"] == []
+    rows = [json.loads(ln) for ln in (night / "gm" / "table" / "record" / "record.jsonl").read_text().splitlines()]  # fmt: skip
+    assert any(r.get("subject") == offer["subject"] and r["kind"] == "proposal" for r in rows)  # fmt: skip
+    assert not any(r.get("subject") == offer["subject"] and r["kind"] in ("seal", "decline") for r in rows)  # fmt: skip
+
+
+def test_what_crossed_is_read_from_the_package_that_held(night):
+    t = json.loads((night / "table.json").read_text())
+    for s in t["seats"]:
+        (got,) = s["received"]
+        assert got["what"].startswith("A draw is offered out loud") and got["verdict"] == "good"  # fmt: skip
+        assert got["cites"] and all(c.startswith("house-rules.md:") for c in got["cites"])  # fmt: skip
+
+
+@pytest.mark.parametrize("seat,other", [("ash", "wren"), ("wren", "ash")])
+def test_a_players_screen_holds_their_seat_and_the_table_and_nothing_else(night, tmp_path, seat, other):  # fmt: skip
+    t = json.loads((night / "table.json").read_text())
+    page = tmp_path / f"{seat}.html"
+    got = run(SCREEN, "build", "--table", night / "table.json", "--to", page, "--seat", seat)  # fmt: skip
+    assert got.returncode == 0, got.stderr
+    html = page.read_text()
+    me = next(s for s in t["seats"] if s["seat"] == seat)
+    them = next(s for s in t["seats"] if s["seat"] == other)
+    assert me["plays"] in html and all(n in html for n in me["notes"])
+    assert t["table"]["scene"]["title"] in html
+    # never the GM's part: the binder, the bestiary, the call, the screen's page
+    for gm_only in ("Clockwork hound", "Cogwen", "springs", '"bestiary"', '"your_call"', '"on_screen"'):  # fmt: skip
+        assert gm_only not in html, gm_only
+    # never another seat's
+    assert them["name"] not in html and not any(n in html for n in them["notes"])
+    assert "http://" not in html and "https://" not in html
+
+
+def test_a_seat_not_at_the_table_is_refused(night, tmp_path):
+    got = run(SCREEN, "build", "--table", night / "table.json", "--to", tmp_path / "x.html", "--seat", "nobody")  # fmt: skip
+    assert got.returncode == 2 and not (tmp_path / "x.html").exists()

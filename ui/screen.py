@@ -1,6 +1,6 @@
 """screen.py: the GM's screen, built from a night at the table. Python 3.9+.
 
-    python ui/screen.py build --table DIR/table.json --to FILE.html
+    python ui/screen.py build --table DIR/table.json --to FILE.html [--seat NAME]
 
 The table is what box/table_scene.py wrote. FILE.html is one self-contained
 page, no network and no install: open it in a browser. It reads nothing but
@@ -23,6 +23,17 @@ boxes/looks/mock.md draws it, in the dress of Die-Namic's table frame
 - **Along the bottom.** What is clipped in the screen (yours alone) and what
   is on the table (sent, and received).
 
+**A player's screen** (`--seat NAME`): the same three panels from their
+seat (the maintainer: "think of it like their own screen"). Left, my quick
+ref: what I'm good at, what the GM sent me (the words read from the package
+that held), previously on, our lines, and a lookup over only what's mine.
+Centre, the table: the scene as read out, the dice seen landing, my hand.
+Right, me: my character, my drawing, what I carry, my notes, what I brought
+in and whether the GM has called it. Along the bottom: bring something in,
+x and p, each saying what it does. The page is given only that seat's part
+of table.json and what the whole table sees: never the GM's part, never
+another seat's, so it can't show them however it is read.
+
 The page decides nothing and rolls nothing: a roll not on the record did not
 happen (the house rules), so its buttons say what to run, and where. The
 lookup on the page is a toy matcher over what the page holds, keeping to the
@@ -36,13 +47,7 @@ import json
 import sys
 from pathlib import Path
 
-PAGE = r"""<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GM's screen</title>
-<style>
+STYLE = r"""
 :root {
   color-scheme: dark;
   --lid: #b8263f; --lid-ink: #fff0f2;
@@ -145,6 +150,16 @@ h3 { margin: 0 0 6px; font-size: 0.74rem; letter-spacing: 0.1em; text-transform:
 .card { background: var(--card); color: var(--ink); border-radius: 6px; padding: 8px 10px; font-size: 0.86rem; margin-top: 6px; }
 .card .cite { color: #6b5d55; }
 .note { margin-top: 14px; font-size: 0.78rem; color: var(--chalk-faint); max-width: 90ch; }
+"""
+
+PAGE = r"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GM's screen</title>
+<style>
+/*__STYLE__*/
 </style>
 </head>
 <body>
@@ -272,8 +287,8 @@ function centre() {
       <div class="btns"><button class="btn" id="roll">Roll</button><button class="btn ghost" id="hidden">Roll hidden</button></div>
       <div class="say" id="say" aria-live="polite"></div>
     </div>
-    <div class="call"><h3>✋ Your call, GM · ${G.your_call.length} waiting on your seal</h3>
-      <ul>${G.your_call.map((r) => `<li>house rule: ${esc(r)}</li>`).join("")}</ul>
+    <div class="call"><h3>✋ Your call, GM · ${G.your_call.length + (G.offers || []).length} waiting on your seal</h3>
+      <ul>${(G.offers || []).map((o) => `<li><b>${esc(o.by[0].toUpperCase() + o.by.slice(1))} brings in:</b> ${esc(o.fact)}</li>`).join("")}${G.your_call.map((r) => `<li>house rule: ${esc(r)}</li>`).join("")}</ul>
       <div class="say" style="text-align:left">Only the key's holder seals: <code>python kernel.py seal --box RECORD proposal:&lt;id&gt;</code></div></div>
     ${W.scenes.length > 1 ? `<details><summary class="cite">the rest of the binder (${W.scenes.length - 1} more scene${W.scenes.length > 2 ? "s" : ""})</summary>${scenes.slice(1).join("")}</details>` : ""}`;
   $("roll").onclick = () => { $("say").innerHTML = "A roll not on the record didn't happen, so the page rolls nothing. At the table: <code>python box/play.py</code>, or <code>game_master.py act " + esc((G.next.odds.find((o) => o.startsWith("*")) || "").replace(/^\*\s*/, "").split(/\s+/)[0] || "STAT") + "</code>."; };
@@ -318,30 +333,217 @@ centre();
 </html>
 """
 
+PLAYER_PAGE = r"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My screen</title>
+<style>
+/*__STYLE__*/
+.mine { display: grid; gap: 6px; justify-items: end; min-width: 0; max-width: 100%; }
+.mine .demo { overflow-wrap: anywhere; }
+.tables { font: inherit; width: 100%; font-weight: 700; font-size: 0.85rem; color: var(--lid); background: var(--lid-ink); border: 0; border-radius: 999px; padding: 6px 12px; max-width: 100%; }
+.me-name { font-family: var(--lid-font); font-weight: 400; font-size: 1.6rem; line-height: 1; margin: 0; }
+.drawing { aspect-ratio: 4 / 3; border: 2px dashed var(--edge); border-radius: 10px; display: grid; place-items: center; text-align: center; padding: 10px; font-size: 0.8rem; color: var(--chalk-faint); }
+.good { display: grid; gap: 4px; }
+.good div { display: flex; justify-content: space-between; gap: 8px; font-family: var(--mono); font-size: 0.85rem; }
+.good div span:last-child { color: var(--chalk-faint); }
+.hand { border: 2px dashed var(--edge); border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; color: var(--chalk-dim); }
+.bar { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.bar .say { text-align: left; max-width: 70ch; }
+.btn.x { background: #e9e2d2; color: var(--ink); }
+</style>
+</head>
+<body>
+<header class="band"><div class="band-in">
+  <div>
+    <div class="kicker" id="kicker"></div>
+    <h1 id="title"></h1>
+    <p class="line" id="setting"></p>
+  </div>
+  <div class="mine">
+    <select class="tables" id="tables" aria-label="My tables"></select>
+    <span class="demo" id="demo"></span>
+  </div>
+</div></header>
+<main class="wrap">
+  <div class="screen">
+    <section class="leaf" aria-label="Left panel: my quick reference">
+      <h2 class="leaf-name">MY QUICK REF <small>left</small></h2>
+      <form class="ask" id="ask"><input id="q" placeholder="ask… (what's mine, what was sent)" aria-label="Ask my quick ref"><button>Ask</button></form>
+      <div class="gap" style="padding:0">what's mine and what was sent to me, never the GM's binder</div>
+      <div><h3>What I'm good at</h3><div class="good" id="good"></div></div>
+      <div><h3>From the GM</h3><div class="list" id="got"></div></div>
+      <div><h3>Previously on…</h3><div class="gap">only what the table sealed comes back here; nothing about you is sealed yet</div></div>
+      <div><h3>Our lines</h3><div class="gap">none written yet: the family writes them once (our-lines.md, box/safety.py)</div></div>
+    </section>
+    <section class="leaf centre" aria-label="Centre panel: the table" id="centre"></section>
+    <section class="leaf" aria-label="Right panel: me">
+      <h2 class="leaf-name">ME <small>right</small></h2>
+      <div><p class="me-name" id="me-name"></p><div class="role" id="me-role"></div></div>
+      <div class="drawing" id="drawing">no drawing yet<br>(a picture beside the words: the page doesn't keep one yet)</div>
+      <div><h3>Stats</h3><div class="stats" id="stats"></div></div>
+      <div><h3>I carry</h3><div class="row" id="carries"></div></div>
+      <div><h3>My notes</h3><div class="list" id="notes"></div></div>
+      <div><h3>I brought in</h3><div class="list" id="offered"></div></div>
+      <div class="cite" id="chain"></div>
+    </section>
+  </div>
+  <div class="bar">
+    <button class="btn" id="bring">✋ bring something in</button>
+    <button class="btn x" id="x">x stop the scene</button>
+    <button class="btn ghost" id="p">p pause</button>
+    <div class="say" id="barsay" aria-live="polite"></div>
+  </div>
+  <p class="note" id="note"></p>
+</main>
+<script id="table" type="application/json">/*__TABLE__*/</script>
+<script>
+"use strict";
+const T = JSON.parse(document.getElementById("table").textContent);
+const M = T.seat, V = T.table;
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const $ = (id) => document.getElementById(id);
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+const die = (n) => `<span class="d6" role="img" aria-label="${n}">${[...Array(9)].map((_, i) => `<b class="${PIPS[n].includes(i) ? "on" : ""}"></b>`).join("")}</span>`;
 
-def build(table: Path, to: Path) -> None:
+$("kicker").textContent = "Die·Namic · " + M.name + "'s screen";
+$("title").textContent = M.plays + " at " + T.world.title;
+$("setting").textContent = T.world.setting;
+$("demo").textContent = T.demo_keys ? "fictional seat · demo keys · " + T.made : T.made;
+$("tables").innerHTML = T.tables.map((t) => `<option>${esc(t.title)} · ${esc(t.seat)}</option>`).join("")
+  + `<option disabled>a GM's chair at another table: not built (open.md item 15)</option>`;
+
+// left
+$("good").innerHTML = Object.entries(M.stats).sort((a, b) => b[1] - a[1])
+  .map(([k, v]) => `<div><span>${esc(k)}</span><span>a roll adds +${v}</span></div>`).join("");
+$("got").innerHTML = M.received.length ? M.received.map((r) => `<div class="item"><b>${esc(r.claim)}</b> <span class="state ${r.verdict === "good" ? "ok" : "wait"}">${esc(r.verdict)}</span><span class="sub">${esc(r.what)}</span><span class="cite">${esc(r.cites.join(", "))} · sealed by the GM</span></div>`).join("")
+  : `<div class="gap">nothing sent to you yet</div>`;
+
+// what my lookup can reach: me, my notes, what was sent to me, what I brought in
+const mine = [
+  { kind: "me", title: M.plays, lines: [M.role, Object.entries(M.stats).map(([k, v]) => k + " +" + v).join(", "), "carries: " + M.carries.join(", ")] },
+  ...M.notes.map((n) => ({ kind: "my notes", title: "a note", lines: [n] })),
+  ...M.received.map((r) => ({ kind: "from the GM", title: r.claim, lines: [r.what] })),
+  ...M.offered.map((o) => ({ kind: "I brought in", title: o.state, lines: [o.fact] })),
+];
+const STOP = new Set("a an the of to in on at is are was what who how does do it its and or for with my i me".split(" "));
+const words = (s) => s.toLowerCase().match(/[a-z0-9]+/g) || [];
+function lookup(q) {
+  const want = [...new Set(words(q).filter((w) => !STOP.has(w)))];
+  if (!want.length) return [];
+  return mine.map((r) => {
+    const have = new Set(words(r.title + " " + r.lines.join(" ")));
+    return { r, hit: want.filter((w) => have.has(w) || have.has(w + "s") || have.has(w.replace(/s$/, ""))).length };
+  }).filter((x) => x.hit * 2 >= want.length).sort((a, b) => b.hit - a.hit).slice(0, 5).map((x) => x.r);
+}
+
+// centre: the table
+let asked = null;
+function centre() {
+  const c = $("centre");
+  if (asked) {
+    c.innerHTML = `<h2 class="leaf-name">CALLED TO THE CENTRE <small>my lookup</small></h2><button class="back" id="back">◂ back to the table</button>${asked}`;
+    $("back").onclick = () => { asked = null; centre(); };
+    return;
+  }
+  const d = V.dice;
+  c.innerHTML = `<h2 class="leaf-name">THE TABLE <small>centre</small></h2>
+    <article class="page"><p class="where">From the GM · read out · ${esc(V.scene.place)}</p><h2>${esc(V.scene.title)}</h2>
+      ${V.scene.opening.map((l) => `<p>${esc(l)}</p>`).join("")}
+      <ol class="beats">${V.played.map((b) => `<li class="done">${esc(b.prompt)}</li><li>${esc(b.text)}</li>`).join("")}<li class="now">▶ ${esc(V.next)}</li></ol></article>
+    <div class="dicebox" aria-label="The dice box">
+      <h3>The dice box · seen landing</h3>
+      <div class="dice-row">${d.faces.map(die).join("")}</div>
+      <div class="sum">${esc(d.by)} · ${esc(d.stat)}: ${d.faces.join(" + ")} + ${d.bonus} = ${d.total}</div>
+      <div class="band-word">${esc(d.band)}</div>
+      <div class="cite">on the GM's record, not yours: everyone saw it land</div>
+    </div>
+    <div class="hand"><h3>My hand · only I see it</h3>no game deals tonight. When one does, your cards or dice are yours alone (blind-deal: planned in willow, not built).</div>`;
+}
+$("ask").onsubmit = (e) => {
+  e.preventDefault();
+  const q = $("q").value.trim();
+  if (!q) return;
+  const got = lookup(q);
+  asked = got.length
+    ? `<p class="cite">asked: “${esc(q)}” · from your own box (a toy matcher over this page)</p>` + got.map((r) => `<article class="page"><p class="where">${esc(r.kind)}</p><h2>${esc(r.title)}</h2>${r.lines.map((l) => `<p>${esc(l)}</p>`).join("")}</article>`).join("")
+    : `<article class="page"><h2>Nothing on record for you</h2><p>Your box holds what's yours and what was sent to you. “${esc(q)}” is in none of it. If it's in the GM's binder, ask the GM.</p></article>`;
+  centre();
+};
+
+// right: me
+$("me-name").textContent = M.plays;
+$("me-role").textContent = M.role;
+$("stats").textContent = Object.entries(M.stats).map(([k, v]) => `${k}+${v}`).join(" ");
+$("carries").textContent = M.carries.join(", ");
+$("notes").innerHTML = M.notes.map((n) => `<div class="item">${esc(n)}</div>`).join("");
+$("offered").innerHTML = M.offered.length ? M.offered.map((o) => `<div class="item">${esc(o.fact)} <span class="state wait">${esc(o.state)}</span></div>`).join("") : `<div class="gap">nothing yet</div>`;
+$("chain").textContent = "my record: " + M.chain;
+
+// along the bottom: they say what happens; the page does nothing
+const SAY = {
+  bring: "Say it as " + M.plays + ", in your own words. It goes to the GM's call (game-master's offer), and the story goes on while the GM thinks it over. Only the GM's yes makes it true.",
+  x: "x stops the part, no reason asked. The dice still roll and the GM says what happens instead; the record keeps only that it was, no one named.",
+  p: "p pauses the whole night, no reason asked: one pause row, no one named. Run it again to pick up.",
+};
+for (const k of Object.keys(SAY)) $(k === "bring" ? "bring" : k).onclick = () => { $("barsay").textContent = SAY[k]; };
+$("note").textContent = (T.demo_keys ? "A fictional seat; its key was made by the scene and thrown away with it. " : "")
+  + "Built from your seat's part of table.json and what everyone at the table sees: never the GM's binder, never another seat.";
+centre();
+</script>
+</body>
+</html>
+"""
+
+
+def build(table: Path, to: Path, seat: str = "gm") -> None:
+    """The GM's screen (seat "gm"), or one player's: a player's page holds
+    only their own seat and what the whole table sees, never the GM's part
+    or another seat's, so nothing on it can show what isn't theirs."""
     doc = json.loads(table.read_text(encoding="utf-8"))
+    if seat == "gm":
+        page = PAGE
+    else:
+        mine = [s for s in doc["seats"] if s["seat"] == seat]
+        if not mine:
+            raise KeyError(seat)
+        doc = {
+            "made": doc["made"],
+            "demo_keys": doc["demo_keys"],
+            "world": {
+                "title": doc["world"]["title"],
+                "setting": doc["world"]["setting"],
+            },
+            "table": doc["table"],
+            "seat": mine[0],
+            "tables": [
+                {"title": doc["world"]["title"], "seat": "you play " + mine[0]["plays"]}
+            ],
+        }
+        page = PLAYER_PAGE
     data = json.dumps(doc, ensure_ascii=False).replace("</", "<\\/")
-    to.write_text(PAGE.replace("/*__TABLE__*/", data, 1), encoding="utf-8")
+    page = page.replace("/*__STYLE__*/", STYLE, 1)
+    to.write_text(page.replace("/*__TABLE__*/", data, 1), encoding="utf-8")
 
 
 def main(argv: list[str]) -> int:
-    if (
-        len(argv) != 5
-        or argv[0] != "build"
-        or argv[1] != "--table"
-        or argv[3] != "--to"
-    ):
+    seat = "gm"
+    if len(argv) == 7 and argv[5] == "--seat":
+        seat, argv = argv[6], argv[:5]
+    if len(argv) != 5 or argv[0] != "build" or argv[1] != "--table" or argv[3] != "--to":  # fmt: skip
         print(__doc__.split("\n\n")[1], file=sys.stderr)
         return 2
     table, to = Path(argv[2]), Path(argv[4])
     if not table.is_file():
-        print(
-            f"refused: no table at {table}; run box/table_scene.py first",
-            file=sys.stderr,
-        )
+        print(f"refused: no table at {table}; run box/table_scene.py first", file=sys.stderr)  # fmt: skip
         return 2
-    build(table, to)
+    try:
+        build(table, to, seat)
+    except KeyError:
+        print(f"refused: no seat '{seat}' at this table", file=sys.stderr)
+        return 2
     print(f"wrote {to}")
     return 0
 

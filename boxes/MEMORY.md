@@ -221,6 +221,24 @@ dm` and `dm = ...` was refused).
   Two things the box caught: mock.md's hound line was not the binder's
   (Wit 0, Weird 1; corrected), and the binder's notes have a Juno and a
   Pell, so the placeholder players are Ash and Wren.
+- **looks, built: the player's screen** (2026-11-22, the same session).
+  Asked first, the box listed what a seat already has (MEMORY want 9):
+  `offer` (box/session.py:21), x and p with no reason asked (open.md:443,
+  :449), the recap of only what was sealed, the sheet nothing showed. So
+  the scene now has Ash bring something in as Tamsin (game-master's
+  `offer`: a proposal on the GM's record, waiting on the GM's call; nothing
+  answers it), reads what crossed from the package that held (its words,
+  claim and cited places), and writes `table`: what everyone at the table
+  sees and hears (the scene read out, the dice landing, whose turn), never
+  the binder. `ui/screen.py --seat NAME` builds a player's screen from only
+  their seat and `table`: the GM's part and other seats are not in the page
+  at all, so the wall holds however the page is read (tested); its lookup
+  over the hound says "nothing on record for you". The GM's call shows the
+  offer. Not built, and the page says so: a drawing kept, our lines (none
+  written), previously on (nothing sealed about the character), my hand
+  (blind-deal), a GM's chair at another table in `[ my tables ]`. 12 tests
+  in tests/test_table_scene.py; whole suite 23 failed (`ONESCRIPT_HOME`, as
+  before) and 343 passed.
 
 - **TaleWeaver** enforces rules after the model speaks: a "deterministic
   enforcement" pass, rule violations fed back into a second narration pass,

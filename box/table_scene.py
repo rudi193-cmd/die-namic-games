@@ -33,6 +33,8 @@ Then, in order:
 4. The story's first beat is played: Tamsin's Grit, 2d6 rolled on the GM's
    record by game-master (seeded by the record's tip; nobody picks the
    faces), the dice box's roll.
+   Then Ash brings something in as Tamsin (game-master's `offer`): it waits
+   on the GM's call, and nothing here answers it.
 5. The wall: a player's box, asked about the hound, has nothing on record
    (exit 42); the GM's box, asked the same, serves the binder's page.
 6. Each player's seat runs seat-stack.md; every chain verifies.
@@ -82,6 +84,8 @@ HOUND = ("clockwork hound stats", "monsters/clockwork-hound.md",
          "the binder's page on the hound")  # fmt: skip
 #: the house rule sent to the table
 TO_TABLE = "Draws"
+#: what a player brings in on the night, as their character: (seat, character, fact)
+OFFER = ("ash", "tamsin", "Tamsin keeps a spare lantern under the stall.")
 
 
 class Night:
@@ -89,6 +93,7 @@ class Night:
         self.to, self.now = to, now
         self.wrong: list[str] = []
         self.pub: dict[str, str] = {}
+        self.got: dict[str, list] = {s["seat"]: [] for s in SEATS}
         self.world = json.loads(WORLD.read_text(encoding="utf-8"))
         self.out: dict = {
             "made": "",
@@ -197,6 +202,13 @@ class Night:
         got = self.run(SHARE, "receive", "--box", self.box(s["seat"]), "--id",
                        self.ident(s["seat"]), "--package", pkg, "--now", self.ts())  # fmt: skip
         verdict = "good" if re.search(r"\bgood\b", got.stdout) else "not good"
+        if verdict == "good":  # what crossed, read from the package that held
+            doc = json.loads(pkg.read_text(encoding="utf-8"))
+            self.got[s["seat"]] += [
+                {"what": a["data"], "claim": a["claim"], "from": "gm",
+                 "cites": sorted(set(a.get("places", {}).values())), "verdict": verdict}
+                for a in doc["answers"]
+            ]  # fmt: skip
         if verdict != "good":
             self.wrong.append(
                 f"{s['seat']} received {pkg.name}: {got.stdout.strip()[:200]}"
@@ -280,6 +292,18 @@ class Night:
         ]
         nxt = next((ln[5:] for ln in status.splitlines() if ln.startswith("beat ")), "")
 
+        seat, who, fact = OFFER
+        offered = self.run(GM, "--box", self.box("gm"), "offer", who, fact,
+                           "--world", world, "--now", self.ts(), want=(42,)).stdout  # fmt: skip
+        m = re.search(r"(proposal:[0-9a-f]{64})", offered)
+        offer = {"by": who, "seat": seat, "fact": fact, "subject": m.group(1) if m else "",
+                 "state": "waiting on the GM's call"}  # fmt: skip
+        if not m:
+            self.wrong.append(f"the offer was not handed in: {offered.strip()[:200]}")
+        print(
+            f"  {seat} brings something in as {who.title()}: {fact} (waits on the GM)"
+        )
+
         print("\n## the wall")
         wall = {}
         for seat in ["gm"] + [s["seat"] for s in SEATS]:
@@ -331,16 +355,29 @@ class Night:
             "on_screen": [{"what": HOUND[2], "cite": HOUND[1] + ":5", "subject": hound}],
             "on_table": [{"what": f"house rule: {TO_TABLE}", "subject": rule, "sent": sent}],
             "your_call": [k for k in waiting if k != TO_TABLE],
+            "offers": [offer],
             "prep": prep_line, "chain": chains["gm"], "wall": wall["gm"],
             "dice": dice, "next": {"beat": nxt, "odds": odds}, "done": [told["beat"]],
+        }  # fmt: skip
+        scene = self.world["scenes"][0]
+        self.out["table"] = {
+            "_what": "what everyone at the table sees and hears: the scene read out, "
+            "the dice landing in the box, whose turn it is; never the binder",
+            "scene": {"title": scene["title"], "opening": scene["opening"],
+                      "place": self.out["world"]["places"].get(scene["place"], "")},
+            "played": [{"by": chars[told["character"]]["name"], "prompt": beat["prompt"],
+                        "text": told["text"]}],
+            "dice": {k: dice[k] for k in ("faces", "bonus", "total", "band", "stat")}
+            | {"by": chars[told["character"]]["name"]},
+            "next": re.sub(r"^\S+ \([a-z]+\), ", "", nxt),  # "Oro's turn: ..."
         }  # fmt: skip
         for s in SEATS:
             c = chars[s["plays"]]
             self.out["seats"].append({
                 "seat": s["seat"], "name": s["name"], "plays": c["name"], "role": c["role"],
                 "stats": self.stats(c), "carries": s["carries"], "notes": s["notes"],
-                "received": [{"what": f"house rule: {TO_TABLE}", "from": "gm",
-                              "verdict": next(x["received"] for x in sent if x["to"] == s["seat"])}],
+                "received": self.got[s["seat"]],
+                "offered": [offer] if offer["seat"] == s["seat"] else [],
                 "wall": wall[s["seat"]], "stack": seat_stacks[s["seat"]],
                 "chain": chains[s["seat"]],
             })  # fmt: skip

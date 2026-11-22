@@ -16,12 +16,15 @@ the GM's screen; see the `looks, built` entry in [../MEMORY.md](../MEMORY.md).
 
     python box/table_scene.py run --to /tmp/night          # ~2 s, demo keys
     python ui/screen.py build --table /tmp/night/table.json --to /tmp/night/screen.html
+    python ui/screen.py build --table /tmp/night/table.json --to /tmp/night/ash.html --seat ash
 
 Demo keys are the maintainer's choice for this: fictional seats, seals that
 stand in for a GM's yes, keys thrown away with the folder. The page rolls
 nothing (a roll not on the record didn't happen) and seals nothing: its
-buttons say what to run. Next: the player's screen from the same
-table.json, `[ my tables ▾ ]`, and a page that follows packages arriving.
+buttons say what to run. A player's page holds only their seat and what
+the whole table sees. Next: `[ my tables ▾ ]` across real tables (one
+person, a GM here and a player there), and a page that follows packages
+arriving.
 
 ## What was made
 
