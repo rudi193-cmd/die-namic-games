@@ -166,3 +166,30 @@ def test_a_seal_the_kernel_refuses_is_said_in_the_kernels_words(home):
     with pytest.raises(RuntimeError) as got:
         clash.seal(home / "table" / "record", "proposal:" + "0" * 64, NOW)
     assert "is not a proposal in this box" in str(got.value), str(got.value)
+
+
+def _clash():
+    sys.path.insert(0, str(BOX))
+    import clash
+
+    return clash
+
+
+def test_tonight_is_only_what_came_after_the_last_night_ended(monkeypatch):
+    clash = _clash()
+    held = [{"n": n, "fact": f"fact {n}"} for n in (3, 8, 12)]
+    monkeypatch.setattr(clash, "standing", lambda box, rows: held)
+    two_nights = [{"kind": "session", "to": 5}, {"kind": "session", "to": 10}]
+    assert [t["n"] for t in clash.tonight(Path("."), two_nights)] == [12]
+    assert [t["n"] for t in clash.tonight(Path("."), [])] == [3, 8, 12]
+
+
+def test_a_replacement_is_kept_under_the_old_subjects_own_hash(monkeypatch):
+    clash = _clash()
+    got = {}
+    monkeypatch.setattr(clash.gm, "hand_in", lambda box, ts, why, prop: (got.update(prop) or "proposal:" + "f" * 64, None))  # fmt: skip
+    monkeypatch.setattr(clash.kernel, "append", lambda *a, **k: None)
+    monkeypatch.setattr(clash, "seal", lambda *a: None)
+    old = {"subject": "proposal:" + "ab12" * 16, "day": "2026-11-20", "fact": OLD}
+    clash.take_back(Path("."), NOW, old)
+    assert got["path"] == "table/replaces/" + "ab12" * 4 + ".txt"
