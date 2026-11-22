@@ -87,3 +87,34 @@ The tests job writes pytest's junit file and gives it to willow's slow-tests,
 from the pin: the slowest tests and files of the run go into the run's summary.
 It needs more than one run to say "slower than before" (`--runs` takes a folder
 of runs named to sort); with one, it names where the time went.
+
+## local.py: the same moves, for the person working
+
+    python ci/local.py needs     # what this machine can't run, and which tests that costs
+    python ci/local.py plan      # the tests a change can reach
+    python ci/local.py run       # run those; a full pass is kept for these bytes
+    python ci/local.py lists     # test files the mutants jobs never run
+
+The same idea as memo.py, on a laptop: most changes reach a few tests, and a full
+pass on bytes that haven't moved needn't be repeated.
+
+- **`needs`** names what is missing (willow beside this repo, willow-bot's
+  one-script, dndwright, ruff, tesseract) and what each costs, so a missing tool
+  isn't taken for a failure of yours.
+- **`plan`** reads what changed since `--base` (default `origin/main`), plus the
+  working tree and new files. A test file is itself; a module of `box/`,
+  `die_namic/`, `games/` or `ci/` is the tests that name it and those of every
+  module that imports it; prose nothing reads is nothing. **Anything it can't
+  place runs everything**: wide, never narrow.
+- **`run`** runs the plan, stopping at the first failure. A *full* run that
+  passes is kept under `.git/`, keyed on memo.py's key (every file a test reads,
+  the Python, whether one-script and dndwright are here); the next `run` on the
+  same bytes says it stands and runs nothing (`--force` runs anyway, `--all`
+  runs everything). A partial pass keeps nothing.
+- **`lists`** is how the mutants gap was found: the mutants jobs run only the
+  files [mutants.json](mutants.json) names, so a test file it doesn't list can
+  never kill a break there. Add a new file to the list when a break only it
+  catches.
+
+CI still runs the full suite and every mutants job on main's commit; a stand
+here is this machine's own last full pass, not a verdict CI accepts.
