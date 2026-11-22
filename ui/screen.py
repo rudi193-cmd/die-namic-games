@@ -17,6 +17,12 @@ page holds those seats' views and nothing else: a GM's screen holds its
 table without the players' own notes, a player's holds their seat and what
 the whole table sees. `--table` builds one seat at one table.
 
+**Through the night.** box/follow.py builds a person's page with `follow`:
+the page loads FILE.html.stamp.js beside it every few seconds (a script tag
+can, from a file, with no server) and reloads, on the same seat, when the
+follower has built it again. What just arrived is marked, and `[ my tables ]`
+marks the seat it arrived at.
+
 The page is the maintainer's own table (boxes/looks/my-table.md), drawn as
 boxes/looks/mock.md draws it, in the dress of Die-Namic's table frame
 (ui/tables/frame.src.html: the felt, the rail, the chalk):
@@ -109,6 +115,8 @@ h3 { margin: 0 0 6px; font-size: 0.74rem; letter-spacing: 0.1em; text-transform:
 .cite { font-family: var(--mono); font-size: 0.7rem; color: var(--chalk-faint); }
 .state { font-family: var(--mono); font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
 .state.ok { color: var(--ok); border: 1px solid color-mix(in srgb, var(--ok) 40%, transparent); }
+.state.new { color: var(--go-ink); background: var(--go); }
+.item.just { border-color: var(--go); background: #ffd34d14; }
 .state.wait { color: var(--wait); border: 1px solid color-mix(in srgb, var(--wait) 40%, transparent); }
 
 /* the lookup */
@@ -279,7 +287,8 @@ const die = (n) => `<span class="d6" role="img" aria-label="${n}">${[...Array(9)
 // [ my tables ]: every seat this person holds, at every table; one shown at a time
 function tables(k) {
   const sel = $("tables");
-  sel.innerHTML = ME.screens.map((s, i) => `<option value="${i}"${i === k ? " selected" : ""}>${esc(s.day)} · ${esc(s.title)} · ${s.kind === "gm" ? "you run it" : "you play " + esc(s.plays)}</option>`).join("")
+  const news = (s) => s.kind === "player" && [...s.data.seat.received, ...(s.data.seat.refused || [])].some((r) => r.just);
+  sel.innerHTML = ME.screens.map((s, i) => `<option value="${i}"${i === k ? " selected" : ""}>${news(s) ? "● " : ""}${esc(s.day)} · ${esc(s.title)} · ${s.kind === "gm" ? "you run it" : "you play " + esc(s.plays)}${news(s) ? " · just arrived" : ""}</option>`).join("")
     + (ME.screens.length < 2 ? `<option disabled>your seats at other tables come here</option>` : "");
   sel.onchange = () => { location.hash = "seat-" + sel.value; location.reload(); };
 }
@@ -423,8 +432,10 @@ function playerScreen(T) {
   // left
   $("good").innerHTML = Object.entries(M.stats).sort((a, b) => b[1] - a[1])
     .map(([k, v]) => `<div><span>${esc(k)}</span><span>a roll adds +${v}</span></div>`).join("");
-  $("got").innerHTML = M.received.length ? M.received.map((r) => `<div class="item"><b>${esc(r.claim)}</b> <span class="state ${r.verdict === "good" ? "ok" : "wait"}">${esc(r.verdict)}</span><span class="sub">${esc(r.what)}</span><span class="cite">${esc(r.cites.join(", "))} · sealed by the GM</span></div>`).join("")
-    : `<div class="gap">nothing sent to you yet</div>`;
+  const fresh = (r) => r.just ? ` <span class="state new">just arrived</span>` : "";
+  $("got").innerHTML = (M.received.length ? M.received.slice().reverse().map((r) => `<div class="item${r.just ? " just" : ""}"><b>${esc(r.claim)}</b> <span class="state ${r.verdict === "good" ? "ok" : "wait"}">${esc(r.verdict)}</span>${fresh(r)}<span class="sub">${esc(r.what)}</span><span class="cite">${esc(r.cites.join(", "))} · sealed by the GM${r.arrived ? " · arrived " + esc(r.arrived.slice(11, 16)) : ""}</span></div>`).join("")
+    : `<div class="gap">nothing sent to you yet</div>`)
+    + (M.refused || []).slice().reverse().map((r) => `<div class="item${r.just ? " just" : ""}"><b>arrived, and didn't hold</b> <span class="state wait">${esc(r.verdict)}</span>${fresh(r)}<span class="sub">${esc(r.package)}: ${esc(r.why.join("; ") || "not for you")}. It's on your record as received ${esc(r.verdict)}; nothing in it is shown.</span></div>`).join("");
 
   // what my lookup can reach: me, my notes, what was sent to me, what I brought in
   const mine = [
@@ -505,6 +516,21 @@ document.body.appendChild(document.getElementById(S.kind === "gm" ? "t-gm" : "t-
 document.title = ME.name + " · " + S.day + " · " + S.title;
 (S.kind === "gm" ? gmScreen : playerScreen)(S.data);
 tables(k);
+
+// following: box/follow.py writes FILE.html.stamp.js beside this page each
+// time it builds it again; a script tag can load that from a file, so the
+// page looks every few seconds and reloads (on the same seat) when it moved
+if (ME.follow) {
+  $("demo").textContent += " · following the drop folder";
+  const file = decodeURIComponent(location.pathname.split("/").pop()) + ".stamp.js";
+  setInterval(() => {
+    const tag = document.createElement("script");
+    tag.src = file + "?" + Date.now();
+    tag.onload = () => { tag.remove(); if (window.__stamp && window.__stamp !== ME.follow.stamp) location.reload(); };
+    tag.onerror = () => tag.remove();
+    document.head.appendChild(tag);
+  }, ME.follow.every * 1000);
+}
 </script>
 </body>
 </html>
@@ -546,8 +572,11 @@ def screen(doc: dict, seat: str) -> dict:
     return base | {"kind": "player", "plays": view["seat"]["plays"], "data": view}
 
 
-def page(name: str, screens: list[dict]) -> str:
-    data = json.dumps({"name": name, "screens": screens}, ensure_ascii=False)
+def page(name: str, screens: list[dict], follow: dict | None = None) -> str:
+    """follow: {"every": seconds, "stamp": ...} when box/follow.py keeps the page:
+    it loads FILE.html.stamp.js that often and reloads when the stamp moves."""
+    doc = {"name": name, "screens": screens} | ({"follow": follow} if follow else {})
+    data = json.dumps(doc, ensure_ascii=False)
     data = data.replace("</", "<\\/")
     return PAGE.replace("/*__STYLE__*/", STYLE, 1).replace("/*__TABLE__*/", data, 1)
 
@@ -559,7 +588,9 @@ def build(table: Path, to: Path, seat: str = "gm") -> None:
     to.write_text(page(name, [screen(doc, seat)]), encoding="utf-8")
 
 
-def build_person(night: Path, person: str, to: Path) -> None:
+def build_person(
+    night: Path, person: str, to: Path, follow: dict | None = None
+) -> None:
     """Every seat one person holds, at every table: one page, [ my tables ]
     switching between them. Holds those seats' views and nothing else."""
     people = json.loads((night / "people.json").read_text(encoding="utf-8"))
@@ -571,7 +602,7 @@ def build_person(night: Path, person: str, to: Path) -> None:
             (night / s["table"] / "table.json").read_text(encoding="utf-8")
         )
         screens.append(screen(doc, s["seat"]))
-    to.write_text(page(person.title(), screens), encoding="utf-8")
+    to.write_text(page(person.title(), screens, follow), encoding="utf-8")
 
 
 def main(argv: list[str]) -> int:

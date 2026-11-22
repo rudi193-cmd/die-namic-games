@@ -1,6 +1,7 @@
 """table_scene.py: a week of tables, a box for every seat. Python 3.9+.
 
-    python box/table_scene.py run --to DIR [--now TS]
+    python box/table_scene.py run   --to DIR [--now TS]
+    python box/table_scene.py later --to DIR --table ID --rule NAME
 
 The boxes and stacks behind the GM's and the players' screens
 (boxes/looks/mock.md), laid as willow's annex demo lays its compartments:
@@ -47,6 +48,12 @@ Then, at each table, in order:
 4. The wall: a player's box, asked about the binder, has nothing on record
    (exit 42); the GM's box, asked the same, serves the binder's page.
 5. Each player's seat runs seat-stack.md; every chain verifies.
+
+`later` is the night going on: the GM of table ID seals the house rule NAME
+(still waiting on the seal) with the same stand-in key and sends it to each
+player, the package written into that person's drop folder, DIR/drop/<person>
+(a synced folder or one they save files into: the way it travels is the
+table's). box/follow.py, on each person's device, receives what lands there.
 
 It writes DIR/<table>/table.json, what a table's screens are built from,
 and DIR/people.json, each person's seats (never a box, a key or a pile in
@@ -134,6 +141,10 @@ class Week:
         for p in PEOPLE:
             (self.to / "people" / p).mkdir(parents=True)
             self.pub[p] = self.run(SHARE, "id", "--to", self.ident(p)).stdout.strip()
+            (self.to / "people" / p / "pub").write_text(
+                self.pub[p] + "\n"
+            )  # public: given to people
+            (self.to / "drop" / p).mkdir(parents=True)  # where packages for them land
             print(f"{p:6} one identity for every table, {self.pub[p][:12]}…")
 
     def play(self) -> int:
@@ -289,6 +300,10 @@ class Table:
         t, gm = self.t, self.t["gm"]
         print(f"\n## {t['day']}: {self.world['title']}, run by {gm}")
         waiting = self.lay_gm()
+        left = {k: v for k, v in waiting.items() if k != t["to_table"]}
+        (self.dir / "gm" / "waiting.json").write_text(
+            json.dumps(left, indent=1)
+        )  # the GM's own
         for s in t["seats"]:
             self.lay_seat(s)
 
@@ -414,7 +429,70 @@ class Table:
         }  # fmt: skip
 
 
+def after(box: Path) -> str:
+    """A minute after the box's last row: the night goes on from where it is."""
+    last = json.loads((box / "record.jsonl").read_text().splitlines()[-1])["ts"]
+    t = datetime.strptime(last, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    t += timedelta(minutes=1)
+    return t.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def later(to: Path, tid: str, rule: str) -> int:
+    """The GM of table tid seals a waiting house rule (the stand-in key) and
+    sends it into each player's drop folder."""
+    tj = to / tid / "table.json"
+    if not tj.is_file():
+        print(f"refused: no table {tid} in {to}", file=sys.stderr)
+        return 2
+    doc = json.loads(tj.read_text(encoding="utf-8"))
+    waiting = json.loads((to / tid / "gm" / "waiting.json").read_text())
+    if rule not in waiting:
+        print(f"refused: '{rule}' isn't waiting on the seal at {tid} ({', '.join(waiting)})", file=sys.stderr)  # fmt: skip
+        return 2
+    gm, box, subj = (
+        doc["gm_person"],
+        to / tid / "gm" / "table" / "record",
+        waiting.pop(rule),
+    )
+    wrong = []
+
+    def go(*argv):
+        got = subprocess.run([sys.executable, *map(str, argv)], capture_output=True, text=True, check=False)  # fmt: skip
+        if got.returncode != 0:
+            wrong.append(f"{Path(str(argv[0])).name} {argv[1]}: {(got.stderr or got.stdout).strip()[:200]}")  # fmt: skip
+        return got
+
+    go(KERNEL, "seal", "--box", box, subj, "--now", after(box))
+    sent = []
+    for s in doc["seats"]:
+        pub = (to / "people" / s["seat"] / "pub").read_text().strip()
+        pkg = to / "drop" / s["seat"] / f"{tid}-{rule.lower().replace(' ', '-')}.pkg"
+        go(SHARE, "send", "--box", box, "--id", to / "people" / gm / "id", "--answer", subj,
+           "--for", pub, "--to", pkg, "--note", f"house rule: {rule}", "--now", after(box))  # fmt: skip
+        sent.append({"to": s["seat"], "package": pkg.name, "received": "sent"})
+        print(f"{gm} sends '{rule}' to {s['seat']}: {pkg}")
+    (to / tid / "gm" / "waiting.json").write_text(json.dumps(waiting, indent=1))
+    doc["gm"]["on_table"].append(
+        {"what": f"house rule: {rule}", "subject": subj, "sent": sent}
+    )
+    doc["gm"]["your_call"] = [r for r in doc["gm"]["your_call"] if r != rule]
+    for r in doc["gm"]["house_rules"]:
+        if r["title"] == rule:
+            r["state"] = "sent to the table"
+    doc["gm"]["chain"] = go(KERNEL, "verify", "--box", box).stdout.strip()
+    tj.write_text(json.dumps(doc, indent=1), encoding="utf-8")
+    for w in wrong:
+        print(f"WRONG: {w}")
+    return 1 if wrong else 0
+
+
 def main(argv: list[str]) -> int:
+    if argv[:1] == ["later"]:
+        opts = dict(zip(argv[1::2], argv[2::2]))
+        if len(argv) != 7 or set(opts) != {"--to", "--table", "--rule"}:
+            print(__doc__.split("\n\n")[1], file=sys.stderr)
+            return 2
+        return later(Path(opts["--to"]).resolve(), opts["--table"], opts["--rule"])
     if len(argv) < 3 or argv[0] != "run" or argv[1] != "--to":
         print(__doc__.split("\n\n")[1], file=sys.stderr)
         return 2

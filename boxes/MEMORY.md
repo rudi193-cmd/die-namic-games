@@ -255,6 +255,21 @@ dm` and `dm = ...` was refused).
   NAME` writes one page per person, a screen per seat, switched by
   `[ my tables ▾ ]`; it holds only that person's seats, and a GM's screen
   never holds a player's own notes (tested for all three people).
+- **looks, built: a page that follows packages arriving** (2026-11-22, the
+  same session). Asked first, the box said how a package travels: "the way
+  a family already moves things: email, a USB stick, a chat message, a
+  synced folder" (open.md:499); share never goes online. **The maintainer
+  chose both:** one drop folder per person, synced or saved into by hand,
+  and a page that reloads itself. `table_scene.py later` is the night going
+  on (the GM seals another rule and sends it into each player's drop
+  folder); `box/follow.py` on a person's device receives each package into
+  the seat at the table whose GM sent it (one identity, many seats), keeps
+  it, and builds the page again; the page loads a stamp file beside it and
+  reloads when it moves (no server; run in a browser: two arrivals, two
+  reloads, nothing touched). A package edited on the way is `broken` on the
+  seat's chain and shown as arrived and not held, never its words; one for
+  someone else is `not-for-you`; the same one twice is said once. 19 tests;
+  whole suite 23 failed (`ONESCRIPT_HOME`, as before), 350 passed.
 
 - **TaleWeaver** enforces rules after the model speaks: a "deterministic
   enforcement" pass, rule violations fed back into a second narration pass,

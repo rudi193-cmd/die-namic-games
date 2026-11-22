@@ -167,3 +167,93 @@ def test_a_week_is_laid_fresh_and_never_inside_the_repository(tmp_path):
     assert run(SCENE, "run", "--to", tmp_path / "there").returncode == 2
     assert run(SCENE, "run", "--to", REPO / "week-here").returncode == 2
     assert not (REPO / "week-here").exists()
+
+
+# the night goes on: packages landing in a drop folder, box/follow.py
+
+FOLLOW = REPO / "box" / "follow.py"
+
+
+@pytest.fixture
+def night(tmp_path) -> Path:
+    to = tmp_path / "w"
+    got = run(SCENE, "run", "--to", to)
+    assert got.returncode == 0, got.stdout + got.stderr
+    return to
+
+
+def follow(night: Path, who: str) -> str:
+    got = run(FOLLOW, "--night", night, "--person", who, "--once")
+    assert got.returncode == 0, got.stderr
+    return got.stdout
+
+
+def seat(night: Path, tid: str, who: str) -> dict:
+    return next(s for s in table(night, tid)["seats"] if s["seat"] == who)
+
+
+def test_a_package_landing_is_received_into_the_right_seat_and_shown(night):
+    assert run(SCENE, "later", "--to", night, "--table", "thursday", "--rule", "Turns").returncode == 0  # fmt: skip
+    assert (night / "drop" / "wren" / "thursday-turns.pkg").exists()
+    said = follow(night, "wren")
+    assert "thursday-turns.pkg: good, at thursday" in said
+    got = seat(night, "thursday", "wren")["received"][-1]
+    assert got["claim"].startswith("the rule Turns") and got["just"] is True
+    assert seat(night, "sunday", "wren")["received"][-1]["claim"].startswith("the rule Dice")  # fmt: skip
+    assert not (night / "drop" / "wren" / "thursday-turns.pkg").exists()
+    assert (
+        night / "drop" / "wren" / "kept" / "thursday-turns.pkg"
+    ).exists()  # kept, never deleted
+    rs = rows(night / "thursday" / "wren" / "box")
+    assert [r["verdict"] for r in rs if r["kind"] == "received"] == ["good", "good"]
+    html = (night / "wren.html").read_text()
+    stamp = (night / "wren.html.stamp.js").read_text()
+    assert "Play goes round the table in seat order" in html
+    assert re.search(r'"stamp": "([0-9a-f]{16})"', html).group(1) in stamp
+    # the GM's screen learns the rule went out: the table changed, the page is built again
+    assert "Turns" in json.dumps(table(night, "thursday")["gm"]["on_table"])
+    assert "page built" in follow(night, "rook")
+
+
+def test_what_didnt_hold_is_on_the_record_and_shown_never_its_words(night):
+    pk = json.loads((night / "thursday" / "rook-to-wren.pkg").read_text())
+    pk["answers"][0]["data"] = "A draw is whatever the loudest player says."
+    (night / "drop" / "wren" / "edited.pkg").write_text(json.dumps(pk))
+    (night / "thursday" / "rook-to-wren.pkg").replace(night / "drop" / "ash" / "for-wren.pkg")  # not Ash's  # fmt: skip
+    (night / "drop" / "ash" / "junk.pkg").write_text("not a package")
+    assert "edited.pkg: broken, at thursday" in follow(night, "wren")
+    said = follow(night, "ash")
+    assert "for-wren.pkg: not-for-you, at thursday" in said and "junk.pkg: not a package" in said  # fmt: skip
+    assert seat(night, "thursday", "wren")["refused"][0]["verdict"] == "broken"
+    assert seat(night, "thursday", "ash")["refused"][0]["verdict"] == "not-for-you"
+    assert "loudest player" not in (night / "wren.html").read_text()
+    for who, verdict in (("wren", "broken"), ("ash", "not-for-you")):
+        rs = rows(night / "thursday" / who / "box")
+        assert [r["verdict"] for r in rs if r["kind"] == "received"] == [
+            "good",
+            verdict,
+        ]
+    assert (night / "drop" / "ash" / "kept" / "junk.pkg").exists()
+
+
+def test_the_same_package_twice_is_said_once(night):
+    run(SCENE, "later", "--to", night, "--table", "thursday", "--rule", "Turns")
+    follow(night, "ash")
+    (night / "drop" / "ash" / "kept" / "thursday-turns.pkg").replace(night / "drop" / "ash" / "again.pkg")  # fmt: skip
+    assert "already received" in follow(night, "ash")
+    assert [r["claim"][:14] for r in seat(night, "thursday", "ash")["received"]] == ["the rule Draws", "the rule Turns"]  # fmt: skip
+
+
+def test_just_arrived_is_only_the_latest_round(night):
+    run(SCENE, "later", "--to", night, "--table", "thursday", "--rule", "Turns")
+    follow(night, "ash")
+    run(SCENE, "later", "--to", night, "--table", "thursday", "--rule", "Arguments")
+    follow(night, "ash")
+    got = seat(night, "thursday", "ash")["received"]
+    assert [r.get("just", False) for r in got] == [False, False, True]
+
+
+def test_later_and_follow_refuse_what_isnt_there(night):
+    assert run(SCENE, "later", "--to", night, "--table", "thursday", "--rule", "Draws").returncode == 2  # already sent  # fmt: skip
+    assert run(SCENE, "later", "--to", night, "--table", "monday", "--rule", "Turns").returncode == 2  # fmt: skip
+    assert run(FOLLOW, "--night", night, "--person", "nobody", "--once").returncode == 2
