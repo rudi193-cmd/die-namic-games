@@ -66,3 +66,11 @@ Want 8: "What can willow's image suite do with a kid's drawing?" (the
 maintainer: typing is the main way in, the picture is just a picture, and
 the image suite is willow's demo/craft-assembly)
 - batch-ask -- scan --index {box}/../index --words {box}/../words.txt --top 8 --questions {box}/../questions/want8.tsv
+
+## the players' own screen
+
+Want 9: "A player's page is their own screen, and a GM is a player at other
+tables: what does a seat already have, and what must a player's lookup
+never reach?" (the maintainer: "think of it like their own screen. A gm can
+be a player sometimes too, at different tables")
+- batch-ask -- scan --index {box}/../index --words {box}/../words.txt --top 8 --questions {box}/../questions/want9.tsv

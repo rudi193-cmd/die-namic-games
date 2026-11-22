@@ -50,3 +50,9 @@ just a picture." A kid's creature or character comes in as typed words (its
 name, what it's good at), with its picture beside it; nothing is read from
 the picture. The pictures can be worked on with willow's image suite, the
 Craft apps of demo/craft-assembly.
+
+The players' side (2026-11-22): "Think of it like their own screen. A gm can
+be a player sometimes too, at different tables." A player's page is their
+own screen, the same three panels from their seat. One person's device
+holds their tables; at each they are the GM or a player, and the page is
+that seat's screen.

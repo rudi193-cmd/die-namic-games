@@ -84,6 +84,41 @@ kid adds:   a photo of the drawing                   ← just a picture
 your call, GM: [ Yes, it's true ] → bestiary card with Biscuit's picture
 ```
 
+## A player's screen
+
+"Think of it like their own screen. A gm can be a player sometimes too, at
+different tables" (the maintainer). The same three panels, from the seat:
+left, my quick reference; centre, the table (what the GM put on it, the
+dice box, my hand); right, my character. Juno plays Tamsin; her buttons
+suggest, never decide.
+
+```
+┌─ Juno · at Sean's table: The Lantern Fair ─── [ my tables ▾ ] ────────────────┐
+│ ┌─ LEFT: my quick ref ──┐ ┌─ CENTRE: the table ─────────────┐ ┌─ RIGHT: me ────┐│
+│ │ ⌕ ask… ____________   │ │ FROM THE GM                     │ │ Tamsin         ││
+│ │  (what's on the table │ │ ▸ Dusk at the stalls            │ │ lamp-lighter   ││
+│ │   and mine, never the │ │ ▸ handout: the fair's map 🖼     │ │ 🖼 my drawing   ││
+│ │   GM's binder)        │ │ ─────────────────────────────── │ │                ││
+│ │                       │ │ ▶ Tamsin climbs to the dark     │ │ Grit+2 Wit+1   ││
+│ │ WHAT I'M GOOD AT      │ │   stall's hook.  [Grit +2]      │ │ Heart+1        ││
+│ │  Grit: climb, lift    │ │                                 │ │                ││
+│ │  Wit: notice, riddle  │ │         ╔═══════════╗           │ │ carries: hook, ││
+│ │                       │ │         ║  ⚂   ⚄    ║           │ │  matches       ││
+│ │ PREVIOUSLY ON…        │ │         ║  7: it    ║           │ │                ││
+│ │  Old Vell came down   │ │         ║ sort of   ║           │ │ MY NOTES       ││
+│ │  the stair. (true)    │ │         ║  works    ║           │ │  ask Vell      ││
+│ │                       │ │         ╚═══════════╝           │ │  about the     ││
+│ │ OUR LINES             │ │                                 │ │  river         ││
+│ │  no spiders           │ │ MY HAND (only I see it)         │ │                ││
+│ │                       │ │  🂡 🂮 🂷   (when a game deals)    │ │                ││
+│ └───────────────────────┘ └─────────────────────────────────┘ └────────────────┘│
+│  [ ✋ bring something in ]   [ x stop the scene ]   [ p pause ]                │
+└───────────────────────────────────────────────────────────────────────────────┘
+```
+
+The same person at the table they run: `[ my tables ▾ ]` switches to it,
+and the page is the GM's screen above.
+
 ## What the mock shows that isn't built
 
 - **Upcoming loot:** nothing keeps loot not yet found (carry.py keeps what
@@ -92,6 +127,17 @@ your call, GM: [ Yes, it's true ] → bestiary card with Biscuit's picture
 - **Roll hidden:** willow's `dice-tower` is built; the play path doesn't
   reach it yet.
 - **The picture:** the pile reads words only; the page keeps and shows it.
+- **A player's lookup that can't reach the GM's binder:** a child's
+  question was once answered from `gm-only/` word for word (open.md:579);
+  `kids`, a box over the binder without `gm-only/`, is buildable on what
+  exists, not built.
+- **The sheet the player sees:** it exists, nothing shows it
+  (open-gaps-from-the-boxes.md:84); box/paper.py prints it.
+- **My hand on my device:** the view hides it (the-table's `observe`); the
+  record doesn't until `blind-deal`.
+- **My tables:** one person, a GM at one table and a player at another;
+  `grant` and `witness` (ideas) and sharing the GM's chair (open.md:462)
+  are the nearest.
 
 ## Open
 

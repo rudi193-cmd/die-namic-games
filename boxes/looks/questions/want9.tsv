@@ -1,0 +1,9 @@
+# Want 9: a player's page is their own screen, and a GM is a player at other tables: what does a seat already have, and what must a player's lookup never reach?
+table-sees	what the table sees
+own-sheet	player sheet the player can see
+own-hand	each seat sees its own hand
+offer	player brings something offer
+safety	x card lines veils pause
+recap	previously on recap players
+gm-only	gm-only secret box without
+chair	co-gm sharing the chair

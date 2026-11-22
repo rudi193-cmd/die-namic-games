@@ -14,4 +14,6 @@
 07 batch-ask: exit 0, 4 lines
 08 batch-ask: started (bfe236b8, fed ab083ec7)
 08 batch-ask: exit 0, 6 lines
-done: 0 of 8 steps flagged
+09 batch-ask: started (3bd002a7, fed 421a595d)
+09 batch-ask: exit 0, 8 lines
+done: 0 of 9 steps flagged
