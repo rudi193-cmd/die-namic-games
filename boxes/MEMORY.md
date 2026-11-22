@@ -108,13 +108,13 @@ dm` and `dm = ...` was refused).
   **Right, the players.** The sheets: carry.py's rows, `s` at a roll
   (play.py:634), and box/paper.py's big-type page, one card a character
   (paper.py:5). Of the others: ink & bone's bestiary is an uploaded rulebook
-  for its model (README.md:485); NarrativeEngine-P lays a combat strip,
+  for its model (its README.md, line 485); NarrativeEngine-P lays a combat strip,
   board and story side by side (combatScreen.test.tsx:158).
 - **looks, want 6** (a quick lookup of whatever turns up: the rules, the
   books, on demand). The binder is already asked: a table's pile is "the
   GM's notes, monsters, people, session notes and house rules… what the GM
   asks" (box/open_table.py:13); `box/ask.py` points at where to look in it
-  (willow's pile-rank; README.md:92), `kernel.py bite` answers from it
+  (willow's pile-rank; ../README.md:92), `kernel.py bite` answers from it
   (box/README.md:69), and sealed house rules come back word for word
   (`rules.py ask`, box/README.md:77). The rules in the repository are
   game-lab/rules/COMPENDIUM.md. Not yet: the books, a rulebook as a PDF,
@@ -136,7 +136,7 @@ dm` and `dm = ...` was refused).
   yet: a picture kept as a picture (the pile and the kernel read only its
   words), a drawing read during the night rather than at its end, and a
   page that shows it; ink & bone keeps a portrait per character, an 80px
-  circle uploaded from the sheet (README.md:326).
+  circle uploaded from the sheet (its README.md, line 326).
   Decided by the maintainer: typing is the main way in, "the picture is
   just a picture"; nothing is read from it.
 - **looks, want 8** (willow's image suite, demo/craft-assembly: the Craft
@@ -152,7 +152,7 @@ dm` and `dm = ...` was refused).
   but photocraft's wasm is about 25 MiB (`packaging/web/README.md:95`): a
   tool for the GM's machine, not a page a phone loads at the table.
   drawcraft is MIT or Apache-2.0; its ArtCraft name and logos are
-  trademarks (README.md:370, :381).
+  trademarks (its README.md, lines 370 and 381).
 - **looks, the first mock** (`looks/mock.md`, laid as `ours/mock.md`): the
   GM's page in ASCII, from my-table.md: the screen, a lookup called to the
   centre, a fight in the centre, a kid's creature put in; what it shows that
