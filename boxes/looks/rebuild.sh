@@ -10,7 +10,10 @@
 #                 keeping what a page is made of and said about: .tsx .vue
 #                 .css .scss .html .md, without node_modules or lockfiles.
 #   ours/         Die-Namic's own page sources (ui/*.src.html, ui/tables/,
-#                 ui/build.py) at this checkout's HEAD, and my-table.md: the
+#                 ui/build.py) and its design pages (README.md, open.md,
+#                 open-gaps-from-the-boxes.md, box/'s and the-table's
+#                 READMEs and stacks, boxes/MEMORY.md) at this checkout's
+#                 HEAD, and my-table.md: the
 #                 maintainer's own GM side of the table, in their words.
 #   books/        book designs, from a folder outside the repository (BOOKS,
 #                 or ../book-designs): each picture with a note beside it
@@ -53,7 +56,9 @@ for pc in $PROJECTS; do
   fi
 done
 head=$(git -C "$R" rev-parse --short HEAD)
-git -C "$R" archive HEAD ui/index.src.html ui/tables ui/build.py | tar -x -C "$S/pile/ours"
+git -C "$R" archive HEAD ui/index.src.html ui/tables ui/build.py \
+  README.md open.md open-gaps-from-the-boxes.md box/README.md box/family-night.md box/gm-stack.md box/gm-end.md \
+  the-table/README.md boxes/MEMORY.md | tar -x -C "$S/pile/ours"
 cp "$HERE/my-table.md" "$S/pile/ours/my-table.md"
 laid="$laid ours@$head"
 if [ -d "$BOOKS" ]; then

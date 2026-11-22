@@ -17,7 +17,7 @@ as you want, write them down here").
 | [srd-engines/](srd-engines/) | whether an outside SRD rules engine could stand under the record and seal: can the dice be handed in, is it deterministic, how is a fight's state kept, what each asks of us | OpenCombatEngine `16b45b0` (C#, MIT), jurnalis-project/engine `dbf40d4` (Rust), srd_5e `b0a2164` (Elixir, from the agentic-realms monorepo's packages/srd_5e, Apache-2.0), dndwright `6f0fb9e` (Python, MIT); 685 files | `bash boxes/srd-engines/rebuild.sh SCRATCH` (checkouts at `../OWNER/NAME`, or `ENGINES_DIR`); about 30 s | 9 of 9 answered, none flagged |
 | [pot/](pot/) | anything: an empty box you throw chunks into with `pour.sh`, swirled with `swirl.sh` and its general stack; chunks are yours, not pinned | whatever you pour, kept in a folder outside the repo (`POT`) | `bash boxes/pot/pour.sh POT NAME SOURCE`, then `bash boxes/pot/swirl.sh POT` (`--ask "..."` for a one-off want); seconds | tried once: 134 files, 7 of 8 steps clean; also `survey.py POT`, one box per chunk and 27 questions, first run over the eight in [pot/results-eight/](pot/results-eight/) (read `connections.md` first) |
 | [our-two-repos/](our-two-repos/) | what willow and die-namic-games already hold about a fight engine, the dice, the card promises, the deps rules; the research behind open.md's fight-engines note | willow at its pin `370f74a`, die-namic-games at `3de61d2` (.md and .py, no `boxes/`); 1,984 files | `bash boxes/our-two-repos/rebuild.sh SCRATCH`; about 1 min | 8 of 8 answered, none flagged |
-| [looks/](looks/) | how game pages are dressed and laid out, for Die-Namic's redesign: the other GMs' screens, our own pages, and book designs brought in for inspiration | the four gm-projects at the same pins (.tsx .vue .css .scss .html .md only), Die-Namic's `ui/` sources at HEAD, and book designs from `BOOKS` (default `../book-designs`, outside git: each picture with a `.md` note; pictures read by willow's ocr when tesseract is there); 1,182 files with no books yet, with `my-table.md`, the maintainer's own GM side in their words | `bash boxes/looks/rebuild.sh SCRATCH`; about 15 s | 3 of 3 answered, none flagged; want 3's answer is willow's `share`, outside the box |
+| [looks/](looks/) | how game pages are dressed and laid out, for Die-Namic's redesign: the other GMs' screens, our own pages, and book designs brought in for inspiration | the four gm-projects at the same pins (.tsx .vue .css .scss .html .md only), Die-Namic's `ui/` sources at HEAD, and book designs from `BOOKS` (default `../book-designs`, outside git: each picture with a `.md` note; pictures read by willow's ocr when tesseract is there); 1,191 files with no books yet, with `my-table.md`, the maintainer's own GM side in their words, and Die-Namic's design pages | `bash boxes/looks/rebuild.sh SCRATCH`; about 90 s | 3 wants, 7 steps, none flagged |
 
 Each folder: `stack.md` (the wants), `words.txt` (how readers ask), `rebuild.sh`,
 `results/` (last `page.md` and step log, the machine's paths written
@@ -46,28 +46,34 @@ dm` and `dm = ...` was refused).
   NarrativeEngine-P's beta skin, a light "parchment" and a dark "ink" palette
   (`src/styles/beta.css:44`, `:96`). Five of the ten passages are its glyph and command
   palettes, not colours: "palette" means three things there.
-- **looks, want 2** (the GM's side): every layout found is a player's view.
-  ink & bone's is the fullest: character sheet and dice in the left sidebar,
-  the story in the centre, notes and journal tabbed on the right
-  (`docs/superpowers/specs/2026-04-03-ui-redesign-design.md:27`). The nearest
-  thing to a page pulled from the binder onto the table is its handouts: a
-  world note the GM marks revealed shows in a players' tab
-  (`docs/superpowers/specs/2026-06-25-group-b-interactivity-design.md:63`).
-  None has a GM's screen: a place for the GM's own pages that the table
-  doesn't see. Its dice sit in a sidebar, never the centre. Asked in the
-  maintainer's own words ("screen binder pages reference dice tray"), the box
-  serves their own note and our dice pages: the others don't use those words.
-- **looks, want 3** (from the GM's device to the others'): none of the four
-  game masters does it; ink & bone syncs map tokens to every window over a
-  WebSocket (`docs/superpowers/specs/2026-06-25-group-b-interactivity-design.md:225`),
-  one person's windows. **willow's card for it is `share`**, tested across
-  demos (blackout, annex, johnson): the GM's sealed answers packed for each
-  person's key, signed, checked on receipt (`good`, `not-for-you`, `broken`)
-  and written to the receiver's own chain; a received answer is never their
-  approval. It never goes online: how a package travels is the GM's (a
-  shared folder, a message, a stick). First written here as a gap: the
-  agent asked `similar.py near` in its own words ("share a page from my
-  device…") and missed the card; the maintainer corrected it.
+- **looks: ask our own pages first.** Wants 2 and 3 were first answered
+  from a pile without Die-Namic's design pages, and both answers were wrong
+  where open.md already said otherwise (the maintainer caught it). From
+  2026-11-22 the pile holds README.md, open.md, open-gaps-from-the-boxes.md,
+  box/'s and the-table's pages and this file, and each want asks several
+  questions, our words and theirs.
+- **looks, want 2** (the GM's side): our own design already has it.
+  open.md:113, "the table hears the story and the dice; only the GM sees the
+  buttons"; the GM's screen roll is willow's `dice-tower` (drop with only a
+  hash on the record, out into the tray, check; open-gaps-from-the-boxes.md:56),
+  and a roll hidden from the one who made it is `blind-deal`, an idea
+  (open.md:537). The shared view, item 16 (open.md:467: pictures, a map, a
+  handout, the dice landing where everyone can see) has nothing yet but
+  `print --large` (open-gaps:135); `box/paper.py` prints the sheets in big
+  type. Of the others, every layout is a player's: ink & bone's sheet and
+  dice left, story centre, notes right
+  (`docs/superpowers/specs/2026-04-03-ui-redesign-design.md:27`), and its
+  handouts, a note the GM reveals (`…group-b-interactivity-design.md:63`), are
+  the nearest to a page laid on the table; its hidden roll shows `[GM]` and
+  `?` (`DiceHistoryPanel.test.tsx:81`), hidden in the page only.
+- **looks, want 3** (from the GM's device to the others'): open.md's order
+  for a home box starts with it (open.md:551): "the kit, and `share`… one
+  command sends what the table made true to the other box, one receives it.
+  Works with what is built"; then `record-sync` (planned) and `kids`. willow's
+  `share`, tested across its demos, packs sealed answers for each person's
+  key and checks them on receipt; it never goes online, so how a package
+  travels is the GM's. None of the four game masters sends to another
+  person's device; ink & bone syncs one person's windows over a WebSocket.
 
 - **TaleWeaver** enforces rules after the model speaks: a "deterministic
   enforcement" pass, rule violations fed back into a second narration pass,
