@@ -1,4 +1,4 @@
-"""tower_faces.py: faces for fight_spike from willow's dice-tower. Python 3.9+.
+"""dw_tower.py: faces for dw_fight from willow's dice-tower. Python 3.9+.
 
 Each die the engine asks for is dropped in the tower (only its SHA-256 goes on
 the record, with what it is for), then brought out: the secret goes on the
@@ -25,9 +25,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT_BOX = Path(__file__).resolve().parents[2] / "box"
-sys.path.insert(0, str(ROOT_BOX))
-import fight_spike as fs
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import dw_fight as fs
 import willow_pin
 
 WILLOW = Path(willow_pin.root())
@@ -43,13 +42,15 @@ def now() -> str:
 
 
 class TowerFaces:
-    """A source for fight_spike.fight: draw(sides) drops a die and brings it out."""
+    """A source for dw_fight.fight: draw(sides) drops a die and brings it out."""
 
-    def __init__(self, box: Path, die_dir: Path):
-        self.box, self.die_dir = Path(box), Path(die_dir)
+    def __init__(self, box: Path, die_dir: Path, ts: str | None = None):
+        self.box, self.die_dir, self.ts = Path(box), Path(die_dir), ts
         self.die_dir.mkdir(parents=True, exist_ok=True)
         self.why = ""
-        self.n = 0
+        self.n = len(
+            list(self.die_dir.glob("die-*.json"))
+        )  # a later fight goes on from the dice already here
 
     def say(self, why: str) -> None:
         self.why = why
@@ -58,10 +59,16 @@ class TowerFaces:
         self.n += 1
         die = self.die_dir / f"die-{self.n:04d}.json"
         with contextlib.redirect_stdout(io.StringIO()):
-            if tower.drop(self.box, f"1d{sides}", die, self.why, now()) != kernel.ALIVE:
+            if (
+                tower.drop(self.box, f"1d{sides}", die, self.why, self.ts or now())
+                != kernel.ALIVE
+            ):
                 raise RuntimeError(f"the tower would not take a d{sides}")
             rows, breaks = kernel.read(self.box / "record.jsonl")
-            if breaks or tower.out(self.box, rows, die, now()) != kernel.ALIVE:
+            if (
+                breaks
+                or tower.out(self.box, rows, die, self.ts or now()) != kernel.ALIVE
+            ):
                 raise RuntimeError(f"the tower would not bring a d{sides} out")
         rows, _ = kernel.read(self.box / "record.jsonl")
         return int(rows[-1]["faces"][0][0])

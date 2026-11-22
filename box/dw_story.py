@@ -1,4 +1,4 @@
-"""story_fighters.py: a story's characters, and aetheris5e's stat blocks, as fight_spike's Fighters. Python 3.9+.
+"""dw_story.py: a story's characters, and aetheris5e's stat blocks, as dw_fight's Fighters. Python 3.9+.
 
 A story character has a name and a bonus on some of the story's own stats
 (the lantern fair: Grit, Wit, Heart), over a base. It has no hit points, armor
@@ -32,9 +32,9 @@ import json
 import sys
 from pathlib import Path
 
-from fight_spike import Fighter
+from dw_fight import Fighter
 
-AETHERIS = Path(__file__).resolve().parents[2] / "the-table" / "aetheris5e"
+AETHERIS = Path(__file__).resolve().parents[1] / "the-table" / "aetheris5e"
 sys.path.insert(0, str(AETHERIS))
 import statblocks
 

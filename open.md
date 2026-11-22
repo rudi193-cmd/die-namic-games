@@ -990,3 +990,35 @@ whether the fight's rows should become `fight-*` rows box/fight.py can `check`
 and `board` can draw (that would need its engine seam, aetheris5e's, to change);
 the drop-to-out window; and putting any of it on the play path, which this
 spike deliberately does not.
+
+### Round 9: wired (2026-11-22)
+
+The spike is on the play path, off unless asked for (`box/dw-fights.md`).
+The four modules moved from `spikes/dndwright/` to `box/dw_*.py`, the tests to
+`tests/test_dw_*.py`.
+
+- **`f`:** a story that names its foes (`"foes": [...]` in its world file; no
+  existing story does, so none changes) and has dndwright installed offers a
+  fight of its own, after aetheris5e's encounters in the menu. The heroes fight
+  the chosen foe on dice dropped one at a time in the tower; the blows print;
+  "Still standing" prints; a story that turns on a fight asks the GM how it
+  stands, as for any fight (`fight_stands`).
+- **Record:** `xfight-open`, the tower's rows, `xfight-row`s. Not `fight-*`.
+- **`session.fights`** (the recap, the GM's opening screen) lists them.
+- **`open_table.py check`** reads them from the record alone and fails, with a
+  reason, if one doesn't hold or can't be read for lack of dndwright.
+- **Tests:** 30 new (7 + 5 + 11 spike tests moved, 7 on the play path: a story
+  that names foes offers f and one that doesn't doesn't; a real fight at the
+  keyboard checks from the record and by `open_table.py check`; the GM's call;
+  the recap; a bad foe key left out; no foes, no fight). **Whole suite: 23
+  failed, 287 passed; before the change 23 failed, 257 passed.** The 23 are the
+  same fight tests that need `ONESCRIPT_HOME`; none is new.
+
+**Did not change:** aetheris5e's encounters, fight.py, board.py, any story
+file, the willow pin, willow.
+
+**Decisions this leaves for the maintainer:** which stories should name
+foes (none does now; the lantern fair is a kids' fair, and its tests say it has
+no fights); whether the made-up defaults (hit points, armor, attack) are the
+table's; whether dndwright goes in a requirements file (it is not in one: the
+repo has none); and the PR.

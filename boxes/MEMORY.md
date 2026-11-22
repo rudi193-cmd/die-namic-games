@@ -137,6 +137,12 @@ dm` and `dm = ...` was refused).
   Fighters (defaults made up, overridable per character); 23 tests. Still
   spike-only; nothing in box/ calls it.
 
+- **Round 9 (2026-11-22), wired:** the spike moved to `box/dw_*.py` and is on the
+  play path, off unless a story names `"foes"` and dndwright is installed; the
+  record, recap and `open_table.py check` read it; 30 new tests; whole suite 23
+  failed (the missing `ONESCRIPT_HOME`, as before) and 287 passed. See
+  `box/dw-fights.md`.
+
 ## Not done, and why
 
 - **Tavern (t11z)**: `t11z/tavern` is refused to the session, both through

@@ -1,4 +1,4 @@
-"""record_fight.py: a spike fight on the kernel's record, and a check that reads it from there. Python 3.9+.
+"""dw_record.py: a spike fight on the kernel's record, and a check that reads it from there. Python 3.9+.
 
 Rows, written beside box/fight.py's (its kinds are `fight-open`, `fight-blow`,
 `fight-end`, which this never writes and `fight.py check` never reads):
@@ -7,7 +7,7 @@ Rows, written beside box/fight.py's (its kinds are `fight-open`, `fight-blow`,
                 a replay needs that the rows don't say
   (tower rows)  tower-drop and tower-out, written by willow's dice-tower as the
                 engine asks for each die
-  xfight-row    one per row of fight_spike's fight (init, blow, down, end), the
+  xfight-row    one per row of dw_fight's fight (init, blow, down, end), the
                 row itself under `row`, numbered under `fight` to the open row
 
 `check_record` reads only the record: the kernel's chain must hold; the tower
@@ -26,8 +26,8 @@ from __future__ import annotations
 from dataclasses import asdict
 from pathlib import Path
 
-import fight_spike as fs
-import tower_faces as tf
+import dw_fight as fs
+import dw_tower as tf
 
 kernel = tf.kernel
 OPEN, ROW = "xfight-open", "xfight-row"
@@ -35,12 +35,14 @@ WHO = "fight-spike"
 ENGINE = "dndwright 6f0fb9e"
 
 
-def record(box: Path, fighters: list[fs.Fighter], die_dir: Path) -> list[dict]:
+def record(
+    box: Path, fighters: list[fs.Fighter], die_dir: Path, ts: str | None = None
+) -> list[dict]:
     """Play a fight on the tower, write it to the record; the fight's rows."""
-    opened = kernel.append(box, tf.now(), OPEN, who=WHO, engine=ENGINE, fighters=[asdict(f) for f in fighters])  # fmt: skip
-    rows = fs.fight(fighters, tf.TowerFaces(box, die_dir))
+    opened = kernel.append(box, ts or tf.now(), OPEN, who=WHO, engine=ENGINE, fighters=[asdict(f) for f in fighters])  # fmt: skip
+    rows = fs.fight(fighters, tf.TowerFaces(box, die_dir, ts))
     for r in rows:
-        kernel.append(box, tf.now(), ROW, who=WHO, fight=opened["n"], row=r)
+        kernel.append(box, ts or tf.now(), ROW, who=WHO, fight=opened["n"], row=r)
     return rows
 
 

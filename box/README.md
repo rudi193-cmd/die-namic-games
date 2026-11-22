@@ -43,6 +43,7 @@ refuses one whose files differ.
 | [safety.py](safety.py) | what never happens at the table and what happens off-screen: the family's lines and veils, a page they write once (pile/our-lines.md); a part that touches a line is never read, a veil's happens off-screen, and the GM says what happens instead | nothing |
 | [clash.py](clash.py) | the heads-up before the GM decides: what the table already holds true about the same thing, by willow's contradictions rule, read from the record alone; "mine stands now" replaces the old truth under the GM's seal, never erasing it | contradictions, game-master, the kernel |
 | [fight.py](fight.py) | a 5e fight from the-table's [aetheris5e](../the-table/aetheris5e/), blow by blow on the record: initiative, attacks against AC, crits, the six stat blocks and the four encounters, its dice seeded by the row before; `check` plays every fight again and refuses one edited after the fact | aetheris5e's engine, with willow-bot's one-script for its dice, and the kernel |
+| [dw-fights.md](dw-fights.md) | the story's own fights: in a story that names its `"foes"`, `f` offers its seated characters against one of aetheris5e's foes, run by dndwright on dice dropped in the tower, every blow a row (`xfight-*`) that `check` reads back from the record alone; needs `pip install` of dndwright and is off without it | dw_fight, dw_tower, dw_story, dw_record, the kernel, willow's dice-tower |
 
 ## Laying the box
 

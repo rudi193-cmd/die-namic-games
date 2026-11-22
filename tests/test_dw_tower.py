@@ -7,9 +7,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import fight_spike as fs
-import tower_faces as tf
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "box"))
+import dw_fight as fs
+import dw_tower as tf
 
 CAST = [
     fs.Fighter(

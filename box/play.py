@@ -58,6 +58,9 @@ its end goes to the GM as a call: "Does it stand that the party won?" Their
 yes or no is sealed or declined as an offer of the kind `fight`, so the
 moment that follows is the one the call says; a call against the dice is
 the GM's word over them, kept beside the fight, never the fight changed.
+A story that names its `"foes"` (and has dndwright installed) offers f too, with its own
+seated characters against one of those foes, run by dndwright on dice dropped in
+the tower, every blow a row (box/dw-fights.md).
 g, once a roll has been read, is the GM's word over it: "the dice said miss;
 I say she makes it". The roll and its moment stay exactly as they went; what
 the GM types is a kept call of its own (an offer of the kind `gm-word`, at
@@ -689,7 +692,7 @@ def before_roll(table: Path, world: dict, world_file: Path, b: dict, now: str, g
         if veil:
             print(f"   🌫 ({veil}: it happens off-screen.)")
     die = in_tower(table, game, now)
-    fights = world["id"] in FIGHTS or "fight" in world.get("offers", [])
+    fights = world["id"] in FIGHTS or "fight" in world.get("offers", []) or bool(story_foes(world))  # fmt: skip
     how = b["suggests"]
     last = next((x for x in reversed(game["beats"]) if x["beat_kind"] == "action"), None)  # fmt: skip
     hint = (
@@ -870,22 +873,87 @@ def bring_in(box: Path, world: dict, world_file: Path, now: str) -> bool | None:
     return answer
 
 
+def story_foes(world: dict | None) -> list[tuple[str, str]]:
+    """(label, stat block key) for the foes this story's own seated characters
+    can fight with dndwright (dw_story.py), or [] when they can't: dndwright
+    isn't installed, the story has no seated characters, or it is one
+    aetheris5e's own party fights in. A story opts in by naming its foes in
+    `"foes"` (keys of aetheris5e's stat blocks, e.g. "scorched_belt_raider");
+    one that doesn't has no such fight, as before."""
+    if world is None or world["id"] in FIGHTS or not any(c.get("seat") for c in world.get("characters", [])):  # fmt: skip
+        return []
+    try:
+        import dw_story
+    except ImportError:
+        return []
+    keys = world.get("foes", [])
+    out = []
+    for k in keys:
+        try:
+            f = dw_story.from_statblock(k)
+        except (KeyError, ValueError):
+            continue
+        out.append((f"The story's own: its heroes against a {f.name} ({f.hp} hit points, armor {f.ac})", k))  # fmt: skip
+    return out
+
+
+def story_fight(table: Path, now: str, world: dict, world_file: Path | None, game: dict | None, key: str) -> bool | None:  # fmt: skip
+    """The story's seated characters against one of aetheris5e's foes, run by
+    dndwright (dw_fight.py) on dice dropped in willow's tower one at a time,
+    every blow a row on the record (dw_record.py: `xfight-*`). Not the box's
+    other fights: fight.py never reads these, and `open_table.py check` reads
+    them from the record alone. True once fought; None if the person left."""
+    import dw_record
+    import dw_story
+
+    box = table / "record"
+    foe = dw_story.from_statblock(key)
+    party = dw_story.party_from_world(world)
+    folder = table / "tower" / "fights"
+    folder.mkdir(parents=True, mode=0o700, exist_ok=True)
+    rows = dw_record.record(box, [*party, foe], folder, now)
+    print(f"\n⚔️  {', '.join(f.name for f in party)} against a {foe.name}")
+    for r in rows:
+        if r["kind"] == "blow":
+            hit = f"hits for {r['damage']}" + (" (a crit!)" if r["crit"] else "") + f", {r['hp_after']} left" if r["hit"] else "misses"  # fmt: skip
+            print(f"   {r['who']} → {r['target']}: {r['d20']} makes {r['total']} against {r['ac']}: {hit}")  # fmt: skip
+        elif r["kind"] == "down":
+            print(f"   {r['who']} is down.")
+    recs, _ = kernel.read(box / "record.jsonl")
+    summary = session.xfight_summary(recs, max(r["n"] for r in recs if r["kind"] == "xfight-open"))  # fmt: skip
+    won = rows[-1].get("winner")
+    said = {"party": "The party won", "foes": "The party fell", "stalemate": "Neither side fell"}.get(won, "It ended")  # fmt: skip
+    standing = ", ".join(summary["party_survivors"] + summary["foe_survivors"]) or "no one"  # fmt: skip
+    print(f"⚔️  {said} in {summary['rounds']} rounds. Still standing: {standing}.")
+    if world is not None and "fight" in world.get("offers", []):
+        return fight_stands(box, world, world_file, game, won == "party", now)
+    print("   (What the fight means for the story is yours to say, GM.)")
+    return True
+
+
 def fight(table: Path, now: str, world: dict | None = None, world_file: Path | None = None, game: dict | None = None) -> bool | None:  # fmt: skip
-    """A fight from aetheris5e, played by fight.py onto the record, blow by
-    blow, then drawn as a board. In a story that turns on a fight (one whose
-    offers name `fight`: a moment written "when: the fight is won"), its end
-    goes to the GM as a call (fight_stands). True once fought, False if it
-    couldn't be, None if the person left."""
+    """A fight: one of aetheris5e's encounters, played by fight.py onto the
+    record, blow by blow, then drawn as a board; or, in a story with seated
+    characters, those characters against one of its foes, run by dndwright
+    (story_fight). In a story that turns on a fight (one whose offers name
+    `fight`: a moment written "when: the fight is won"), its end goes to the GM
+    as a call (fight_stands). True once fought, False if it couldn't be, None
+    if the person left."""
     listed = run(HERE / "fight.py", "list")
     names = [line.split()[0] for line in listed.stdout.splitlines() if line.strip()]
     descs = [line.strip().split(None, 1)[1] for line in listed.stdout.splitlines() if line.strip()]  # fmt: skip
-    if listed.returncode != kernel.ALIVE or not names:
+    if listed.returncode != kernel.ALIVE:
+        names, descs = [], []
+    own = story_foes(world)
+    if not names and not own:
         print("   A fight can't start here: aetheris5e's dice aren't reachable.")
         return False
     print("   Which fight?")
-    k = pick_one("   Which? ", descs)
+    k = pick_one("   Which? ", descs + [label for label, _ in own])
     if k is None:
         return None
+    if k >= len(names):
+        return story_fight(table, now, world, world_file, game, own[k - len(names)][1])
     done = run(HERE / "fight.py", "--table", table, "fight", names[k], "--now", now)
     if done.returncode != kernel.ALIVE:
         print(f"   The fight couldn't start: {(done.stderr or done.stdout).strip()}")

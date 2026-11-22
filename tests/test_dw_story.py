@@ -8,16 +8,16 @@ from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import fight_spike as fs
-import record_fight as rf
-import story_fighters as sf
-import tower_faces as tf
-from test_tower_faces import make
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "box"))
+import dw_fight as fs
+import dw_record as rf
+import dw_story as sf
+import dw_tower as tf
+from test_dw_tower import make
 
 LANTERN = json.loads(
     (
-        Path(__file__).resolve().parents[2] / "box" / "worlds" / "lantern-fair.json"
+        Path(__file__).resolve().parents[1] / "box" / "worlds" / "lantern-fair.json"
     ).read_text()
 )
 

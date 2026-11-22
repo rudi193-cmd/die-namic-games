@@ -1,4 +1,4 @@
-"""fight_spike.py: a fight on a story's characters, run by dndwright, on dice somebody else supplies. Python 3.9+.
+"""dw_fight.py: a fight on a story's characters, run by dndwright, on dice somebody else supplies. Python 3.9+.
 
 A SPIKE, outside the play path (nothing in box/ imports it; pytest's testpaths
 is tests/, so it is run by name, see README.md). It answers one question from
@@ -93,7 +93,7 @@ class Fighter:
 
 def fight(fighters: list[Fighter], faces) -> list[dict]:
     """The fight as rows: init, blow, down, end. `faces` is a list of ints, or a source with
-    draw(sides) and say(why) (see tower_faces.py). Raises OutOfFaces if the faces run out."""
+    draw(sides) and say(why) (see dw_tower.py). Raises OutOfFaces if the faces run out."""
     src = faces if hasattr(faces, "draw") else Faces(faces)
     engine = DiceEngine(rng=SaidRandom(src))
     rows: list[dict] = []

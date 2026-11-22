@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import fight_spike as fs
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "box"))
+import dw_fight as fs
 
 TAMSIN = fs.Fighter(
     "Tamsin", "party", hp=12, ac=14, init_mod=2, attack_bonus=4, damage="1d6+2"
