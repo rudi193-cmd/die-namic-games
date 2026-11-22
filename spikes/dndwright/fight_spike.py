@@ -59,6 +59,9 @@ class Faces:
     def left(self) -> int:
         return len(self._faces)
 
+    def say(self, why: str) -> None:
+        """What the next dice are for. A list of faces ignores it; a tower writes it on the drop."""
+
 
 class SaidRandom(random.Random):
     """The one generator dndwright is given: every die is a face from Faces."""
@@ -86,9 +89,10 @@ class Fighter:
     damage: str  # e.g. "1d6+2"
 
 
-def fight(fighters: list[Fighter], faces: list[int]) -> list[dict]:
-    """The fight as rows: init, blow, down, end. Raises OutOfFaces if the faces run out."""
-    src = Faces(faces)
+def fight(fighters: list[Fighter], faces) -> list[dict]:
+    """The fight as rows: init, blow, down, end. `faces` is a list of ints, or a source with
+    draw(sides) and say(why) (see tower_faces.py). Raises OutOfFaces if the faces run out."""
+    src = faces if hasattr(faces, "draw") else Faces(faces)
     engine = DiceEngine(rng=SaidRandom(src))
     rows: list[dict] = []
 
@@ -97,6 +101,7 @@ def fight(fighters: list[Fighter], faces: list[int]) -> list[dict]:
 
     inits = {}
     for f in fighters:
+        src.say(f"{f.name} rolls initiative")
         r = roll_initiative(engine, f.init_mod)
         inits[f.name] = r.total
         row(kind="init", who=f.name, d20=r.roll, total=r.total)
@@ -126,6 +131,7 @@ def fight(fighters: list[Fighter], faces: list[int]) -> list[dict]:
                 row(kind="end", round=rnd, winner=me.side)
                 return rows
             target = foes[0]
+            src.say(f"{name} attacks {target}")
             atk = engine.roll_attack(modifier=me.attack_bonus, target_ac=by[target].ac)
             blow = {
                 "kind": "blow",
@@ -139,6 +145,7 @@ def fight(fighters: list[Fighter], faces: list[int]) -> list[dict]:
                 "crit": atk.roll.is_critical,
             }
             if atk.is_hit:
+                src.say(f"{name}'s damage to {target}")
                 dmg = engine.roll_damage(me.damage, is_critical=atk.roll.is_critical)
                 state[target], _ = apply_damage(state[target], dmg.roll.total)
                 blow.update(damage=dmg.roll.total, dice=list(dmg.roll.individual_rolls))

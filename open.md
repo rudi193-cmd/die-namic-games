@@ -928,3 +928,31 @@ those were not run green here.
 roll (`2d6`) before it is thrown, so a fight drops many small dice, one per
 attack and per damage; how that reads on the record, and whether a round's
 dice can be dropped together, is for willow's dice-tower to say.
+
+### Round 7: the spike on the tower (2026-11-22)
+
+`spikes/dndwright/tower_faces.py` fills the spike's faces from willow's
+`dice-tower`: each die the engine asks for is dropped (a hash and what it is
+for) and brought out. A run: Tamsin hit the goblin on the first blow (11, +4 =
+15 against AC 13, 7 damage, goblin down), five dice dropped and five out,
+`dice_tower check` says "5 dice out of the tower, every one holds", and
+`tower_match` ties the fight's rows to the tower's out rows. **12 spike tests
+pass** (7 on listed faces, 5 on the tower), lint clean.
+
+**What this settles:** an outside engine (dndwright) can run a fight on the
+story's characters with every face coming out of the tower and every die held
+to its drop, with a small adapter and no change to willow or to the engine.
+**What it doesn't:** the drop-to-out window is an instant, so "nobody read it
+first" is only as good as the die files' keeping; the fight's rows are not
+kernel rows and are not sealed; targets are fixed; no conditions or death saves.
+
+**Answers to the open question from Round 6:** a fight needs many small drops;
+nothing in the tower stops that (five drops in a one-blow fight), and its
+`check` lists any left inside, so a round's speculative damage dice would show
+as "still in the tower" until they are brought out unused, which play.py
+already does ("the tower's unused dice come out"). The remaining design choice
+is when to drop: per roll, as here, or a round at a time.
+
+**Next, if wanted:** put the fight's rows on the kernel's record as
+`table-fight` rows beside box/fight.py's, so `check` can hold them; map a
+story character's stats to `Fighter` numbers; a person choosing the target.

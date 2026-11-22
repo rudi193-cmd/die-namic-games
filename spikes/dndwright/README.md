@@ -7,7 +7,7 @@ is a spike: **nothing in `box/` imports it**, and it is outside `tests/` so the
 suite doesn't need dndwright; it is run by name.
 
     pip install git+https://github.com/sligara7/dndwright.git@6f0fb9e   # needs pydantic>=2.5, pyyaml>=6.0
-    python3 -m pytest spikes/dndwright -q                                # 7 tests
+    python3 -m pytest spikes/dndwright -q                                # 12 tests (7 on listed faces, 5 on the tower)
 
 ## What it shows (each held by a test)
 
@@ -23,14 +23,25 @@ suite doesn't need dndwright; it is run by name.
 - **`check` replays the rows' own faces** and finds an edited hit point, or a
   die changed after the fact.
 - A natural 20 hits and doubles the damage dice (dndwright's rule).
+- **On the tower** (`test_tower_faces.py`): every face is a die dropped as a
+  hash and then out; the fight's rows match the tower's outs; a face changed in
+  the rows is found; a die left inside is named.
 
 ## What it does not do
 
-- **No tower yet.** The faces are typed or listed. The next step is to fill
-  `Faces` from willow's `dice-tower` (one drop per roll, `1d20` then the
-  damage dice, each out before the next is asked), so nobody reads a face
-  first. Not built.
-- **Not on the record.** The rows are plain dicts, not kernel rows; no seal.
+- **The tower is wired, with a short window.** `tower_faces.py` fills the
+  faces from willow's `dice-tower`: each die the engine asks for is dropped
+  (only its SHA-256 on the record, with what it is for: "Tamsin attacks
+  Goblin") and brought out at once. The tower's guarantee holds (nobody
+  chose the face, and `tower_match` holds the fight's rows to the tower's
+  `tower-out` rows, in order, with none left inside), but the drop and the
+  out are an instant apart, not a moment posed to the table; and whoever holds
+  the die files can look first (the tower's own README: that is the game
+  master's screen, not a seal). A play path would drop a round's d20s when
+  the round is posed, and the damage dice when a hit is known.
+- **The fight is not on the record as rows.** The tower's drops and outs are
+  kernel rows; the fight's own rows (`init`, `blow`, `down`, `end`) are plain
+  dicts, not kernel rows, and nothing is sealed.
 - **Fixed choices.** A fighter hits the first one standing on the other side;
   in play that is a person's call. No advantage, no conditions, no death saves
   (a fighter drops at 0 hit points, as in aetheris5e), no reactions, no map.

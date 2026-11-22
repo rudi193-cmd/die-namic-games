@@ -126,6 +126,11 @@ dm` and `dm = ...` was refused).
   7 tests. Next: faces from the tower. Wider suite: 23 fight-test failures
   here from a missing `ONESCRIPT_HOME`, not from the spike.
 
+- **Round 7, the tower is wired into the spike:** `spikes/dndwright/tower_faces.py`;
+  a fight's every face is a die dropped and brought out, the rows are held to the
+  tower's outs; 12 spike tests. Window between drop and out is an instant.
+  Next: fight rows on the kernel's record, stats to `Fighter` numbers.
+
 ## Not done, and why
 
 - **Tavern (t11z)**: `t11z/tavern` is refused to the session, both through
