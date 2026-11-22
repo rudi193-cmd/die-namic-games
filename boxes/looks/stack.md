@@ -29,3 +29,12 @@ Want 3: "How does each send what the GM shows from their device to the
 others'?" (the maintainer: "the GM would share from their device to others")
 - all-passages -- --box {box} --top 6 "share sealed canon other box"
 - all-passages -- --box {box} --top 8 "websocket players window sync"
+
+## what only one seat sees
+
+Want 4: "Blind deal happens all the time in card games: where do our games
+already deal something only one seat sees?" (the maintainer's connection,
+2026-11-22: the GM's screen roll, the cup and a dealt hand)
+- all-passages -- --box {box} --top 6 "deal hand only one seat"
+- all-passages -- --box {box} --top 6 "hand hidden other seats"
+- all-passages -- --box {box} --top 6 "cups lifted dice hidden"
