@@ -119,6 +119,8 @@ dm` and `dm = ...` was refused).
   box's 57,000 passages: the kernel's rank kept running in `pile-serve`
   answers in 9.6 s, pile-rank there in 0.13 s, and batch-ask over an
   index-cache index, the kernel's own answers, in about a second.
+  Decided by the maintainer: the lookup lives in the left panel and comes
+  into the centre when called (my-table.md).
 
 - **TaleWeaver** enforces rules after the model speaks: a "deterministic
   enforcement" pass, rule violations fed back into a second narration pass,

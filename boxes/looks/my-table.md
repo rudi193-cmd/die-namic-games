@@ -33,3 +33,7 @@ A quick lookup (2026-11-22): "We also should keep a quick lookup for all
 the other things that might turn up, the rules, the books, being able to
 ask them on demand." Whatever comes up at the table, asked then and there:
 the binder, the rules, the rulebooks.
+
+Where the lookup sits (2026-11-22): "I think it should live in the left,
+that comes into the center when called." The lookup is part of the left
+panel's quick reference; an answer, called, moves into the centre panel.
