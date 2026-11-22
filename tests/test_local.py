@@ -30,7 +30,7 @@ def repo(tmp_path: Path) -> Path:
         "box/play.py": "import session\n",
         "box/lonely.py": "x = 1\n",
         "tests/test_session.py": "import session\n",
-        "tests/test_play.py": "BOX = 'play.py'\n",
+        "tests/test_play.py": 'BOX = HERE / "play.py"\n',
         "tests/test_other.py": "def test_nothing(): pass\n",
         "box/worlds/w.json": "{}\n",
         "open.md": "prose\n",
@@ -101,8 +101,20 @@ def test_the_changes_are_what_differs_from_the_base_and_new_files(repo):
     )
 
 
-def test_the_test_files_the_mutants_jobs_never_run_are_named(repo):
-    assert local.unlisted(repo) == ["tests/test_other.py"]
+def test_the_test_files_the_mutants_jobs_never_run_are_named_when_they_test_what_is_broken(
+    repo,
+):
+    cfg = {
+        "tests": ["tests/test_session.py"],
+        "targets": {"box/session.py": "all", "box/play.py": 6},
+    }
+    (repo / "ci/mutants.json").write_text(json.dumps(cfg))
+    assert local.unlisted(repo) == [
+        "tests/test_play.py"
+    ]  # names play.py, a target, and isn't listed
+    cfg["targets"] = {"box/session.py": "all"}
+    (repo / "ci/mutants.json").write_text(json.dumps(cfg))
+    assert local.unlisted(repo) == []  # nothing it names is broken, so nothing is lost
 
 
 def run_with(repo: Path, monkeypatch, argv: list[str], code: int = 0):

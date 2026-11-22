@@ -22,9 +22,9 @@ reach a few tests. So:
           run that passes is kept, keyed on ci/memo.py's key of every file a test
           can reach. The next `run` on the same bytes says it stands, and runs
           nothing: --force runs anyway. --all runs everything.
-  lists   the test files mutants.json doesn't name. The mutants jobs run only
-          the files it lists, so a break only a missing file's tests would catch
-          survives in CI: this is how that was found.
+  lists   the test files mutants.json doesn't name that name a file it breaks.
+          The mutants jobs run only the files it lists, so a break only such a
+          file's tests would catch survives in CI: this is how that was found.
 
 This decides nothing CI decides: CI still runs the full suite, and every mutants
 job, on main's commit. A stand here is this machine's own last full pass.
@@ -110,6 +110,34 @@ def names(text: str, stem: str) -> bool:
             rf"\bimport {stem}\b|\bfrom {stem}\b|\b{stem}\.py\b|[\"']{stem}[\"']", text
         )
     )
+
+
+def uses(text: str, stem: str) -> bool:
+    """Stricter than `names`, read from the syntax and not the strings: the test imports the module,
+    or runs its file as a path join (BOX / "play.py"). A fixture that merely says so doesn't count."""
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return False
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Import) and any(
+            a.name.split(".")[0] == stem for a in n.names
+        ):
+            return True
+        if (
+            isinstance(n, ast.ImportFrom)
+            and n.level == 0
+            and (n.module or "").split(".")[0] == stem
+        ):
+            return True
+        if (
+            isinstance(n, ast.BinOp)
+            and isinstance(n.op, ast.Div)
+            and isinstance(n.right, ast.Constant)
+            and n.right.value == f"{stem}.py"
+        ):
+            return True
+    return False
 
 
 def plan(repo: Path, paths: list[str]) -> tuple[list[str] | None, list[str]]:
@@ -210,8 +238,20 @@ def needs(repo: Path) -> list[tuple[str, bool, str]]:
 
 
 def unlisted(repo: Path) -> list[str]:
-    listed = set(json.loads((repo / "ci" / "mutants.json").read_text())["tests"])
-    return [t for t in test_files(repo) if t not in listed]
+    """Test files mutants.json doesn't list that name a file it breaks: the mutants jobs never run
+    them, so a break only they would catch survives. Files that test code nothing breaks (ci/, the
+    exhaustion rule, the dw_ modules) are not named: nothing is lost by their not being run there."""
+    cfg = json.loads((repo / "ci" / "mutants.json").read_text())
+    listed = set(cfg["tests"])
+    stems = {Path(t).stem for t in cfg["targets"]}
+    out = []
+    for t in test_files(repo):
+        if t in listed:
+            continue
+        text = (repo / t).read_text(encoding="utf-8", errors="replace")
+        if any(uses(text, stem) for stem in stems):
+            out.append(t)
+    return out
 
 
 def store(repo: Path) -> Path:

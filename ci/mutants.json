@@ -9,6 +9,7 @@
     "tests/test_games.py",
     "tests/test_end.py",
     "tests/test_game_box.py",
+    "tests/test_paper.py",
     "tests/test_fight.py",
     "tests/test_play.py",
     "tests/test_write.py",

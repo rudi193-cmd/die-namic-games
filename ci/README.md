@@ -113,8 +113,11 @@ pass on bytes that haven't moved needn't be repeated.
   runs everything). A partial pass keeps nothing.
 - **`lists`** is how the mutants gap was found: the mutants jobs run only the
   files [mutants.json](mutants.json) names, so a test file it doesn't list can
-  never kill a break there. Add a new file to the list when a break only it
-  catches.
+  never kill a break there. It names the unlisted test files that import a
+  module the jobs break, or run its file as a path join (read from the syntax,
+  so a fixture that merely says so doesn't count). Tests of code nothing breaks
+  (`ci/`, `box/exhaustion.py`, the `dw_` modules) aren't named: nothing is lost
+  by their not being there. Add a named file to the list.
 
 CI still runs the full suite and every mutants job on main's commit; a stand
 here is this machine's own last full pass, not a verdict CI accepts.

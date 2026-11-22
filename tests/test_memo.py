@@ -151,7 +151,7 @@ def test_no_code_in_this_repo_names_a_file_the_keys_leave_out():
     for p in memo.tracked(ROOT):
         if (
             not p.endswith(".py")
-            or p in ("ci/memo.py", "tests/test_memo.py")
+            or p in ("ci/memo.py", "tests/test_memo.py", "tests/test_local.py")
             or p.startswith("boxes/")
         ):
             continue
