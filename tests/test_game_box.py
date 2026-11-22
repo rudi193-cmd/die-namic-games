@@ -211,6 +211,25 @@ def test_open_refuses_a_table_already_there_or_a_key_inside_it(t, tmp_path):
     assert not (tmp_path / "t2").exists()
 
 
+def test_open_opens_the_story_world_names_and_only_one_of_the_box(tmp_path):
+    for n, world in enumerate(("ironworks", "ironworks.json")):
+        got = py(HERE / "open_table.py", "open", "--table", tmp_path / f"t{n}", "--key", tmp_path / f"k{n}", "--world", world, *NOW)  # fmt: skip
+        assert got.returncode == 42, got.stderr
+        assert (
+            "Ironworks — Last Pour" in got.stdout
+            and "The Lantern Fair" not in got.stdout
+        )
+    for n, world in enumerate(
+        ("nowhere", "../worlds/ironworks", "..\\worlds\\ironworks", "")
+    ):
+        got = py(HERE / "open_table.py", "open", "--table", tmp_path / f"x{n}", "--key", tmp_path / f"y{n}", "--world", world, *NOW)  # fmt: skip
+        if world:
+            assert got.returncode == 2 and "no story" in got.stderr, world
+            assert not (tmp_path / f"x{n}").exists()
+        else:  # --world given empty: The Lantern Fair, as without it
+            assert got.returncode == 42 and "The Lantern Fair" in got.stdout
+
+
 def test_a_command_line_that_isnt_one_is_refused(t, tmp_path):
     for argv in (
         (),
