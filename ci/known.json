@@ -9,6 +9,12 @@
     },
     {
       "group": "a password typed with its label",
+      "where": "tests/test_table_scene.py",
+      "what": "value not shown",
+      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is a path joined in Python, the GM's drop folder / a package's file name, no credential"
+    },
+    {
+      "group": "a password typed with its label",
       "where": "game-lab/README.md",
       "what": "value not shown",
       "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is two sim file names side by side, no credential"

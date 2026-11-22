@@ -270,6 +270,22 @@ dm` and `dm = ...` was refused).
   seat's chain and shown as arrived and not held, never its words; one for
   someone else is `not-for-you`; the same one twice is said once. 19 tests;
   whole suite 23 failed (`ONESCRIPT_HOME`, as before), 350 passed.
+- **looks, built: players sending back** (2026-11-22, the same session).
+  Asked first, the box said an offer is "canon that night only on the GM's
+  seal" (box/README.md:235) and `kids` is the seat that never seals
+  (open.md:530); share carries only sealed answers. **The maintainer chose:**
+  a player seals their own words in their own box ("this is what I brought,
+  in my words"), canon only on the GM's yes; and all three kinds travel:
+  offers, notes to the GM, a creature typed with its picture. `box/bring.py`
+  hands in and sends, never seals (share refuses what the player hasn't);
+  the GM's follow.py hands an offer or creature in through game-master's
+  `offer`, waiting on the GM's call, and shows a note to the GM alone; a
+  picture travels beside its package and is kept only if its SHA-256 is the
+  one in the sealed words. **Found in the build:** one identity at every
+  table can't tell two tables apart when two people sit at each other's
+  (Rook's Sunday offer was filed at Thursday); every package now names its
+  table in its note, inside the signature, and the follower routes by it.
+  25 tests; whole suite 23 failed (`ONESCRIPT_HOME`, as before), 356 passed.
 
 - **TaleWeaver** enforces rules after the model speaks: a "deterministic
   enforcement" pass, rule violations fed back into a second narration pass,

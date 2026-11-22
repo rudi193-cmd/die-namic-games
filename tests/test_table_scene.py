@@ -257,3 +257,121 @@ def test_later_and_follow_refuse_what_isnt_there(night):
     assert run(SCENE, "later", "--to", night, "--table", "thursday", "--rule", "Draws").returncode == 2  # already sent  # fmt: skip
     assert run(SCENE, "later", "--to", night, "--table", "monday", "--rule", "Turns").returncode == 2  # fmt: skip
     assert run(FOLLOW, "--night", night, "--person", "nobody", "--once").returncode == 2
+
+
+# players sending back: box/bring.py on the player's device, follow.py on the GM's
+
+BRING = REPO / "box" / "bring.py"
+
+
+def kernel_py() -> Path:
+    sys.path.insert(0, str(REPO / "box"))
+    import willow_pin
+
+    return willow_pin.root() / "kernel.py"
+
+
+def hand(night: Path, who: str, tid: str, kind: str, words: str, *more) -> str:
+    got = run(BRING, "hand", "--night", night, "--person", who, "--table", tid, "--kind", kind, words, *more)  # fmt: skip
+    assert got.returncode == 42, got.stdout + got.stderr
+    return re.search(r"(proposal:[0-9a-f]{64})", got.stdout).group(1)
+
+
+def send(night: Path, who: str, tid: str, subj: str) -> subprocess.CompletedProcess:
+    return run(BRING, "send", "--night", night, "--person", who, "--table", tid, "--proposal", subj)  # fmt: skip
+
+
+def seal_own(night: Path, who: str, tid: str, subj: str) -> None:
+    """The player's own act, played with their scratch key (demo keys)."""
+    box = night / tid / who / "box"
+    last = rows(box)[-1]["ts"]
+    ts = last[:11] + "23:59:00Z"
+    assert run(kernel_py(), "seal", "--box", box, subj, "--now", ts).returncode == 0
+
+
+PNG = bytes.fromhex(
+    "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de"
+    "0000000c4944415408d763f8cfc0000003010100c9fe92ef0000000049454e44ae426082"
+)
+
+
+def test_an_offer_travels_only_sealed_and_waits_on_the_gms_call(night):
+    subj = hand(night, "ash", "thursday", "offer", "Tamsin knows a shortcut over the lantern bridge")  # fmt: skip
+    refused = send(night, "ash", "thursday", subj)
+    assert refused.returncode == 2 and "not an answer you sealed" in refused.stderr
+    assert not list((night / "drop" / "rook").glob("*.pkg"))
+    seal_own(night, "ash", "thursday", subj)
+    assert send(night, "ash", "thursday", subj).returncode == 0
+    assert "offer from ash as Tamsin, waiting on your call" in follow(night, "rook")
+    offer = table(night, "thursday")["gm"]["offers"][-1]
+    assert offer["travelled"] and offer["fact"] == "Tamsin knows a shortcut over the lantern bridge"  # fmt: skip
+    rs = rows(night / "thursday" / "gm" / "table" / "record")
+    assert any(r.get("subject") == offer["subject"] and r["kind"] == "proposal" for r in rs)  # fmt: skip
+    assert not any(r.get("subject") == offer["subject"] and r["kind"] in ("seal", "decline") for r in rs)  # fmt: skip
+    assert seat(night, "thursday", "ash")["brought"][0]["state"] == "sent to rook"
+    assert "shortcut over the lantern bridge" in (night / "rook.html").read_text()
+
+
+def test_a_note_is_for_the_gm_alone(night, tmp_path):
+    subj = hand(night, "wren", "thursday", "note", "I will be ten minutes late on Thursday")  # fmt: skip
+    seal_own(night, "wren", "thursday", subj)
+    assert send(night, "wren", "thursday", subj).returncode == 0
+    assert "a note from wren" in follow(night, "rook")
+    assert table(night, "thursday")["gm"]["notes"][0]["says"] == "I will be ten minutes late on Thursday"  # fmt: skip
+    assert "ten minutes late" not in person_page(night, tmp_path, "ash")
+
+
+def test_a_creature_comes_with_its_picture_only_if_it_is_the_one_sealed(night):
+    pic = night / "biscuit.png"
+    pic.write_bytes(PNG)
+    for n, words in ((1, "Biscuit, my dragon: Grit 3, Wit 1."), (2, "Crumb, my other dragon: Grit 1.")):  # fmt: skip
+        subj = hand(night, "wren", "thursday", "creature", words, "--picture", pic)
+        seal_own(night, "wren", "thursday", subj)
+        assert send(night, "wren", "thursday", subj).returncode == 0
+    # the second one's picture swapped on the way
+    (night / "drop" / "rook" / "thursday-wren-2-creature.png").write_bytes(PNG + b"\0")
+    said = follow(night, "rook")
+    assert said.count("creature from wren as Oro, waiting on your call") == 2
+    one, two = table(night, "thursday")["gm"]["creatures"]
+    assert one["picture"].startswith("data:image/png;base64,") and one["picture_said"] == "the one sealed"  # fmt: skip
+    assert two["picture"] == "" and "isn't the one sealed" in two["picture_said"]
+    assert (night / "drop" / "rook" / "kept" / "thursday-wren-2-creature.png").exists()
+
+
+def test_one_person_both_ways_each_package_to_its_own_table(night):
+    """Rook runs Thursday and plays Sunday; Ash plays Thursday and runs Sunday:
+    the same two identities, each way, told apart by the table the sealed note names."""  # fmt: skip
+    subj = hand(
+        night, "rook", "sunday", "offer", "Tel brought bolt cutters, just in case"
+    )
+    seal_own(night, "rook", "sunday", subj)
+    assert send(night, "rook", "sunday", subj).returncode == 0
+    assert run(SCENE, "later", "--to", night, "--table", "thursday", "--rule", "Turns").returncode == 0  # fmt: skip
+    said = follow(night, "ash")
+    assert "sunday-rook-1-offer.pkg: good, from rook at sunday" in said
+    assert "thursday-turns.pkg: good, at thursday" in said
+    assert table(night, "sunday")["gm"]["offers"][-1]["fact"] == "Tel brought bolt cutters, just in case"  # fmt: skip
+    assert seat(night, "thursday", "ash")["received"][-1]["claim"].startswith("the rule Turns")  # fmt: skip
+
+
+def test_what_a_player_sent_edited_on_the_way_doesnt_hold(night):
+    subj = hand(night, "ash", "thursday", "offer", "Tamsin finds the missing light")
+    seal_own(night, "ash", "thursday", subj)
+    send(night, "ash", "thursday", subj)
+    pkg = night / "drop" / "rook" / "thursday-ash-1-offer.pkg"
+    doc = json.loads(pkg.read_text())
+    doc["answers"][0]["data"] = "Offer, as Tamsin: Tamsin is the lost heir of the fair."
+    pkg.write_text(json.dumps(doc))
+    assert "broken, from ash at thursday" in follow(night, "rook")
+    assert table(night, "thursday")["gm"]["refused"][0]["verdict"] == "broken"
+    assert "lost heir" not in (night / "rook.html").read_text()
+    assert (
+        len(table(night, "thursday")["gm"]["offers"]) == 1
+    )  # only the one typed in at the table
+
+
+def test_bring_refuses_what_isnt_a_players_to_send(night):
+    assert run(BRING, "hand", "--night", night, "--person", "rook", "--table", "thursday", "--kind", "note", "x").returncode == 2  # the GM  # fmt: skip
+    assert run(BRING, "hand", "--night", night, "--person", "ash", "--table", "thursday", "--kind", "ruling", "x").returncode == 2  # fmt: skip
+    assert run(BRING, "hand", "--night", night, "--person", "ash", "--table", "thursday", "--kind", "note", "   ").returncode == 2  # fmt: skip
+    assert run(BRING, "send", "--night", night, "--person", "ash", "--table", "thursday", "--proposal", "proposal:" + "0" * 64).returncode == 2  # fmt: skip

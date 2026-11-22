@@ -115,6 +115,7 @@ h3 { margin: 0 0 6px; font-size: 0.74rem; letter-spacing: 0.1em; text-transform:
 .cite { font-family: var(--mono); font-size: 0.7rem; color: var(--chalk-faint); }
 .state { font-family: var(--mono); font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
 .state.ok { color: var(--ok); border: 1px solid color-mix(in srgb, var(--ok) 40%, transparent); }
+.item .pic { float: right; width: 56px; height: 42px; object-fit: cover; border-radius: 6px; margin-left: 8px; border: 1px solid var(--edge); }
 .state.new { color: var(--go-ink); background: var(--go); }
 .item.just { border-color: var(--go); background: #ffd34d14; }
 .state.wait { color: var(--wait); border: 1px solid color-mix(in srgb, var(--wait) 40%, transparent); }
@@ -287,7 +288,9 @@ const die = (n) => `<span class="d6" role="img" aria-label="${n}">${[...Array(9)
 // [ my tables ]: every seat this person holds, at every table; one shown at a time
 function tables(k) {
   const sel = $("tables");
-  const news = (s) => s.kind === "player" && [...s.data.seat.received, ...(s.data.seat.refused || [])].some((r) => r.just);
+  const news = (s) => (s.kind === "player"
+    ? [...s.data.seat.received, ...(s.data.seat.refused || [])]
+    : ["offers", "notes", "creatures", "refused"].flatMap((k) => s.data.gm[k] || [])).some((r) => r.just);
   sel.innerHTML = ME.screens.map((s, i) => `<option value="${i}"${i === k ? " selected" : ""}>${news(s) ? "● " : ""}${esc(s.day)} · ${esc(s.title)} · ${s.kind === "gm" ? "you run it" : "you play " + esc(s.plays)}${news(s) ? " · just arrived" : ""}</option>`).join("")
     + (ME.screens.length < 2 ? `<option disabled>your seats at other tables come here</option>` : "");
   sel.onchange = () => { location.hash = "seat-" + sel.value; location.reload(); };
@@ -307,7 +310,10 @@ function gmScreen(T) {
   listInto("bestiary", G.bestiary.map((m) => {
     const i = add("bestiary", m.title, m.lines, m.where);
     return `<button class="item" data-ref="${i}"><b>▸ ${esc(m.title)}</b><span class="sub">${esc(m.lines.find((l) => /Grit|Hits/.test(l)) || m.lines[0] || "")}</span></button>`;
-  }));
+  }).concat((G.creatures || []).map((c) => {
+    const i = add("brought in by " + c.from, c.says.split(/[:,—]/)[0], [c.says, c.picture_said ? "picture: " + c.picture_said : ""].filter(Boolean), "from " + c.from + "'s device, as " + c.plays);
+    return `<button class="item${c.just ? " just" : ""}" data-ref="${i}">${c.picture ? `<img class="pic" src="${c.picture}" alt="${esc(c.from)}'s picture">` : ""}<b>▸ ${esc(c.says.split(/[:,—]/)[0])}</b> <span class="state wait">${esc(c.state)}</span>${c.just ? ` <span class="state new">just arrived</span>` : ""}<span class="sub">brought in by ${esc(c.from)} (${esc(c.plays)}): ${esc(c.says)}</span></button>`;
+  })));
   listInto("people", G.people.map((p) => {
     const i = add("person", p.title, p.lines, p.where);
     return `<button class="item" data-ref="${i}"><b>▸ ${esc(p.title)}</b></button>`;
@@ -377,8 +383,8 @@ function gmScreen(T) {
         <div class="btns"><button class="btn" id="roll">Roll</button><button class="btn ghost" id="hidden">Roll hidden</button></div>
         <div class="say" id="say" aria-live="polite"></div>
       </div>
-      <div class="call"><h3>✋ Your call, GM · ${G.your_call.length + (G.offers || []).length} waiting on your seal</h3>
-        <ul>${(G.offers || []).map((o) => `<li><b>${esc(o.by[0].toUpperCase() + o.by.slice(1))} brings in:</b> ${esc(o.fact)}</li>`).join("")}${G.your_call.map((r) => `<li>house rule: ${esc(r)}</li>`).join("")}</ul>
+      <div class="call"><h3>✋ Your call, GM · ${G.your_call.length + (G.offers || []).length + (G.creatures || []).length} waiting on your seal</h3>
+        <ul>${(G.offers || []).map((o) => `<li><b>${esc(o.by[0].toUpperCase() + o.by.slice(1))} brings in:</b> ${esc(o.fact)}${o.travelled ? ` <span class="cite">from ${esc(o.seat)}'s device, in their words</span>` : ""}${o.just ? ` <span class="state new">just arrived</span>` : ""}</li>`).join("")}${(G.creatures || []).map((c) => `<li><b>${esc(c.plays)} brings in a creature:</b> ${esc(c.says)} <span class="cite">for the bestiary, from ${esc(c.from)}'s device</span>${c.just ? ` <span class="state new">just arrived</span>` : ""}</li>`).join("")}${G.your_call.map((r) => `<li>house rule: ${esc(r)}</li>`).join("")}</ul>
         <div class="say" style="text-align:left">Only the key's holder seals: <code>python kernel.py seal --box RECORD proposal:&lt;id&gt;</code></div></div>
       ${W.scenes.length > 1 ? `<details><summary class="cite">the rest of the binder (${W.scenes.length - 1} more scene${W.scenes.length > 2 ? "s" : ""})</summary>${scenes.slice(1).join("")}</details>` : ""}`;
     $("roll").onclick = () => { $("say").innerHTML = "A roll not on the record didn't happen, so the page rolls nothing. At the table: <code>python box/play.py</code>, or <code>game_master.py act " + esc((G.next.odds.find((o) => o.startsWith("*")) || "").replace(/^\*\s*/, "").split(/\s+/)[0] || "STAT") + "</code>."; };
@@ -409,7 +415,10 @@ function gmScreen(T) {
       <div class="role">${esc(s.role)}</div><div class="stats">${esc(st)}</div>
       <div class="row">carries: ${esc(s.carries.join(", "))}</div>${rec}
       <div class="cite">${esc(s.chain)}</div></div>`;
-  }).join("") + `<div class="gap">their sheets to the table: <code class="cite">open_table.py sheets</code></div>`;
+  }).join("") + `<div class="gap">their sheets to the table: <code class="cite">open_table.py sheets</code></div>`
+    + `<h3 style="margin-top:8px">Notes from the table · for you alone</h3>`
+    + ((G.notes || []).length ? G.notes.slice().reverse().map((n) => `<div class="item${n.just ? " just" : ""}"><b>${esc(n.from)}</b> <span class="cite">(${esc(n.plays)})</span>${n.just ? ` <span class="state new">just arrived</span>` : ""}<span class="sub">${esc(n.says)}</span></div>`).join("") : `<div class="gap">none yet</div>`)
+    + (G.refused || []).map((r) => `<div class="item${r.just ? " just" : ""}"><b>from ${esc(r.from)}: arrived, and didn't hold</b> <span class="state wait">${esc(r.verdict)}</span><span class="sub">${esc(r.package)}: ${esc(r.why.join("; "))}. On your record as received ${esc(r.verdict)}; nothing in it is shown.</span></div>`).join("");
 
   // along the bottom
   $("screen-cards").innerHTML = G.on_screen.length ? "" : `<div class="gap">nothing clipped in yet</div>`;
@@ -495,12 +504,14 @@ function playerScreen(T) {
   $("stats").textContent = Object.entries(M.stats).map(([k, v]) => `${k}+${v}`).join(" ");
   $("carries").textContent = M.carries.join(", ");
   $("notes").innerHTML = M.notes.map((n) => `<div class="item">${esc(n)}</div>`).join("");
-  $("offered").innerHTML = M.offered.length ? M.offered.map((o) => `<div class="item">${esc(o.fact)} <span class="state wait">${esc(o.state)}</span></div>`).join("") : `<div class="gap">nothing yet</div>`;
+  const brought = [...M.offered.map((o) => ({ says: o.fact, state: o.state + " (said out loud)" })),
+    ...(M.brought || []).map((b) => ({ says: (b.kind === "note" ? "note to the GM: " : b.kind === "creature" ? "creature: " : "") + b.says, state: b.state }))];
+  $("offered").innerHTML = brought.length ? brought.map((o) => `<div class="item">${esc(o.says)} <span class="state wait">${esc(o.state)}</span></div>`).join("") : `<div class="gap">nothing yet</div>`;
   $("chain").textContent = "my record: " + M.chain;
 
   // along the bottom: they say what happens; the page does nothing
   const SAY = {
-    bring: "Say it as " + M.plays + ", in your own words. It goes to the GM's call (game-master's offer), and the story goes on while the GM thinks it over. Only the GM's yes makes it true.",
+    bring: "Say it out loud, or send it from here: box/bring.py hand --kind offer (as " + M.plays + "), note (for the GM's eyes) or creature (typed, a picture beside it); you seal your own words, then bring.py send puts it in the GM's drop folder. It waits on the GM's call: only the GM's yes makes it true.",
     x: "x stops the part, no reason asked. The dice still roll and the GM says what happens instead; the record keeps only that it was, no one named.",
     p: "p pauses the whole night, no reason asked: one pause row, no one named. Run it again to pick up.",
   };

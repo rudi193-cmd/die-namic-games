@@ -19,6 +19,8 @@ the GM's screen; see the `looks, built` entry in [../MEMORY.md](../MEMORY.md).
     python ui/screen.py build --table /tmp/week/thursday/table.json --to /tmp/gm.html   # one seat
     python box/follow.py --night /tmp/week --person wren &     # Wren's page, following her drop folder
     python box/table_scene.py later --to /tmp/week --table thursday --rule Turns   # the GM sends more
+    python box/table_scene.py bring --to /tmp/week --table thursday --person wren --kind creature --says "Biscuit, my dragon: Grit 3" --picture biscuit.png
+    python box/follow.py --night /tmp/week --person rook --once   # the GM's side: it waits on Rook's call
 
 Demo keys are the maintainer's choice for this: fictional seats, seals that
 stand in for a GM's yes, keys thrown away with the folder. The page rolls
@@ -28,9 +30,11 @@ the whole table sees. One person's page holds every seat they hold, at
 every table, `[ my tables ▾ ]` switching (Ash plays on Thursday and runs
 Sunday). The page follows packages landing in each person's drop folder
 (synced or saved by hand, the maintainer's choice) and reloads itself.
-Next, open for the maintainer: an Ironworks binder of its own (every GM
-holds box/binder), the screen art, and the players sending back (an offer
-travelling from a player's device, not typed in by the GM).
+Players send back too (box/bring.py): offers, notes to the GM and a
+creature with its picture, sealed in their own words, canon only on the GM's
+yes. Next, open for the maintainer: an Ironworks binder of its own (every GM
+holds box/binder), the screen art, the tidy-up of a kid's picture, and
+which rulebooks go in the binder.
 
 ## What was made
 

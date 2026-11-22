@@ -2,6 +2,7 @@
 
     python box/table_scene.py run   --to DIR [--now TS]
     python box/table_scene.py later --to DIR --table ID --rule NAME
+    python box/table_scene.py bring --to DIR --table ID --person NAME --kind KIND --says WORDS [--picture FILE]
 
 The boxes and stacks behind the GM's and the players' screens
 (boxes/looks/mock.md), laid as willow's annex demo lays its compartments:
@@ -48,6 +49,12 @@ Then, at each table, in order:
 4. The wall: a player's box, asked about the binder, has nothing on record
    (exit 42); the GM's box, asked the same, serves the binder's page.
 5. Each player's seat runs seat-stack.md; every chain verifies.
+
+`bring` is a player sending something back, played through with the same
+stand-in keys: box/bring.py hands the player's words in, the scene seals
+them with the player's own scratch key (in a real seat, the player's own
+act: "this is what I brought, in my words"), and bring.py sends them into
+the GM's drop folder.
 
 `later` is the night going on: the GM of table ID seals the house rule NAME
 (still waiting on the seal) with the same stand-in key and sends it to each
@@ -247,7 +254,7 @@ class Table:
         pkg = self.dir / f"{gm}-to-{to}.pkg"
         self.w.run(SHARE, "send", "--box", self.box(gm), "--id", self.w.ident(gm),
                    "--answer", subj, "--for", self.w.pub[to], "--to", pkg,
-                   "--note", note, "--now", self.w.ts())  # fmt: skip
+                   "--note", f"{note}, at {self.t['id']}", "--now", self.w.ts())  # fmt: skip
         return pkg
 
     def receive(self, who: str, pkg: Path) -> str:
@@ -393,7 +400,7 @@ class Table:
         for s in t["seats"]:
             c = self.chars[s["plays"]]
             seats.append({
-                "seat": s["person"], "name": s["person"].title(), "plays": c["name"],
+                "seat": s["person"], "name": s["person"].title(), "plays": c["name"], "plays_id": c["id"],
                 "role": c["role"], "stats": self.stats(c), "carries": s["carries"],
                 "notes": s["notes"], "received": self.got[s["person"]],
                 "offered": [o for o in offers if o["seat"] == s["person"]],
@@ -403,7 +410,7 @@ class Table:
             self.w.people[s["person"]].append({"table": t["id"], "day": t["day"], "title": self.world["title"],
                                                "seat": s["person"], "plays": c["name"]})  # fmt: skip
         return {
-            "table_id": t["id"], "day": t["day"], "gm_person": gm, "demo_keys": True,
+            "table_id": t["id"], "world_id": t["world"], "day": t["day"], "gm_person": gm, "demo_keys": True,
             "world": {"title": self.world["title"], "setting": self.world["setting"],
                       "scenes": self.world["scenes"], "places": places},
             "gm": {
@@ -468,7 +475,7 @@ def later(to: Path, tid: str, rule: str) -> int:
         pub = (to / "people" / s["seat"] / "pub").read_text().strip()
         pkg = to / "drop" / s["seat"] / f"{tid}-{rule.lower().replace(' ', '-')}.pkg"
         go(SHARE, "send", "--box", box, "--id", to / "people" / gm / "id", "--answer", subj,
-           "--for", pub, "--to", pkg, "--note", f"house rule: {rule}", "--now", after(box))  # fmt: skip
+           "--for", pub, "--to", pkg, "--note", f"house rule: {rule}, at {tid}", "--now", after(box))  # fmt: skip
         sent.append({"to": s["seat"], "package": pkg.name, "received": "sent"})
         print(f"{gm} sends '{rule}' to {s['seat']}: {pkg}")
     (to / tid / "gm" / "waiting.json").write_text(json.dumps(waiting, indent=1))
@@ -486,7 +493,48 @@ def later(to: Path, tid: str, rule: str) -> int:
     return 1 if wrong else 0
 
 
+def bring(to: Path, opts: dict) -> int:
+    """A player sends something back: bring.py hands it in, the player's
+    scratch key stands in for their seal, bring.py sends it."""
+    cmd = [sys.executable, str(HERE / "bring.py")]
+    seat = [
+        "--night",
+        str(to),
+        "--person",
+        opts["--person"],
+        "--table",
+        opts["--table"],
+    ]
+    pic = ["--picture", opts["--picture"]] if opts.get("--picture") else []
+    got = subprocess.run([*cmd, "hand", *seat, "--kind", opts["--kind"], opts["--says"], *pic],
+                         capture_output=True, text=True, check=False)  # fmt: skip
+    print(got.stdout.splitlines()[0] if got.stdout else got.stderr.strip())
+    m = re.search(r"(proposal:[0-9a-f]{64})", got.stdout)
+    if got.returncode != 42 or not m:
+        return 2
+    box = to / opts["--table"] / opts["--person"] / "box"
+    sealed = subprocess.run([sys.executable, str(KERNEL), "seal", "--box", str(box), m.group(1), "--now", after(box)],
+                            capture_output=True, text=True, check=False)  # fmt: skip
+    print(
+        f"{opts['--person']} seals their own words (a stand-in key): exit {sealed.returncode}"
+    )
+    sent = subprocess.run([*cmd, "send", *seat, "--proposal", m.group(1)], capture_output=True, text=True, check=False)  # fmt: skip
+    print((sent.stdout or sent.stderr).strip())
+    return sent.returncode
+
+
 def main(argv: list[str]) -> int:
+    if argv[:1] == ["bring"]:
+        opts = dict(zip(argv[1::2], argv[2::2]))
+        need = {"--to", "--table", "--person", "--kind", "--says"}
+        if (
+            len(argv) % 2 != 1
+            or not need <= set(opts)
+            or not set(opts) <= need | {"--picture"}
+        ):
+            print(__doc__.split("\n\n")[1], file=sys.stderr)
+            return 2
+        return bring(Path(opts["--to"]).resolve(), opts)
     if argv[:1] == ["later"]:
         opts = dict(zip(argv[1::2], argv[2::2]))
         if len(argv) != 7 or set(opts) != {"--to", "--table", "--rule"}:
