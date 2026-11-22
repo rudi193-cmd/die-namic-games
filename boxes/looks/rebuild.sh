@@ -68,6 +68,7 @@ git -C "$R" archive HEAD ui/index.src.html ui/tables ui/build.py \
   README.md open.md open-gaps-from-the-boxes.md box/worlds $(cd "$R" && ls box/*.md box/*.py) \
   the-table/README.md boxes/MEMORY.md | tar -x -C "$S/pile/ours"
 cp "$HERE/my-table.md" "$S/pile/ours/my-table.md"
+cp "$HERE/mock.md" "$S/pile/ours/mock.md"
 # willow's craft-assembly demo, at the pin: the image suite (the Craft apps,
 # Photoshop and Premiere rebuilt in Rust, taken apart and assembled into one)
 mkdir -p "$S/pile/willow" && git -C "$W" archive HEAD demo/craft-assembly/README.md \

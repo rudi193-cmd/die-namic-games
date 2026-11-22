@@ -150,6 +150,11 @@ dm` and `dm = ...` was refused).
   tool for the GM's machine, not a page a phone loads at the table.
   drawcraft is MIT or Apache-2.0; its ArtCraft name and logos are
   trademarks (README.md:370, :381).
+- **looks, the first mock** (`looks/mock.md`, laid as `ours/mock.md`): the
+  GM's page in ASCII, from my-table.md: the screen, a lookup called to the
+  centre, a fight in the centre, a kid's creature put in; what it shows that
+  isn't built. **Open:** whether a kid's drawing goes in as made, or through
+  the image suite first (the maintainer left it open, 2026-11-22).
 
 - **TaleWeaver** enforces rules after the model speaks: a "deterministic
   enforcement" pass, rule violations fed back into a second narration pass,
