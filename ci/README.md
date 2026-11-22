@@ -19,6 +19,8 @@ die-namic-games or `WILLOW_ROOT` set:
 | | ref-check | a link to a file, or a quoted line, that isn't there |
 | | advisories | a locked pin a known advisory names, from osv.dev's PyPI database, fetched each run |
 | `mutants` | mutants | a break of Die-Namic's code the tests pass on, one job a file |
+| `die-namic`, `mutants` | memo.py (willow's ci-memo move, kept small) | nothing: a pull request whose key is one main already passed on stands on main's verdict and skips the job (below) |
+| `die-namic` | slow-tests | nothing: the slowest tests and files of the run, in its summary |
 | `why` | ci-why | nothing: on a red run only, it puts each failed job's failing block in the run's summary |
 
 ## known.py and known.json
@@ -43,3 +45,45 @@ first. A break the tests pass on fails, unless `accepted` gives the reason no
 test could tell it from the code; an accepted id that no longer survives is
 stale. The fast files take every break; the box's files, whose suite takes a
 minute a break, the first six by id, the same on every machine.
+
+## memo.py: a verdict that stands on the bytes it reached
+
+A mutants job is ten to twenty-five minutes, one per file, and the tests job
+is four; most pull requests here change prose, boxes and records that no test
+reads. A job's verdict is a function of the bytes it can reach, so
+`ci/memo.py key` hashes them, every tracked file but the few nothing reads
+([memo.py](memo.py) names them, and `tests/test_memo.py` holds that no string
+in the code names one), with the gate's name, the Python, the runner and the
+commit of willow-bot (checked out at its head, so the tree can't say). The
+workflow keys a cache on it:
+
+- **A pull request** restores `memo-v1-KEY` from main's runs. A hit means every
+  byte the job can reach is one main's job already passed on: the job says so
+  in its summary and skips its install and its run. A miss runs it.
+- **A push to main** never restores: it always runs, and saves the key when
+  it passes, so a pull request has a verdict to stand on. Main's run stays the
+  merge's evidence, as in willow's CI.
+- **A failed run saves nothing** (a cache is saved only after a job passes), so a
+  red job is never a standing one.
+
+This is willow's `ci-memo`'s move, not the add-on: ci-memo's gates are willow's
+and its pins are ci.py's records, so it can't be run on this repo. It keeps
+the two rules that matter: **a key is bytes, never a guess**, and **the reach
+is drawn wide, never narrow** (README.md and `.github/` are reached; only
+`boxes/`, `open.md`, `open-gaps-from-the-boxes.md` and this file are left
+out). To change what is reached, change `EXCLUDED` in memo.py; to change how a
+key is made, change `VERSION`, so no old verdict stands.
+
+    python ci/memo.py key --gate tests --extra python=3.12
+    python ci/memo.py why open.md
+
+Not done: the other jobs (`known` is fast; `game-lab-sims`, `ai-game-master`
+and `the-table` are not memoized), and willow's `test-impact` and `test-shards`
+(its plans speak ci.py's gate names, and the tests job is four minutes).
+
+## slow-tests
+
+The tests job writes pytest's junit file and gives it to willow's slow-tests,
+from the pin: the slowest tests and files of the run go into the run's summary.
+It needs more than one run to say "slower than before" (`--runs` takes a folder
+of runs named to sort); with one, it names where the time went.
