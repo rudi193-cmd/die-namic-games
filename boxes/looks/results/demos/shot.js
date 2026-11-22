@@ -1,0 +1,16 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch();
+const d=process.argv[2];
+let p=await b.newPage({viewport:{width:1100,height:820},deviceScaleFactor:2});
+await p.goto('file://'+d+'/annex-os.html');await p.waitForTimeout(400);
+const ab=await p.$$eval('#badge option',o=>o.map(x=>x.value+'|'+x.textContent));console.log('annex badges',ab.join(' ; '));
+await p.selectOption('#badge',{index:1}).catch(()=>{});await p.waitForTimeout(400);
+await p.screenshot({path:d+'/annex-door.png'});
+await p.click('#bwit');await p.waitForTimeout(600);await p.screenshot({path:d+'/annex-witness.png'});
+p=await b.newPage({viewport:{width:1024,height:768},deviceScaleFactor:2});
+await p.goto('file://'+d+'/kiosk.html');await p.waitForTimeout(400);
+const kb=await p.$$eval('#who option',o=>o.map(x=>x.value+'|'+x.textContent));console.log('kiosk users',kb.join(' ; '));
+await p.selectOption('#who',{index:1}).catch(()=>{});await p.click('#bpap');await p.waitForTimeout(400);
+await p.screenshot({path:d+'/kiosk-papers.png'});
+await p.click('#bother');await p.waitForTimeout(400);await p.screenshot({path:d+'/kiosk-denied.png'});
+await b.close();})();

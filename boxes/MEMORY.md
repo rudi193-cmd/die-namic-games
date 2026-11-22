@@ -186,6 +186,14 @@ dm` and `dm = ...` was refused).
   That is the GM's and the players' screens, and the screen art is their
   dress. **Johnson:** one report through five people, forwarded, each chain
   knowing only its own hop; a correction follows the same path.
+  **Both page demos run here** (2026-11-22, at the pin): annex's scene in
+  8 s and blackout's in 10 s, both exit 0; their pages screenshotted in
+  `looks/results/demos/` with how to make them again. Annex wearing the
+  Intake badge: its own door OPEN, seven LOCKED, "not on record for you".
+  The kiosk logged on as one person: sealed (with where it came from),
+  sent (to whom, when), received (from whom, good). Both are built once
+  from a finished scene; a table's page would follow packages arriving
+  during the night.
 
 - **TaleWeaver** enforces rules after the model speaks: a "deterministic
   enforcement" pass, rule violations fed back into a second narration pass,
