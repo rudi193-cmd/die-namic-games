@@ -1,4 +1,4 @@
-# How someone asks about the look of a page or a book, then the words
+# How someone asks about the look of a page or a GM screen, then the words
 # pages and their makers use. The kernel reads every question through this list.
 
 colour = color, palette, hue
