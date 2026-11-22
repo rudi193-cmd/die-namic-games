@@ -1,6 +1,6 @@
 """open_table.py: a game master's box, laid with nothing sealed. Python 3.9+.
 
-    python box/open_table.py open  --table DIR --key FILE [--now TS]
+    python box/open_table.py open  --table DIR --key FILE [--world ID] [--now TS]
     python box/open_table.py prep  --table DIR
     python box/open_table.py end   --table DIR
     python box/open_table.py check --table DIR
@@ -22,7 +22,8 @@ must not exist yet:
 The kernel makes the key at FILE, for the game master; FILE must not be
 inside DIR, so the key is never part of what the record reads. Then each
 house rule is handed in for the seal (the rules add-on) and the story is
-opened (game-master), and it stops: everything it proposed waits on the
+opened (game-master: The Lantern Fair, or the one `--world` names by its
+id in box/worlds), and it stops: everything it proposed waits on the
 person who holds the key.
 
 `prep` runs the GM's prep sheet, gm-stack.md, through the stack add-on:
@@ -102,9 +103,11 @@ def inside(path: Path, folder: Path) -> bool:
         return False
 
 
-def cmd_open(table: Path, key: Path, now: str) -> int:
+def cmd_open(table: Path, key: Path, now: str, world: str = WORLD) -> int:
     if table.exists():
         return fail(f"{table} is already there: a box is laid fresh, in a folder of its own")  # fmt: skip
+    if "/" in world or "\\" in world or not (WORLDS / world).is_file():
+        return fail(f"no story {world} in {WORLDS}")
     if inside(key, table):
         return fail("the key goes outside the box, so the record never reads it")
     pile, box, words = table / "pile", table / "record", table / "words.txt"
@@ -126,7 +129,7 @@ def cmd_open(table: Path, key: Path, now: str) -> int:
                         "--key", str(key), "--words", str(words), "--now", now]),
         ("the house rules", [str(RULES), "propose", "--box", str(box), "--now", now,
                              str(pile / "house-rules.md")]),
-        ("the story", [str(GM), "--box", str(box), "open", "--world", str(table / "worlds" / WORLD),
+        ("the story", [str(GM), "--box", str(box), "open", "--world", str(table / "worlds" / world),
                        "--now", now]),
     )  # fmt: skip
     for what, argv in steps:
@@ -191,7 +194,7 @@ def cmd_page(table: Path, which: str) -> int:
 def main(argv: list[str]) -> int:
     opts, args, it = {}, [], iter(argv)
     for a in it:
-        if a in ("--table", "--key", "--now", "--to", "--story"):
+        if a in ("--table", "--key", "--now", "--to", "--story", "--world"):
             opts[a] = next(it, "")
         else:
             args.append(a)
@@ -222,7 +225,11 @@ def main(argv: list[str]) -> int:
         return cmd_page(table, args[0])
     if not opts.get("--key"):
         return fail("open needs --key: where the kernel makes the key for the game master")  # fmt: skip
-    return cmd_open(table, Path(opts["--key"]), opts.get("--now") or kernel.now())
+    world = opts.get("--world") or WORLD
+    world = world if world.endswith(".json") else world + ".json"
+    return cmd_open(
+        table, Path(opts["--key"]), opts.get("--now") or kernel.now(), world
+    )
 
 
 if __name__ == "__main__":

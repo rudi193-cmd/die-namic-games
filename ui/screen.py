@@ -1,11 +1,21 @@
-"""screen.py: the GM's screen, built from a night at the table. Python 3.9+.
+"""screen.py: the screens at the table, the GM's and the players'. Python 3.9+.
 
-    python ui/screen.py build --table DIR/table.json --to FILE.html [--seat NAME]
+    python ui/screen.py build --night DIR --person NAME --to FILE.html
+    python ui/screen.py build --table DIR/TABLE/table.json --to FILE.html [--seat NAME]
 
-The table is what box/table_scene.py wrote. FILE.html is one self-contained
-page, no network and no install: open it in a browser. It reads nothing but
-table.json, as willow's annex_os.py reads only scene.json: never a box, a key
-or a pile, so nothing on it is anything a seat's box did not already write.
+DIR is what box/table_scene.py wrote. FILE.html is one self-contained page,
+no network and no install: open it in a browser. It reads nothing but
+table.json (and people.json), as willow's annex_os.py reads only scene.json:
+never a box, a key or a pile, so nothing on it is anything a seat's box did
+not already write.
+
+**One person, many tables** (the maintainer: "a gm can be a player
+sometimes too, at different tables"). `--person` gathers every seat that
+person holds into one page, `[ my tables ▾ ]` switching between them: the
+GM's screen at a table they run, a player's screen at one they play. The
+page holds those seats' views and nothing else: a GM's screen holds its
+table without the players' own notes, a player's holds their seat and what
+the whole table sees. `--table` builds one seat at one table.
 
 The page is the maintainer's own table (boxes/looks/my-table.md), drawn as
 boxes/looks/mock.md draws it, in the dress of Die-Namic's table frame
@@ -150,26 +160,43 @@ h3 { margin: 0 0 6px; font-size: 0.74rem; letter-spacing: 0.1em; text-transform:
 .card { background: var(--card); color: var(--ink); border-radius: 6px; padding: 8px 10px; font-size: 0.86rem; margin-top: 6px; }
 .card .cite { color: #6b5d55; }
 .note { margin-top: 14px; font-size: 0.78rem; color: var(--chalk-faint); max-width: 90ch; }
+.mine { display: grid; gap: 6px; justify-items: end; min-width: 0; max-width: 100%; }
+.mine .demo { overflow-wrap: anywhere; }
+.tables { font: inherit; width: 100%; font-weight: 700; font-size: 0.85rem; color: var(--lid); background: var(--lid-ink); border: 0; border-radius: 999px; padding: 6px 12px; max-width: 100%; }
+.me-name { font-family: var(--lid-font); font-weight: 400; font-size: 1.6rem; line-height: 1; margin: 0; }
+.drawing { aspect-ratio: 4 / 3; border: 2px dashed var(--edge); border-radius: 10px; display: grid; place-items: center; text-align: center; padding: 10px; font-size: 0.8rem; color: var(--chalk-faint); }
+.good { display: grid; gap: 4px; }
+.good div { display: flex; justify-content: space-between; gap: 8px; font-family: var(--mono); font-size: 0.85rem; }
+.good div span:last-child { color: var(--chalk-faint); }
+.hand { border: 2px dashed var(--edge); border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; color: var(--chalk-dim); }
+.bar { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.bar .say { text-align: left; max-width: 70ch; }
+.btn.x { background: #e9e2d2; color: var(--ink); }
 """
+
 
 PAGE = r"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GM's screen</title>
+<title>My tables</title>
 <style>
 /*__STYLE__*/
 </style>
 </head>
 <body>
+<template id="t-gm">
 <header class="band"><div class="band-in">
   <div>
     <div class="kicker">Die·Namic · the GM's screen</div>
     <h1 id="title"></h1>
     <p class="line" id="setting"></p>
   </div>
-  <span class="demo" id="demo"></span>
+  <div class="mine">
+    <select class="tables" id="tables" aria-label="My tables"></select>
+    <span class="demo" id="demo"></span>
+  </div>
 </div></header>
 <main class="wrap">
   <div class="screen">
@@ -195,167 +222,8 @@ PAGE = r"""<!doctype html>
   </div>
   <p class="note" id="note"></p>
 </main>
-<script id="table" type="application/json">/*__TABLE__*/</script>
-<script>
-"use strict";
-const T = JSON.parse(document.getElementById("table").textContent);
-const G = T.gm, W = T.world;
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-const $ = (id) => document.getElementById(id);
-const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
-const die = (n) => `<span class="d6" role="img" aria-label="${n}">${[...Array(9)].map((_, i) => `<b class="${PIPS[n].includes(i) ? "on" : ""}"></b>`).join("")}</span>`;
-const chars = Object.fromEntries(T.seats.map((s) => [s.plays.toLowerCase(), s]));
-
-$("title").textContent = W.title;
-$("setting").textContent = W.setting;
-$("demo").textContent = T.demo_keys ? "fictional seats · demo keys · " + T.made : T.made;
-
-// everything the left can call to the centre, and the toy lookup over it
-const refs = [];
-const add = (kind, title, lines, where) => { refs.push({ kind, title, lines, where }); return refs.length - 1; };
-const listInto = (id, items) => { $(id).innerHTML = items.join(""); };
-listInto("bestiary", G.bestiary.map((m) => {
-  const i = add("bestiary", m.title, m.lines, m.where);
-  return `<button class="item" data-ref="${i}"><b>▸ ${esc(m.title)}</b><span class="sub">${esc(m.lines.find((l) => /Grit|Hits/.test(l)) || m.lines[0] || "")}</span></button>`;
-}));
-listInto("people", G.people.map((p) => {
-  const i = add("person", p.title, p.lines, p.where);
-  return `<button class="item" data-ref="${i}"><b>▸ ${esc(p.title)}</b></button>`;
-}));
-listInto("rules", G.house_rules.map((r) => {
-  const i = add("house rule", r.title, [r.text], "house-rules.md");
-  const st = r.state ? `<span class="state ${r.state.startsWith("sent") ? "ok" : "wait"}">${esc(r.state)}</span>` : "";
-  return `<button class="item" data-ref="${i}"><b>${esc(r.title)}</b> ${st}</button>`;
-}));
-listInto("previously", G.previously.map((s) => {
-  const i = add("session", s.title, s.lines, s.where);
-  return `<button class="item" data-ref="${i}"><b>${esc(s.title)}</b><span class="sub">${esc(s.lines[0] || "")}</span></button>`;
-}));
-
-const STOP = new Set("a an the of to in on at is are was what who how does do it its and or for with stats".split(" "));
-const words = (s) => s.toLowerCase().match(/[a-z0-9]+/g) || [];
-function lookup(q) {
-  const want = [...new Set(words(q).filter((w) => !STOP.has(w)))];
-  if (!want.length) return [];
-  return refs.map((r, i) => {
-    const have = new Set(words(r.title + " " + r.lines.join(" ")));
-    return { i, hit: want.filter((w) => have.has(w) || have.has(w + "s") || have.has(w.replace(/s$/, ""))).length };
-  }).filter((x) => x.hit * 2 >= want.length).sort((a, b) => b.hit - a.hit).slice(0, 5);
-}
-
-// a card's lines, the ones that hold the asked words first, then the rest, four at most
-function asked(lines, q) {
-  const want = words(q).filter((w) => !STOP.has(w));
-  const holds = (l) => want.some((w) => words(l).some((x) => x === w || x === w + "s" || x.replace(/s$/, "") === w));
-  return [...lines.filter(holds), ...lines.filter((l) => !holds(l))].slice(0, 4);
-}
-
-// the centre: the binder's story, unless something was called to it
-let called = null;
-function centre() {
-  const c = $("centre");
-  if (called) {
-    c.innerHTML = `<h2 class="leaf-name">CALLED TO THE CENTRE <small>${esc(called.kind)}</small></h2>
-      <button class="back" id="back">◂ back to the scene</button>${called.html}`;
-    $("back").onclick = () => { called = null; centre(); };
-    return;
-  }
-  const done = new Set(G.done);
-  let nowSet = false;
-  const scenes = W.scenes.map((sc, n) => {
-    const beats = sc.beats.map((b) => {
-      let cls = done.has(b.id) ? "done" : "";
-      if (!cls && !nowSet) { cls = "now"; nowSet = true; }
-      const who = b.by ? b.by[0].toUpperCase() + b.by.slice(1) : "";
-      return `<li class="${cls}">${cls === "now" ? "▶ " : ""}${esc(b.prompt || b.fact || b.id)} <span class="tag">${esc(b.kind)}${b.suggests ? " · " + esc(b.suggests) : ""}${who ? " · " + esc(who) : ""}</span></li>`;
-    }).join("");
-    return `<article class="page"><p class="where">Binder · scene ${n + 1} of ${W.scenes.length} · ${esc(W.places[sc.place] || sc.place)}</p>
-      <h2>${esc(sc.title)}</h2>${(sc.opening || []).map((l) => `<p>${esc(l)}</p>`).join("")}<ol class="beats">${beats}</ol></article>`;
-  });
-  const d = G.dice;
-  c.innerHTML = `<h2 class="leaf-name">THE BINDER · THE DICE BOX <small>centre</small></h2>
-    ${scenes[0]}
-    <div class="dicebox" aria-label="The dice box">
-      <h3>The dice box · last roll on the record</h3>
-      <div class="dice-row">${d.faces.map(die).join("")}</div>
-      <div class="sum">${esc(chars[d.by] ? chars[d.by].plays : d.by)} · ${esc(d.stat)}: ${d.faces.join(" + ")} + ${d.bonus} = ${d.total}</div>
-      <div class="band-word">${esc(d.band)}</div>
-      <div class="told">${esc(d.text)}</div>
-      <div class="cite">rows ${d.rows.join(", ")} on the GM's record</div>
-      <h3 style="margin-top:6px">Up next: ${esc(G.next.beat)}</h3>
-      <div class="odds">${G.next.odds.map(esc).join("\n")}</div>
-      <div class="btns"><button class="btn" id="roll">Roll</button><button class="btn ghost" id="hidden">Roll hidden</button></div>
-      <div class="say" id="say" aria-live="polite"></div>
-    </div>
-    <div class="call"><h3>✋ Your call, GM · ${G.your_call.length + (G.offers || []).length} waiting on your seal</h3>
-      <ul>${(G.offers || []).map((o) => `<li><b>${esc(o.by[0].toUpperCase() + o.by.slice(1))} brings in:</b> ${esc(o.fact)}</li>`).join("")}${G.your_call.map((r) => `<li>house rule: ${esc(r)}</li>`).join("")}</ul>
-      <div class="say" style="text-align:left">Only the key's holder seals: <code>python kernel.py seal --box RECORD proposal:&lt;id&gt;</code></div></div>
-    ${W.scenes.length > 1 ? `<details><summary class="cite">the rest of the binder (${W.scenes.length - 1} more scene${W.scenes.length > 2 ? "s" : ""})</summary>${scenes.slice(1).join("")}</details>` : ""}`;
-  $("roll").onclick = () => { $("say").innerHTML = "A roll not on the record didn't happen, so the page rolls nothing. At the table: <code>python box/play.py</code>, or <code>game_master.py act " + esc((G.next.odds.find((o) => o.startsWith("*")) || "").replace(/^\*\s*/, "").split(/\s+/)[0] || "STAT") + "</code>."; };
-  $("hidden").onclick = () => { $("say").innerHTML = "Not built: willow's <code>dice-tower</code> is, and <code>act --tower</code> takes it, but the play path doesn't reach it yet."; };
-}
-function call(i) {
-  const r = refs[i];
-  called = { kind: r.kind, html: `<article class="page"><p class="where">${esc(r.kind)}</p><h2>${esc(r.title)}</h2>${r.lines.map((l) => `<p>${esc(l)}</p>`).join("")}<p class="cite">${esc(r.where)}</p></article>` };
-  centre();
-}
-document.addEventListener("click", (e) => { const b = e.target.closest("[data-ref]"); if (b) call(+b.dataset.ref); });
-$("ask").onsubmit = (e) => {
-  e.preventDefault();
-  const q = $("q").value.trim();
-  if (!q) return;
-  const got = lookup(q);
-  called = { kind: "the lookup", html: got.length
-    ? `<p class="cite">asked: “${esc(q)}” · where to look, best first (a toy matcher over this page)</p>` + got.map((g) => { const r = refs[g.i]; return `<article class="page"><p class="where">${esc(r.kind)} · ${esc(r.where)}</p><h2>${esc(r.title)}</h2>${asked(r.lines, q).map((l) => `<p>${esc(l)}</p>`).join("")}</article>`; }).join("")
-    : `<article class="page"><h2>Nothing on record</h2><p>Nothing on this screen holds half the words of “${esc(q)}”. The binder's own box is the real lookup.</p></article>` };
-  centre();
-};
-
-// right: the players
-$("players").innerHTML = T.seats.map((s) => {
-  const st = Object.entries(s.stats).map(([k, v]) => `${k}+${v}`).join(" ");
-  const rec = s.received.map((r) => `<div class="row">got: ${esc(r.what)} <span class="state ${r.verdict === "good" ? "ok" : "wait"}">${esc(r.verdict)}</span></div>`).join("");
-  return `<div class="seat"><div class="who"><b>${esc(s.plays)}</b><span class="cite">${esc(s.name)}'s seat</span></div>
-    <div class="role">${esc(s.role)}</div><div class="stats">${esc(st)}</div>
-    <div class="row">carries: ${esc(s.carries.join(", "))}</div>${rec}
-    <div class="cite">${esc(s.chain)}</div></div>`;
-}).join("") + `<div class="gap">their sheets to the table: <code class="cite">open_table.py sheets</code></div>`;
-
-// along the bottom
-$("screen-cards").innerHTML = G.on_screen.map((c) => `<div class="card">${esc(c.what)}<div class="cite">${esc(c.cite)} · sealed</div></div>`).join("");
-$("table-cards").innerHTML = G.on_table.map((c) => `<div class="card">${esc(c.what)}<div class="cite">sealed, and sent to ${c.sent.map((s) => esc(s.to) + " (" + esc(s.received) + ")").join(", ")}</div></div>`).join("");
-$("note").textContent = (T.demo_keys
-  ? "Every seat here is fictional and its key was made by the scene and thrown away with it: the seals stand in for a GM's yes, so a page can be seen crossing. "
-  : "") + "Built from table.json alone: never a box, a key or a pile. The GM's record: " + G.chain + "; prep: " + G.prep;
-centre();
-</script>
-</body>
-</html>
-"""
-
-PLAYER_PAGE = r"""<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>My screen</title>
-<style>
-/*__STYLE__*/
-.mine { display: grid; gap: 6px; justify-items: end; min-width: 0; max-width: 100%; }
-.mine .demo { overflow-wrap: anywhere; }
-.tables { font: inherit; width: 100%; font-weight: 700; font-size: 0.85rem; color: var(--lid); background: var(--lid-ink); border: 0; border-radius: 999px; padding: 6px 12px; max-width: 100%; }
-.me-name { font-family: var(--lid-font); font-weight: 400; font-size: 1.6rem; line-height: 1; margin: 0; }
-.drawing { aspect-ratio: 4 / 3; border: 2px dashed var(--edge); border-radius: 10px; display: grid; place-items: center; text-align: center; padding: 10px; font-size: 0.8rem; color: var(--chalk-faint); }
-.good { display: grid; gap: 4px; }
-.good div { display: flex; justify-content: space-between; gap: 8px; font-family: var(--mono); font-size: 0.85rem; }
-.good div span:last-child { color: var(--chalk-faint); }
-.hand { border: 2px dashed var(--edge); border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; color: var(--chalk-dim); }
-.bar { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.bar .say { text-align: left; max-width: 70ch; }
-.btn.x { background: #e9e2d2; color: var(--ink); }
-</style>
-</head>
-<body>
+</template>
+<template id="t-player">
 <header class="band"><div class="band-in">
   <div>
     <div class="kicker" id="kicker"></div>
@@ -398,151 +266,342 @@ PLAYER_PAGE = r"""<!doctype html>
   </div>
   <p class="note" id="note"></p>
 </main>
+</template>
 <script id="table" type="application/json">/*__TABLE__*/</script>
 <script>
 "use strict";
-const T = JSON.parse(document.getElementById("table").textContent);
-const M = T.seat, V = T.table;
+const ME = JSON.parse(document.getElementById("table").textContent);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const $ = (id) => document.getElementById(id);
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 const die = (n) => `<span class="d6" role="img" aria-label="${n}">${[...Array(9)].map((_, i) => `<b class="${PIPS[n].includes(i) ? "on" : ""}"></b>`).join("")}</span>`;
 
-$("kicker").textContent = "Die·Namic · " + M.name + "'s screen";
-$("title").textContent = M.plays + " at " + T.world.title;
-$("setting").textContent = T.world.setting;
-$("demo").textContent = T.demo_keys ? "fictional seat · demo keys · " + T.made : T.made;
-$("tables").innerHTML = T.tables.map((t) => `<option>${esc(t.title)} · ${esc(t.seat)}</option>`).join("")
-  + `<option disabled>a GM's chair at another table: not built (open.md item 15)</option>`;
-
-// left
-$("good").innerHTML = Object.entries(M.stats).sort((a, b) => b[1] - a[1])
-  .map(([k, v]) => `<div><span>${esc(k)}</span><span>a roll adds +${v}</span></div>`).join("");
-$("got").innerHTML = M.received.length ? M.received.map((r) => `<div class="item"><b>${esc(r.claim)}</b> <span class="state ${r.verdict === "good" ? "ok" : "wait"}">${esc(r.verdict)}</span><span class="sub">${esc(r.what)}</span><span class="cite">${esc(r.cites.join(", "))} · sealed by the GM</span></div>`).join("")
-  : `<div class="gap">nothing sent to you yet</div>`;
-
-// what my lookup can reach: me, my notes, what was sent to me, what I brought in
-const mine = [
-  { kind: "me", title: M.plays, lines: [M.role, Object.entries(M.stats).map(([k, v]) => k + " +" + v).join(", "), "carries: " + M.carries.join(", ")] },
-  ...M.notes.map((n) => ({ kind: "my notes", title: "a note", lines: [n] })),
-  ...M.received.map((r) => ({ kind: "from the GM", title: r.claim, lines: [r.what] })),
-  ...M.offered.map((o) => ({ kind: "I brought in", title: o.state, lines: [o.fact] })),
-];
-const STOP = new Set("a an the of to in on at is are was what who how does do it its and or for with my i me".split(" "));
-const words = (s) => s.toLowerCase().match(/[a-z0-9]+/g) || [];
-function lookup(q) {
-  const want = [...new Set(words(q).filter((w) => !STOP.has(w)))];
-  if (!want.length) return [];
-  return mine.map((r) => {
-    const have = new Set(words(r.title + " " + r.lines.join(" ")));
-    return { r, hit: want.filter((w) => have.has(w) || have.has(w + "s") || have.has(w.replace(/s$/, ""))).length };
-  }).filter((x) => x.hit * 2 >= want.length).sort((a, b) => b.hit - a.hit).slice(0, 5).map((x) => x.r);
+// [ my tables ]: every seat this person holds, at every table; one shown at a time
+function tables(k) {
+  const sel = $("tables");
+  sel.innerHTML = ME.screens.map((s, i) => `<option value="${i}"${i === k ? " selected" : ""}>${esc(s.day)} · ${esc(s.title)} · ${s.kind === "gm" ? "you run it" : "you play " + esc(s.plays)}</option>`).join("")
+    + (ME.screens.length < 2 ? `<option disabled>your seats at other tables come here</option>` : "");
+  sel.onchange = () => { location.hash = "seat-" + sel.value; location.reload(); };
 }
 
-// centre: the table
-let asked = null;
-function centre() {
-  const c = $("centre");
-  if (asked) {
-    c.innerHTML = `<h2 class="leaf-name">CALLED TO THE CENTRE <small>my lookup</small></h2><button class="back" id="back">◂ back to the table</button>${asked}`;
-    $("back").onclick = () => { asked = null; centre(); };
-    return;
+function gmScreen(T) {
+  const G = T.gm, W = T.world;
+
+  $("title").textContent = W.title;
+  $("setting").textContent = W.setting;
+  $("demo").textContent = T.demo_keys ? "fictional seats · demo keys · " + T.made : T.made;
+
+  // everything the left can call to the centre, and the toy lookup over it
+  const refs = [];
+  const add = (kind, title, lines, where) => { refs.push({ kind, title, lines, where }); return refs.length - 1; };
+  const listInto = (id, items) => { $(id).innerHTML = items.join(""); };
+  listInto("bestiary", G.bestiary.map((m) => {
+    const i = add("bestiary", m.title, m.lines, m.where);
+    return `<button class="item" data-ref="${i}"><b>▸ ${esc(m.title)}</b><span class="sub">${esc(m.lines.find((l) => /Grit|Hits/.test(l)) || m.lines[0] || "")}</span></button>`;
+  }));
+  listInto("people", G.people.map((p) => {
+    const i = add("person", p.title, p.lines, p.where);
+    return `<button class="item" data-ref="${i}"><b>▸ ${esc(p.title)}</b></button>`;
+  }));
+  listInto("rules", G.house_rules.map((r) => {
+    const i = add("house rule", r.title, [r.text], "house-rules.md");
+    const st = r.state ? `<span class="state ${r.state.startsWith("sent") ? "ok" : "wait"}">${esc(r.state)}</span>` : "";
+    return `<button class="item" data-ref="${i}"><b>${esc(r.title)}</b> ${st}</button>`;
+  }));
+  listInto("previously", G.previously.map((s) => {
+    const i = add("session", s.title, s.lines, s.where);
+    return `<button class="item" data-ref="${i}"><b>${esc(s.title)}</b><span class="sub">${esc(s.lines[0] || "")}</span></button>`;
+  }));
+
+  const STOP = new Set("a an the of to in on at is are was what who how does do it its and or for with stats".split(" "));
+  const words = (s) => s.toLowerCase().match(/[a-z0-9]+/g) || [];
+  function lookup(q) {
+    const want = [...new Set(words(q).filter((w) => !STOP.has(w)))];
+    if (!want.length) return [];
+    return refs.map((r, i) => {
+      const have = new Set(words(r.title + " " + r.lines.join(" ")));
+      return { i, hit: want.filter((w) => have.has(w) || have.has(w + "s") || have.has(w.replace(/s$/, ""))).length };
+    }).filter((x) => x.hit * 2 >= want.length).sort((a, b) => b.hit - a.hit).slice(0, 5);
   }
-  const d = V.dice;
-  c.innerHTML = `<h2 class="leaf-name">THE TABLE <small>centre</small></h2>
-    <article class="page"><p class="where">From the GM · read out · ${esc(V.scene.place)}</p><h2>${esc(V.scene.title)}</h2>
-      ${V.scene.opening.map((l) => `<p>${esc(l)}</p>`).join("")}
-      <ol class="beats">${V.played.map((b) => `<li class="done">${esc(b.prompt)}</li><li>${esc(b.text)}</li>`).join("")}<li class="now">▶ ${esc(V.next)}</li></ol></article>
-    <div class="dicebox" aria-label="The dice box">
-      <h3>The dice box · seen landing</h3>
-      <div class="dice-row">${d.faces.map(die).join("")}</div>
-      <div class="sum">${esc(d.by)} · ${esc(d.stat)}: ${d.faces.join(" + ")} + ${d.bonus} = ${d.total}</div>
-      <div class="band-word">${esc(d.band)}</div>
-      <div class="cite">on the GM's record, not yours: everyone saw it land</div>
-    </div>
-    <div class="hand"><h3>My hand · only I see it</h3>no game deals tonight. When one does, your cards or dice are yours alone (blind-deal: planned in willow, not built).</div>`;
-}
-$("ask").onsubmit = (e) => {
-  e.preventDefault();
-  const q = $("q").value.trim();
-  if (!q) return;
-  const got = lookup(q);
-  asked = got.length
-    ? `<p class="cite">asked: “${esc(q)}” · from your own box (a toy matcher over this page)</p>` + got.map((r) => `<article class="page"><p class="where">${esc(r.kind)}</p><h2>${esc(r.title)}</h2>${r.lines.map((l) => `<p>${esc(l)}</p>`).join("")}</article>`).join("")
-    : `<article class="page"><h2>Nothing on record for you</h2><p>Your box holds what's yours and what was sent to you. “${esc(q)}” is in none of it. If it's in the GM's binder, ask the GM.</p></article>`;
+
+  // a card's lines, the ones that hold the asked words first, then the rest, four at most
+  function asked(lines, q) {
+    const want = words(q).filter((w) => !STOP.has(w));
+    const holds = (l) => want.some((w) => words(l).some((x) => x === w || x === w + "s" || x.replace(/s$/, "") === w));
+    return [...lines.filter(holds), ...lines.filter((l) => !holds(l))].slice(0, 4);
+  }
+
+  // the centre: the binder's story, unless something was called to it
+  let called = null;
+  function centre() {
+    const c = $("centre");
+    if (called) {
+      c.innerHTML = `<h2 class="leaf-name">CALLED TO THE CENTRE <small>${esc(called.kind)}</small></h2>
+        <button class="back" id="back">◂ back to the scene</button>${called.html}`;
+      $("back").onclick = () => { called = null; centre(); };
+      return;
+    }
+    const done = new Set(G.done);
+    let nowSet = false;
+    const scenes = W.scenes.map((sc, n) => {
+      const beats = sc.beats.map((b) => {
+        let cls = done.has(b.id) ? "done" : "";
+        if (!cls && !nowSet) { cls = "now"; nowSet = true; }
+        const who = b.by ? b.by[0].toUpperCase() + b.by.slice(1) : "";
+        return `<li class="${cls}">${cls === "now" ? "▶ " : ""}${esc(b.prompt || b.fact || b.id)} <span class="tag">${esc(b.kind)}${b.suggests ? " · " + esc(b.suggests) : ""}${who ? " · " + esc(who) : ""}</span></li>`;
+      }).join("");
+      return `<article class="page"><p class="where">Binder · scene ${n + 1} of ${W.scenes.length} · ${esc(W.places[sc.place] || sc.place)}</p>
+        <h2>${esc(sc.title)}</h2>${(sc.opening || []).map((l) => `<p>${esc(l)}</p>`).join("")}<ol class="beats">${beats}</ol></article>`;
+    });
+    const d = G.dice;
+    c.innerHTML = `<h2 class="leaf-name">THE BINDER · THE DICE BOX <small>centre</small></h2>
+      ${scenes[0]}
+      <div class="dicebox" aria-label="The dice box">
+        <h3>The dice box · last roll on the record</h3>
+        <div class="dice-row">${d.faces.map(die).join("")}</div>
+        <div class="sum">${esc(T.table.dice.by)} · ${esc(d.stat)}: ${d.faces.join(" + ")} + ${d.bonus} = ${d.total}</div>
+        <div class="band-word">${esc(d.band)}</div>
+        <div class="told">${esc(d.text)}</div>
+        <div class="cite">rows ${d.rows.join(", ")} on the GM's record</div>
+        <h3 style="margin-top:6px">Up next: ${esc(T.table.next)}</h3>
+        <div class="odds">${G.next.odds.map(esc).join("\n")}</div>
+        <div class="btns"><button class="btn" id="roll">Roll</button><button class="btn ghost" id="hidden">Roll hidden</button></div>
+        <div class="say" id="say" aria-live="polite"></div>
+      </div>
+      <div class="call"><h3>✋ Your call, GM · ${G.your_call.length + (G.offers || []).length} waiting on your seal</h3>
+        <ul>${(G.offers || []).map((o) => `<li><b>${esc(o.by[0].toUpperCase() + o.by.slice(1))} brings in:</b> ${esc(o.fact)}</li>`).join("")}${G.your_call.map((r) => `<li>house rule: ${esc(r)}</li>`).join("")}</ul>
+        <div class="say" style="text-align:left">Only the key's holder seals: <code>python kernel.py seal --box RECORD proposal:&lt;id&gt;</code></div></div>
+      ${W.scenes.length > 1 ? `<details><summary class="cite">the rest of the binder (${W.scenes.length - 1} more scene${W.scenes.length > 2 ? "s" : ""})</summary>${scenes.slice(1).join("")}</details>` : ""}`;
+    $("roll").onclick = () => { $("say").innerHTML = "A roll not on the record didn't happen, so the page rolls nothing. At the table: <code>python box/play.py</code>, or <code>game_master.py act " + esc((G.next.odds.find((o) => o.startsWith("*")) || "").replace(/^\*\s*/, "").split(/\s+/)[0] || "STAT") + "</code>."; };
+    $("hidden").onclick = () => { $("say").innerHTML = "Not built: willow's <code>dice-tower</code> is, and <code>act --tower</code> takes it, but the play path doesn't reach it yet."; };
+  }
+  function call(i) {
+    const r = refs[i];
+    called = { kind: r.kind, html: `<article class="page"><p class="where">${esc(r.kind)}</p><h2>${esc(r.title)}</h2>${r.lines.map((l) => `<p>${esc(l)}</p>`).join("")}<p class="cite">${esc(r.where)}</p></article>` };
+    centre();
+  }
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-ref]"); if (b) call(+b.dataset.ref); });
+  $("ask").onsubmit = (e) => {
+    e.preventDefault();
+    const q = $("q").value.trim();
+    if (!q) return;
+    const got = lookup(q);
+    called = { kind: "the lookup", html: got.length
+      ? `<p class="cite">asked: “${esc(q)}” · where to look, best first (a toy matcher over this page)</p>` + got.map((g) => { const r = refs[g.i]; return `<article class="page"><p class="where">${esc(r.kind)} · ${esc(r.where)}</p><h2>${esc(r.title)}</h2>${asked(r.lines, q).map((l) => `<p>${esc(l)}</p>`).join("")}</article>`; }).join("")
+      : `<article class="page"><h2>Nothing on record</h2><p>Nothing on this screen holds half the words of “${esc(q)}”. The binder's own box is the real lookup.</p></article>` };
+    centre();
+  };
+
+  // right: the players
+  $("players").innerHTML = T.seats.map((s) => {
+    const st = Object.entries(s.stats).map(([k, v]) => `${k}+${v}`).join(" ");
+    const rec = s.received.map((r) => `<div class="row">got: ${esc(r.claim)} <span class="state ${r.verdict === "good" ? "ok" : "wait"}">${esc(r.verdict)}</span></div>`).join("");
+    return `<div class="seat"><div class="who"><b>${esc(s.plays)}</b><span class="cite">${esc(s.name)}'s seat</span></div>
+      <div class="role">${esc(s.role)}</div><div class="stats">${esc(st)}</div>
+      <div class="row">carries: ${esc(s.carries.join(", "))}</div>${rec}
+      <div class="cite">${esc(s.chain)}</div></div>`;
+  }).join("") + `<div class="gap">their sheets to the table: <code class="cite">open_table.py sheets</code></div>`;
+
+  // along the bottom
+  $("screen-cards").innerHTML = G.on_screen.length ? "" : `<div class="gap">nothing clipped in yet</div>`;
+  $("screen-cards").innerHTML += G.on_screen.map((c) => `<div class="card">${esc(c.what)}<div class="cite">${esc(c.cite)} · sealed</div></div>`).join("");
+  $("table-cards").innerHTML = G.on_table.map((c) => `<div class="card">${esc(c.what)}<div class="cite">sealed, and sent to ${c.sent.map((s) => esc(s.to) + " (" + esc(s.received) + ")").join(", ")}</div></div>`).join("");
+  $("note").textContent = (T.demo_keys
+    ? "Every seat here is fictional and its key was made by the scene and thrown away with it: the seals stand in for a GM's yes, so a page can be seen crossing. "
+    : "") + "Built from table.json alone: never a box, a key or a pile. The GM's record: " + G.chain + "; prep: " + G.prep;
   centre();
-};
+}
 
-// right: me
-$("me-name").textContent = M.plays;
-$("me-role").textContent = M.role;
-$("stats").textContent = Object.entries(M.stats).map(([k, v]) => `${k}+${v}`).join(" ");
-$("carries").textContent = M.carries.join(", ");
-$("notes").innerHTML = M.notes.map((n) => `<div class="item">${esc(n)}</div>`).join("");
-$("offered").innerHTML = M.offered.length ? M.offered.map((o) => `<div class="item">${esc(o.fact)} <span class="state wait">${esc(o.state)}</span></div>`).join("") : `<div class="gap">nothing yet</div>`;
-$("chain").textContent = "my record: " + M.chain;
+function playerScreen(T) {
+  const M = T.seat, V = T.table;
 
-// along the bottom: they say what happens; the page does nothing
-const SAY = {
-  bring: "Say it as " + M.plays + ", in your own words. It goes to the GM's call (game-master's offer), and the story goes on while the GM thinks it over. Only the GM's yes makes it true.",
-  x: "x stops the part, no reason asked. The dice still roll and the GM says what happens instead; the record keeps only that it was, no one named.",
-  p: "p pauses the whole night, no reason asked: one pause row, no one named. Run it again to pick up.",
-};
-for (const k of Object.keys(SAY)) $(k === "bring" ? "bring" : k).onclick = () => { $("barsay").textContent = SAY[k]; };
-$("note").textContent = (T.demo_keys ? "A fictional seat; its key was made by the scene and thrown away with it. " : "")
-  + "Built from your seat's part of table.json and what everyone at the table sees: never the GM's binder, never another seat.";
-centre();
+  $("kicker").textContent = "Die·Namic · " + M.name + "'s screen";
+  $("title").textContent = M.plays + " at " + T.world.title;
+  $("setting").textContent = T.world.setting;
+  $("demo").textContent = T.demo_keys ? "fictional seat · demo keys · " + T.made : T.made;
+
+  // left
+  $("good").innerHTML = Object.entries(M.stats).sort((a, b) => b[1] - a[1])
+    .map(([k, v]) => `<div><span>${esc(k)}</span><span>a roll adds +${v}</span></div>`).join("");
+  $("got").innerHTML = M.received.length ? M.received.map((r) => `<div class="item"><b>${esc(r.claim)}</b> <span class="state ${r.verdict === "good" ? "ok" : "wait"}">${esc(r.verdict)}</span><span class="sub">${esc(r.what)}</span><span class="cite">${esc(r.cites.join(", "))} · sealed by the GM</span></div>`).join("")
+    : `<div class="gap">nothing sent to you yet</div>`;
+
+  // what my lookup can reach: me, my notes, what was sent to me, what I brought in
+  const mine = [
+    { kind: "me", title: M.plays, lines: [M.role, Object.entries(M.stats).map(([k, v]) => k + " +" + v).join(", "), "carries: " + M.carries.join(", ")] },
+    ...M.notes.map((n) => ({ kind: "my notes", title: "a note", lines: [n] })),
+    ...M.received.map((r) => ({ kind: "from the GM", title: r.claim, lines: [r.what] })),
+    ...M.offered.map((o) => ({ kind: "I brought in", title: o.state, lines: [o.fact] })),
+  ];
+  const STOP = new Set("a an the of to in on at is are was what who how does do it its and or for with my i me".split(" "));
+  const words = (s) => s.toLowerCase().match(/[a-z0-9]+/g) || [];
+  function lookup(q) {
+    const want = [...new Set(words(q).filter((w) => !STOP.has(w)))];
+    if (!want.length) return [];
+    return mine.map((r) => {
+      const have = new Set(words(r.title + " " + r.lines.join(" ")));
+      return { r, hit: want.filter((w) => have.has(w) || have.has(w + "s") || have.has(w.replace(/s$/, ""))).length };
+    }).filter((x) => x.hit * 2 >= want.length).sort((a, b) => b.hit - a.hit).slice(0, 5).map((x) => x.r);
+  }
+
+  // centre: the table
+  let asked = null;
+  function centre() {
+    const c = $("centre");
+    if (asked) {
+      c.innerHTML = `<h2 class="leaf-name">CALLED TO THE CENTRE <small>my lookup</small></h2><button class="back" id="back">◂ back to the table</button>${asked}`;
+      $("back").onclick = () => { asked = null; centre(); };
+      return;
+    }
+    const d = V.dice;
+    c.innerHTML = `<h2 class="leaf-name">THE TABLE <small>centre</small></h2>
+      <article class="page"><p class="where">From the GM · read out · ${esc(V.scene.place)}</p><h2>${esc(V.scene.title)}</h2>
+        ${V.scene.opening.map((l) => `<p>${esc(l)}</p>`).join("")}
+        <ol class="beats">${V.played.map((b) => `<li class="done">${esc(b.prompt)}</li><li>${esc(b.text)}</li>`).join("")}<li class="now">▶ ${esc(V.next)}</li></ol></article>
+      <div class="dicebox" aria-label="The dice box">
+        <h3>The dice box · seen landing</h3>
+        <div class="dice-row">${d.faces.map(die).join("")}</div>
+        <div class="sum">${esc(d.by)} · ${esc(d.stat)}: ${d.faces.join(" + ")} + ${d.bonus} = ${d.total}</div>
+        <div class="band-word">${esc(d.band)}</div>
+        <div class="cite">on the GM's record, not yours: everyone saw it land</div>
+      </div>
+      <div class="hand"><h3>My hand · only I see it</h3>no game deals tonight. When one does, your cards or dice are yours alone (blind-deal: planned in willow, not built).</div>`;
+  }
+  $("ask").onsubmit = (e) => {
+    e.preventDefault();
+    const q = $("q").value.trim();
+    if (!q) return;
+    const got = lookup(q);
+    asked = got.length
+      ? `<p class="cite">asked: “${esc(q)}” · from your own box (a toy matcher over this page)</p>` + got.map((r) => `<article class="page"><p class="where">${esc(r.kind)}</p><h2>${esc(r.title)}</h2>${r.lines.map((l) => `<p>${esc(l)}</p>`).join("")}</article>`).join("")
+      : `<article class="page"><h2>Nothing on record for you</h2><p>Your box holds what's yours and what was sent to you. “${esc(q)}” is in none of it. If it's in the GM's binder, ask the GM.</p></article>`;
+    centre();
+  };
+
+  // right: me
+  $("me-name").textContent = M.plays;
+  $("me-role").textContent = M.role;
+  $("stats").textContent = Object.entries(M.stats).map(([k, v]) => `${k}+${v}`).join(" ");
+  $("carries").textContent = M.carries.join(", ");
+  $("notes").innerHTML = M.notes.map((n) => `<div class="item">${esc(n)}</div>`).join("");
+  $("offered").innerHTML = M.offered.length ? M.offered.map((o) => `<div class="item">${esc(o.fact)} <span class="state wait">${esc(o.state)}</span></div>`).join("") : `<div class="gap">nothing yet</div>`;
+  $("chain").textContent = "my record: " + M.chain;
+
+  // along the bottom: they say what happens; the page does nothing
+  const SAY = {
+    bring: "Say it as " + M.plays + ", in your own words. It goes to the GM's call (game-master's offer), and the story goes on while the GM thinks it over. Only the GM's yes makes it true.",
+    x: "x stops the part, no reason asked. The dice still roll and the GM says what happens instead; the record keeps only that it was, no one named.",
+    p: "p pauses the whole night, no reason asked: one pause row, no one named. Run it again to pick up.",
+  };
+  for (const k of Object.keys(SAY)) $(k === "bring" ? "bring" : k).onclick = () => { $("barsay").textContent = SAY[k]; };
+  $("note").textContent = (T.demo_keys ? "A fictional seat; its key was made by the scene and thrown away with it. " : "")
+    + "Built from your seat's part of table.json and what everyone at the table sees: never the GM's binder, never another seat.";
+  centre();
+}
+
+const k = Math.min(Math.max(0, parseInt((location.hash.match(/seat-(\d+)/) || [])[1] || "0", 10)), ME.screens.length - 1);
+const S = ME.screens[k];
+document.body.appendChild(document.getElementById(S.kind === "gm" ? "t-gm" : "t-player").content.cloneNode(true));
+document.title = ME.name + " · " + S.day + " · " + S.title;
+(S.kind === "gm" ? gmScreen : playerScreen)(S.data);
+tables(k);
 </script>
 </body>
 </html>
 """
 
 
-def build(table: Path, to: Path, seat: str = "gm") -> None:
-    """The GM's screen (seat "gm"), or one player's: a player's page holds
-    only their own seat and what the whole table sees, never the GM's part
-    or another seat's, so nothing on it can show what isn't theirs."""
-    doc = json.loads(table.read_text(encoding="utf-8"))
+#: what a GM's screen shows of each player: never their notes, their own
+#: stack or what their box answered; those are the player's
+GM_SEES = ("seat", "name", "plays", "role", "stats", "carries", "received", "chain")
+
+
+def gm_view(doc: dict) -> dict:
+    """A table as its GM's screen holds it: the GM's part, the table's, and
+    each player's sheet, never a player's own notes."""
+    out = {k: v for k, v in doc.items() if k != "seats"}
+    out["seats"] = [{k: s[k] for k in GM_SEES} for s in doc["seats"]]
+    return out
+
+
+def player_view(doc: dict, seat: str) -> dict:
+    """A table as one player's screen holds it: their seat and what the whole
+    table sees, never the GM's part or another seat's."""
+    mine = [s for s in doc["seats"] if s["seat"] == seat]
+    if not mine:
+        raise KeyError(seat)
+    return {
+        "made": doc["made"], "demo_keys": doc["demo_keys"],
+        "world": {"title": doc["world"]["title"], "setting": doc["world"]["setting"]},
+        "table": doc["table"], "seat": mine[0],
+    }  # fmt: skip
+
+
+def screen(doc: dict, seat: str) -> dict:
+    """One entry of [ my tables ]: which table, which seat, and its view."""
+    base = {"day": doc.get("day", ""), "title": doc["world"]["title"]}
     if seat == "gm":
-        page = PAGE
-    else:
-        mine = [s for s in doc["seats"] if s["seat"] == seat]
-        if not mine:
-            raise KeyError(seat)
-        doc = {
-            "made": doc["made"],
-            "demo_keys": doc["demo_keys"],
-            "world": {
-                "title": doc["world"]["title"],
-                "setting": doc["world"]["setting"],
-            },
-            "table": doc["table"],
-            "seat": mine[0],
-            "tables": [
-                {"title": doc["world"]["title"], "seat": "you play " + mine[0]["plays"]}
-            ],
-        }
-        page = PLAYER_PAGE
-    data = json.dumps(doc, ensure_ascii=False).replace("</", "<\\/")
-    page = page.replace("/*__STYLE__*/", STYLE, 1)
-    to.write_text(page.replace("/*__TABLE__*/", data, 1), encoding="utf-8")
+        return base | {"kind": "gm", "data": gm_view(doc)}
+    view = player_view(doc, seat)
+    return base | {"kind": "player", "plays": view["seat"]["plays"], "data": view}
+
+
+def page(name: str, screens: list[dict]) -> str:
+    data = json.dumps({"name": name, "screens": screens}, ensure_ascii=False)
+    data = data.replace("</", "<\\/")
+    return PAGE.replace("/*__STYLE__*/", STYLE, 1).replace("/*__TABLE__*/", data, 1)
+
+
+def build(table: Path, to: Path, seat: str = "gm") -> None:
+    """One seat at one table: the GM's screen (seat "gm"), or one player's."""
+    doc = json.loads(table.read_text(encoding="utf-8"))
+    name = "GM" if seat == "gm" else seat.title()
+    to.write_text(page(name, [screen(doc, seat)]), encoding="utf-8")
+
+
+def build_person(night: Path, person: str, to: Path) -> None:
+    """Every seat one person holds, at every table: one page, [ my tables ]
+    switching between them. Holds those seats' views and nothing else."""
+    people = json.loads((night / "people.json").read_text(encoding="utf-8"))
+    if person not in people:
+        raise KeyError(person)
+    screens = []
+    for s in people[person]:
+        doc = json.loads(
+            (night / s["table"] / "table.json").read_text(encoding="utf-8")
+        )
+        screens.append(screen(doc, s["seat"]))
+    to.write_text(page(person.title(), screens), encoding="utf-8")
 
 
 def main(argv: list[str]) -> int:
-    seat = "gm"
-    if len(argv) == 7 and argv[5] == "--seat":
-        seat, argv = argv[6], argv[:5]
-    if len(argv) != 5 or argv[0] != "build" or argv[1] != "--table" or argv[3] != "--to":  # fmt: skip
+    opts, args, it = {}, [], iter(argv)
+    for a in it:
+        if a in ("--table", "--to", "--seat", "--night", "--person"):
+            opts[a] = next(it, "")
+        else:
+            args.append(a)
+    one = bool(opts.get("--table")) and not opts.get("--night") and not opts.get("--person")  # fmt: skip
+    many = bool(opts.get("--night") and opts.get("--person")) and not opts.get("--table") and not opts.get("--seat")  # fmt: skip
+    if args != ["build"] or not opts.get("--to") or not (one or many):
         print(__doc__.split("\n\n")[1], file=sys.stderr)
         return 2
-    table, to = Path(argv[2]), Path(argv[4])
-    if not table.is_file():
-        print(f"refused: no table at {table}; run box/table_scene.py first", file=sys.stderr)  # fmt: skip
-        return 2
+    to = Path(opts["--to"])
     try:
-        build(table, to, seat)
-    except KeyError:
-        print(f"refused: no seat '{seat}' at this table", file=sys.stderr)
+        if one:
+            table = Path(opts["--table"])
+            if not table.is_file():
+                print(f"refused: no table at {table}; run box/table_scene.py first", file=sys.stderr)  # fmt: skip
+                return 2
+            build(table, to, opts.get("--seat") or "gm")
+        else:
+            night = Path(opts["--night"])
+            if not (night / "people.json").is_file():
+                print(f"refused: no people.json in {night}; run box/table_scene.py first", file=sys.stderr)  # fmt: skip
+                return 2
+            build_person(night, opts["--person"], to)
+    except KeyError as e:
+        print(f"refused: no {e.args[0]!r} at {'this table' if one else 'these tables'}", file=sys.stderr)  # fmt: skip
         return 2
     print(f"wrote {to}")
     return 0

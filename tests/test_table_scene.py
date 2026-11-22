@@ -1,7 +1,8 @@
-"""A night at the table (box/table_scene.py) and the GM's screen built from it
-(ui/screen.py): a box for every seat, a page crossing only as a sealed package,
-a player's box that can't answer from the binder, and a page that holds what
-table.json holds and never a key."""
+"""A week of tables (box/table_scene.py) and the screens built from it
+(ui/screen.py): a box for every seat, one identity a person carries to every
+table, a page crossing only as a sealed package, a player's box that can't
+answer from the binder, and a person's page that holds their own seats and
+nothing else, never a key."""
 
 from __future__ import annotations
 
@@ -23,114 +24,146 @@ def run(*argv) -> subprocess.CompletedProcess:
 
 
 @pytest.fixture(scope="module")
-def night(tmp_path_factory) -> Path:
-    to = tmp_path_factory.mktemp("night") / "n"
+def week(tmp_path_factory) -> Path:
+    to = tmp_path_factory.mktemp("week") / "w"
     got = run(SCENE, "run", "--to", to)
     assert got.returncode == 0, got.stdout + got.stderr
     return to
 
 
-def test_every_seat_is_its_own_box_and_each_chain_holds(night):
-    t = json.loads((night / "table.json").read_text())
-    assert [s["seat"] for s in t["seats"]] == ["ash", "wren"]
-    assert (
-        t["gm"]["chain"].startswith("the chain holds")
-        and "2 sealed" in t["gm"]["chain"]
-    )
-    for s in t["seats"]:
-        assert s["chain"].startswith("the chain holds") and "0 sealed" in s["chain"]
-        assert not (night / s["seat"] / "pile" / "monsters").exists()
+def table(week: Path, tid: str) -> dict:
+    return json.loads((week / tid / "table.json").read_text())
 
 
-def test_a_page_crosses_only_sealed_and_lands_good(night):
-    t = json.loads((night / "table.json").read_text())
-    (sent,) = t["gm"]["on_table"]
-    assert sent["subject"].startswith("proposal:")
-    assert {x["to"]: x["received"] for x in sent["sent"]} == {
-        "ash": "good",
-        "wren": "good",
-    }
-    assert all(r["verdict"] == "good" for s in t["seats"] for r in s["received"])
+def rows(box: Path) -> list[dict]:
+    return [json.loads(ln) for ln in (box / "record.jsonl").read_text().splitlines()]
 
 
-def test_the_wall_a_player_cant_answer_from_the_binder(night):
-    t = json.loads((night / "table.json").read_text())
-    assert t["gm"]["wall"]["exit"] == 0 and t["gm"]["wall"]["served"][0].startswith("monsters/")  # fmt: skip
-    for s in t["seats"]:
-        assert s["wall"] == {"exit": 42, "served": []}
-
-
-def test_the_dice_box_shows_a_roll_on_the_record(night):
-    d = json.loads((night / "table.json").read_text())["gm"]["dice"]
-    rows = [json.loads(ln) for ln in (night / "gm" / "table" / "record" / "record.jsonl").read_text().splitlines()]  # fmt: skip
-    roll = next(r for r in rows if r["n"] == d["rows"][0])
-    assert roll["kind"] == "roll" and roll["faces"][0] == d["faces"]
-    assert d["total"] == sum(d["faces"]) + roll["add"] + d["bonus"]
-
-
-def test_the_screen_holds_the_table_and_no_key(night, tmp_path):
-    page = tmp_path / "screen.html"
-    got = run(SCREEN, "build", "--table", night / "table.json", "--to", page)
+def person_page(week: Path, tmp: Path, who: str) -> str:
+    page = tmp / f"{who}.html"
+    got = run(SCREEN, "build", "--night", week, "--person", who, "--to", page)
     assert got.returncode == 0, got.stderr
-    html = page.read_text()
-    assert "The Lantern Fair" in html and "Clockwork hound" in html
-    assert "http://" not in html and "https://" not in html  # nothing fetched
-    for f in night.rglob("*"):
+    return page.read_text()
+
+
+def test_one_person_a_gm_at_one_table_and_a_player_at_another(week):
+    people = json.loads((week / "people.json").read_text())
+    seats = {p: {(s["table"], s["seat"]) for s in v} for p, v in people.items()}
+    assert seats == {
+        "rook": {("thursday", "gm"), ("sunday", "rook")},
+        "ash": {("thursday", "ash"), ("sunday", "gm")},
+        "wren": {("thursday", "wren"), ("sunday", "wren")},
+    }
+
+
+def test_every_seat_is_its_own_box_and_each_chain_holds(week):
+    for tid, sealed in (("thursday", 2), ("sunday", 1)):
+        t = table(week, tid)
+        assert t["gm"]["chain"].startswith("the chain holds") and f"{sealed} sealed" in t["gm"]["chain"]  # fmt: skip
+        for s in t["seats"]:
+            assert s["chain"].startswith("the chain holds") and "0 sealed" in s["chain"]
+            assert not (week / tid / s["seat"] / "pile" / "monsters").exists()
+
+
+def test_one_identity_is_carried_to_every_table(week):
+    thu = json.loads((week / "thursday" / "rook-to-wren.pkg").read_text())
+    sun = json.loads((week / "sunday" / "ash-to-wren.pkg").read_text())
+    assert thu["for"] == sun["for"]  # the same Wren at both tables
+    assert thu["from"] != sun["from"]  # sent by two different GMs
+
+
+def test_a_page_crosses_only_sealed_and_lands_good(week):
+    for tid, rule in (("thursday", "A draw is offered"), ("sunday", "Dice are rolled")):
+        t = table(week, tid)
+        (sent,) = t["gm"]["on_table"]
+        assert sent["subject"].startswith("proposal:")
+        assert {x["received"] for x in sent["sent"]} == {"good"}
+        for s in t["seats"]:
+            (got,) = s["received"]  # read from the package that held
+            assert got["what"].startswith(rule) and got["verdict"] == "good"
+            assert got["cites"] and all(c.startswith("house-rules.md:") for c in got["cites"])  # fmt: skip
+
+
+def test_the_wall_a_players_box_cant_answer_from_the_binder(week):
+    for tid in ("thursday", "sunday"):
+        t = table(week, tid)
+        assert t["gm"]["wall"]["exit"] == 0 and t["gm"]["wall"]["served"][0].startswith("monsters/")  # fmt: skip
+        for s in t["seats"]:
+            assert s["wall"] == {
+                "exit": 42,
+                "served": [],
+            }  # Rook too, at the table he plays
+
+
+def test_the_dice_box_shows_a_roll_on_the_record(week):
+    for tid in ("thursday", "sunday"):
+        d = table(week, tid)["gm"]["dice"]
+        roll = next(r for r in rows(week / tid / "gm" / "table" / "record") if r["n"] == d["rows"][0])  # fmt: skip
+        assert roll["kind"] == "roll" and roll["faces"][0] == d["faces"]
+        assert d["total"] == sum(d["faces"]) + roll["add"] + d["bonus"]
+
+
+def test_an_offer_waits_on_the_gms_call_and_nothing_answers_it(week):
+    t = table(week, "thursday")
+    (offer,) = t["gm"]["offers"]
+    assert [s["offered"] for s in t["seats"]] == [[offer], []]
+    rs = rows(week / "thursday" / "gm" / "table" / "record")
+    assert any(r.get("subject") == offer["subject"] and r["kind"] == "proposal" for r in rs)  # fmt: skip
+    assert not any(r.get("subject") == offer["subject"] and r["kind"] in ("seal", "decline") for r in rs)  # fmt: skip
+
+
+def notes(week: Path) -> dict:
+    """Every player's notes, by (table, person)."""
+    return {(tid, s["seat"]): s["notes"] for tid in ("thursday", "sunday") for s in table(week, tid)["seats"]}  # fmt: skip
+
+
+@pytest.mark.parametrize("who", ["rook", "ash", "wren"])
+def test_a_persons_page_holds_their_own_seats_and_nothing_else(week, tmp_path, who):
+    html = person_page(week, tmp_path, who)
+    people = json.loads((week / "people.json").read_text())[who]
+    runs = any(s["seat"] == "gm" for s in people)
+    for s in people:
+        assert table(week, s["table"])["world"]["title"] in html
+    # a player's own notes: on their page, and on no one else's, the GM's included
+    for (tid, p), ns in notes(week).items():
+        for n in ns:
+            assert (n in html) == (p == who), (tid, p, n)
+    # the binder only in the data of someone who runs a table (the page's
+    # markup holds both screens' empty panels; what fills them is the data)
+    data = html.split('<script id="table" type="application/json">', 1)[1].split("</script>", 1)[0]  # fmt: skip
+    for gm_only in ("Cogwen", "springs", '"bestiary"', '"your_call"'):
+        assert (gm_only in data) == runs, gm_only
+    assert "http://" not in html and "https://" not in html
+    for f in week.rglob("*"):  # no key, no identity's secret half
         if f.name in ("key", "id") and f.is_file():
             secrets = re.findall(r"[0-9a-f]{32,}", f.read_text())
             assert secrets and not any(x in html for x in secrets), f
 
 
+def test_one_seat_at_one_table_still_builds(week, tmp_path):
+    for seat in ("gm", "ash"):
+        page = tmp_path / f"{seat}.html"
+        got = run(SCREEN, "build", "--table", week / "thursday" / "table.json", "--to", page, "--seat", seat)  # fmt: skip
+        assert got.returncode == 0, got.stderr
+        assert "The Lantern Fair" in page.read_text()
+
+
 def test_a_script_end_in_the_table_cant_close_the_page(tmp_path):
-    table = {"made": "", "demo_keys": True, "world": {"title": "</script><b>x", "setting": "", "scenes": [], "places": {}}, "gm": {}, "seats": []}  # fmt: skip
-    (tmp_path / "t.json").write_text(json.dumps(table))
+    doc = {"made": "", "demo_keys": True, "day": "", "world": {"title": "</script><b>x", "setting": "", "scenes": [], "places": {}}, "gm": {}, "table": {}, "seats": []}  # fmt: skip
+    (tmp_path / "t.json").write_text(json.dumps(doc))
     assert run(SCREEN, "build", "--table", tmp_path / "t.json", "--to", tmp_path / "p.html").returncode == 0  # fmt: skip
     assert "</script><b>" not in (tmp_path / "p.html").read_text()
 
 
-def test_a_night_is_laid_fresh_and_never_inside_the_repository(tmp_path):
+def test_a_seat_or_person_not_there_is_refused(week, tmp_path):
+    no_seat = run(SCREEN, "build", "--table", week / "thursday" / "table.json", "--to", tmp_path / "x.html", "--seat", "nobody")  # fmt: skip
+    no_one = run(SCREEN, "build", "--night", week, "--person", "nobody", "--to", tmp_path / "y.html")  # fmt: skip
+    assert no_seat.returncode == 2 and no_one.returncode == 2
+    assert not (tmp_path / "x.html").exists() and not (tmp_path / "y.html").exists()
+
+
+def test_a_week_is_laid_fresh_and_never_inside_the_repository(tmp_path):
     (tmp_path / "there").mkdir()
     assert run(SCENE, "run", "--to", tmp_path / "there").returncode == 2
-    assert run(SCENE, "run", "--to", REPO / "night-here").returncode == 2
-    assert not (REPO / "night-here").exists()
-
-
-def test_an_offer_waits_on_the_gms_call_and_nothing_answers_it(night):
-    t = json.loads((night / "table.json").read_text())
-    (offer,) = t["gm"]["offers"]
-    assert t["seats"][0]["offered"] == [offer] and t["seats"][1]["offered"] == []
-    rows = [json.loads(ln) for ln in (night / "gm" / "table" / "record" / "record.jsonl").read_text().splitlines()]  # fmt: skip
-    assert any(r.get("subject") == offer["subject"] and r["kind"] == "proposal" for r in rows)  # fmt: skip
-    assert not any(r.get("subject") == offer["subject"] and r["kind"] in ("seal", "decline") for r in rows)  # fmt: skip
-
-
-def test_what_crossed_is_read_from_the_package_that_held(night):
-    t = json.loads((night / "table.json").read_text())
-    for s in t["seats"]:
-        (got,) = s["received"]
-        assert got["what"].startswith("A draw is offered out loud") and got["verdict"] == "good"  # fmt: skip
-        assert got["cites"] and all(c.startswith("house-rules.md:") for c in got["cites"])  # fmt: skip
-
-
-@pytest.mark.parametrize("seat,other", [("ash", "wren"), ("wren", "ash")])
-def test_a_players_screen_holds_their_seat_and_the_table_and_nothing_else(night, tmp_path, seat, other):  # fmt: skip
-    t = json.loads((night / "table.json").read_text())
-    page = tmp_path / f"{seat}.html"
-    got = run(SCREEN, "build", "--table", night / "table.json", "--to", page, "--seat", seat)  # fmt: skip
-    assert got.returncode == 0, got.stderr
-    html = page.read_text()
-    me = next(s for s in t["seats"] if s["seat"] == seat)
-    them = next(s for s in t["seats"] if s["seat"] == other)
-    assert me["plays"] in html and all(n in html for n in me["notes"])
-    assert t["table"]["scene"]["title"] in html
-    # never the GM's part: the binder, the bestiary, the call, the screen's page
-    for gm_only in ("Clockwork hound", "Cogwen", "springs", '"bestiary"', '"your_call"', '"on_screen"'):  # fmt: skip
-        assert gm_only not in html, gm_only
-    # never another seat's
-    assert them["name"] not in html and not any(n in html for n in them["notes"])
-    assert "http://" not in html and "https://" not in html
-
-
-def test_a_seat_not_at_the_table_is_refused(night, tmp_path):
-    got = run(SCREEN, "build", "--table", night / "table.json", "--to", tmp_path / "x.html", "--seat", "nobody")  # fmt: skip
-    assert got.returncode == 2 and not (tmp_path / "x.html").exists()
+    assert run(SCENE, "run", "--to", REPO / "week-here").returncode == 2
+    assert not (REPO / "week-here").exists()

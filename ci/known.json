@@ -3,6 +3,12 @@
   "secrets-audit": [
     {
       "group": "a password typed with its label",
+      "where": "box/table_scene.py",
+      "what": "value not shown",
+      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is a path joined in Python, a seat's run folder / its stack log's file name, no credential"
+    },
+    {
+      "group": "a password typed with its label",
       "where": "game-lab/README.md",
       "what": "value not shown",
       "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is two sim file names side by side, no credential"

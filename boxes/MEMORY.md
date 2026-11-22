@@ -239,6 +239,22 @@ dm` and `dm = ...` was refused).
   (blind-deal), a GM's chair at another table in `[ my tables ]`. 12 tests
   in tests/test_table_scene.py; whole suite 23 failed (`ONESCRIPT_HOME`, as
   before) and 343 passed.
+- **looks, built: `[ my tables ▾ ]`, one person at many tables**
+  (2026-11-22, the same session). Asked first, the box said the shape
+  (MEMORY want 10, share/README.md:29): a person is one identity, an
+  Ed25519 key pair outside every box, and a box for each seat they hold;
+  sharing the GM's chair (open.md item 15) is another thing and stays
+  unbuilt. So table_scene.py lays a week: Rook runs The Lantern Fair on
+  Thursday (Ash and Wren play), Ash runs Ironworks on Sunday (Wren and Rook
+  play). One identity each, carried to both tables (a package to Wren on
+  Thursday and on Sunday is for the same key, from two GMs; tested). The
+  wall is per seat, not per person: Rook's Sunday box can't answer from the
+  binder his Thursday box holds. `open_table.py open --world ID` opens a
+  story other than The Lantern Fair; every GM's box still holds the one
+  binder this repository keeps. `ui/screen.py build --night DIR --person
+  NAME` writes one page per person, a screen per seat, switched by
+  `[ my tables ▾ ]`; it holds only that person's seats, and a GM's screen
+  never holds a player's own notes (tested for all three people).
 
 - **TaleWeaver** enforces rules after the model speaks: a "deterministic
   enforcement" pass, rule violations fed back into a second narration pass,
