@@ -1,0 +1,40 @@
+# How someone asks about the look of a page or a GM screen, then the words
+# pages and their makers use. The kernel reads every question through this list.
+
+colour = color, palette, hue
+colours = colors, palette
+look = theme, style, skin
+dressed = theme, style, skin
+font = typeface, typography
+fonts = typefaces, typography
+lettering = typeface, typography
+layout = grid, column, columns, flex
+margins = margin, padding, gutter
+spread = page, pages, layout
+ornament = border, frame, rule, flourish
+decoration = border, frame, ornament
+cover = jacket, title
+dark = night
+phone = mobile, narrow
+button = btn, action
+buttons = btn, actions
+dice = roll, rolls, d20
+gm = dm, narrator
+screen = panel, panels, sidebar
+binder = notes, journal, compendium
+ring = binder
+reference = handout, compendium, notes
+tray = dice
+bestiary = monster, monsters, foes, creature
+beastiary = monster, monsters, foes, creature
+loot = treasure, items, carry
+battles = fight, fights, combat, foes
+players = seats, seated, characters, sheets
+lookup = ask, binder, rules
+rulebook = rules, compendium, srd
+books = rulebook, pdf
+drawing = picture, portrait, image
+drew = drawing
+creature = monster, foes
+badge = logon, door
+seat = badge, logon

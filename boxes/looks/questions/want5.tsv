@@ -1,0 +1,7 @@
+# Want 5: what does the box already hold for each of the screen's three panels? (left: bestiary, loot, planned battles; centre: the planned story and active combat; right: the players)
+left-bestiary	monster foes stat block
+left-loot	loot carry items
+left-battles	planned fight foes
+centre-story	story scenes chapters
+centre-combat	board fight hurt turn
+right-players	sheets seats stats

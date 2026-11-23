@@ -1,0 +1,7 @@
+# Want 8: what can willow's image suite (demo/craft-assembly: photocraft, drawcraft, artcraft, designcraft) do with a kid's drawing?
+what-each	what each craft app does
+crop	crop resize image
+background	remove background photo
+trace	image trace pencil sketch scan
+browser	web browser wasm
+size	photocraft web size wasm megabytes

@@ -17,6 +17,7 @@ as you want, write them down here").
 | [srd-engines/](srd-engines/) | whether an outside SRD rules engine could stand under the record and seal: can the dice be handed in, is it deterministic, how is a fight's state kept, what each asks of us | OpenCombatEngine `16b45b0` (C#, MIT), jurnalis-project/engine `dbf40d4` (Rust), srd_5e `b0a2164` (Elixir, from the agentic-realms monorepo's packages/srd_5e, Apache-2.0), dndwright `6f0fb9e` (Python, MIT); 685 files | `bash boxes/srd-engines/rebuild.sh SCRATCH` (checkouts at `../OWNER/NAME`, or `ENGINES_DIR`); about 30 s | 9 of 9 answered, none flagged |
 | [pot/](pot/) | anything: an empty box you throw chunks into with `pour.sh`, swirled with `swirl.sh` and its general stack; chunks are yours, not pinned | whatever you pour, kept in a folder outside the repo (`POT`) | `bash boxes/pot/pour.sh POT NAME SOURCE`, then `bash boxes/pot/swirl.sh POT` (`--ask "..."` for a one-off want); seconds | tried once: 134 files, 7 of 8 steps clean; also `survey.py POT`, one box per chunk and 27 questions, first run over the eight in [pot/results-eight/](pot/results-eight/) (read `connections.md` first) |
 | [our-two-repos/](our-two-repos/) | what willow and die-namic-games already hold about a fight engine, the dice, the card promises, the deps rules; the research behind open.md's fight-engines note | willow at its pin `370f74a`, die-namic-games at `3de61d2` (.md and .py, no `boxes/`); 1,984 files | `bash boxes/our-two-repos/rebuild.sh SCRATCH`; about 1 min | 8 of 8 answered, none flagged |
+| [looks/](looks/) | how game pages are dressed and laid out, for Die-Namic's redesign: the other GMs' screens, our own pages, and published GM screens brought in for the art on them | the four gm-projects at the same pins (.tsx .vue .css .scss .html .md only), Die-Namic's `ui/` sources at HEAD, and GM screen art from `SCREEN_ART` (default `../screen-art`, outside git: each picture with a `.md` note; pictures read by willow's ocr when tesseract is there); 1,551 files with no screen art yet, with `my-table.md`, the maintainer's own GM side in their words, and Die-Namic's design pages | `bash boxes/looks/rebuild.sh SCRATCH`, about 10 s (the index, kept in SCRATCH, rebuilds only when the pile changed: 8 s); then `bash boxes/looks/ask.sh SCRATCH "your words" ...`, about a second | 10 wants, 46 questions, none flagged |
 
 Each folder: `stack.md` (the wants), `words.txt` (how readers ask), `rebuild.sh`,
 `results/` (last `page.md` and step log, the machine's paths written
@@ -32,7 +33,259 @@ dm` and `dm = ...` was refused).
 - **our-two-repos/stack.md** (8 wants): what already covers a fight (1–3),
   what an outside engine would have to be (4–6), where it came up (7–8).
 
+- **looks/stack.md** (2 wants, built one at a time with the maintainer, 2026-11-22):
+  how each dresses its pages (1); where each puts the GM's screen, pulled-out
+  pages and dice, against the maintainer's own table (2); how each sends what the GM
+  shows to the others' devices (3). The next wants wait on their yes.
+
 ## What they said (as found, not tuned)
+
+- **looks, want 1** (colours, fonts, themes): ink & bone's "Worn Grimoire"
+  redesign, a parchment palette with Cormorant Garamond and three columns
+  (`docs/superpowers/specs/2026-04-03-ui-redesign-design.md:8`), and
+  NarrativeEngine-P's beta skin, a light "parchment" and a dark "ink" palette
+  (`src/styles/beta.css:44`, `:96`). Five of the ten passages are its glyph and command
+  palettes, not colours: "palette" means three things there.
+- **looks: start at [looks/HANDOFF.md](looks/HANDOFF.md)** (2026-11-22): the
+  design as decided, what each panel stands on, the gaps, what is open,
+  and how to set the box up in a fresh session.
+- **looks: ask the index, not the box.** The kernel reads the whole pile
+  for every question: 10 to 30 s each over 1,191 files, 134 s for the stack.
+  From 2026-11-22 rebuild.sh lays an index with willow's `index-cache` (8 s,
+  then only when a file changed) and every want is a `batch-ask` scan of its
+  `questions/wantN.tsv`: the kernel's own answers, in the same order, in
+  about a second (the stack, 4 s). Ask your own with `ask.sh`. The pile holds
+  this file, so the box also serves back what was written here about it:
+  read past a `ours/boxes/MEMORY.md` hit to the page it cites.
+- **looks: ask our own pages first.** Wants 2 and 3 were first answered
+  from a pile without Die-Namic's design pages, and both answers were wrong
+  where open.md already said otherwise (the maintainer caught it). From
+  2026-11-22 the pile holds README.md, open.md, open-gaps-from-the-boxes.md,
+  box/'s and the-table's pages and this file, and each want asks several
+  questions, our words and theirs.
+- **looks, want 2** (the GM's side): our own design already has it.
+  open.md:113, "the table hears the story and the dice; only the GM sees the
+  buttons"; the GM's screen roll is willow's `dice-tower` (drop with only a
+  hash on the record, out into the tray, check; open-gaps-from-the-boxes.md:56),
+  and a roll hidden from the one who made it is `blind-deal`, an idea
+  (open.md:537). The shared view, item 16 (open.md:467: pictures, a map, a
+  handout, the dice landing where everyone can see) has nothing yet but
+  `print --large` (open-gaps:135); `box/paper.py` prints the sheets in big
+  type. Of the others, every layout is a player's: ink & bone's sheet and
+  dice left, story centre, notes right
+  (`docs/superpowers/specs/2026-04-03-ui-redesign-design.md:27`), and its
+  handouts, a note the GM reveals (`…group-b-interactivity-design.md:63`), are
+  the nearest to a page laid on the table; its hidden roll shows `[GM]` and
+  `?` (`DiceHistoryPanel.test.tsx:81`), hidden in the page only.
+- **looks, want 3** (from the GM's device to the others'): open.md's order
+  for a home box starts with it (open.md:551): "the kit, and `share`… one
+  command sends what the table made true to the other box, one receives it.
+  Works with what is built"; then `record-sync` (planned) and `kids`. willow's
+  `share`, tested across its demos, packs sealed answers for each person's
+  key and checks them on receipt; it never goes online, so how a package
+  travels is the GM's. None of the four game masters sends to another
+  person's device; ink & bone syncs one person's windows over a WebSocket.
+- **looks, want 4** (what only one seat sees; the maintainer's connection:
+  blind deal is every card game): our pages already join them. open.md:580,
+  "the cup and the screen roll are the same mechanism" as a dealt hand
+  (`blind-deal`: each seat's share sealed to it, only its hash on the record,
+  opened at the call; planned in willow). the-table deals it in the view
+  today, `observe(seat)`: a seat's own hand in full, the others' as counts
+  (the-table/README.md:68, :206); a Liar's Dice call lifts every cup. What
+  isn't yet: the record still holds every hand open (`show` laid all four
+  liar's-dice hands open, open.md:580). The GM's screen roll alone is built,
+  willow's `dice-tower`.
+- **looks, want 5** (the screen's three panels, in the maintainer's own
+  layout). **Left, quick reference.** The bestiary is aetheris5e's stat
+  blocks, which a story names as its `"foes"` (box/dw-fights.md:13;
+  `story_foes`, box/play.py:876; `Fighter`, box/dw_fight.py:82); planned
+  battles are those foes in the story's world file; loot is what box/carry.py
+  keeps per character (a `table-carry` row each, things and wounds), with no
+  pile of loot yet to come. **Centre.** The planned story is box/worlds/
+  (scenes in order, the-table.js:4); active combat is box/fight.py onto the
+  record and box/board.py's board, drawn from the rows ("who's hurt, who's
+  down, whose turn", board.py:1), today only at a fight's end (open.md:467).
+  **Right, the players.** The sheets: carry.py's rows, `s` at a roll
+  (play.py:634), and box/paper.py's big-type page, one card a character
+  (paper.py:5). Of the others: ink & bone's bestiary is an uploaded rulebook
+  for its model (its README.md, line 485); NarrativeEngine-P lays a combat strip,
+  board and story side by side (combatScreen.test.tsx:158).
+- **looks, want 6** (a quick lookup of whatever turns up: the rules, the
+  books, on demand). The binder is already asked: a table's pile is "the
+  GM's notes, monsters, people, session notes and house rules… what the GM
+  asks" (box/open_table.py:13); `box/ask.py` points at where to look in it
+  (willow's pile-rank; ../README.md:92), `kernel.py bite` answers from it
+  (box/README.md:69), and sealed house rules come back word for word
+  (`rules.py ask`, box/README.md:77). The rules in the repository are
+  game-lab/rules/COMPENDIUM.md. Not yet: the books, a rulebook as a PDF,
+  which willow's `pdf` add-on reads into the pile; and speed. Timed on this
+  box's 57,000 passages: the kernel's rank kept running in `pile-serve`
+  answers in 9.6 s, pile-rank there in 0.13 s, and batch-ask over an
+  index-cache index, the kernel's own answers, in about a second.
+  Decided by the maintainer: the lookup lives in the left panel and comes
+  into the centre when called (my-table.md).
+- **looks, want 7** (pictures the table makes: a creature's, a kid's own
+  drawing). tesseract is on the table already: a table laid by
+  open_table.py has `scans/` (box/open_table.py:114), and the end of the
+  night's first want reads the GM's handwritten pages from it into
+  `pile/scanned` with willow's `ocr` (box/gm-end.md:12; "OCR guesses: the
+  binder cites the line tesseract read"). A drawing brought in by a player
+  is an `offer`: something brought to the table as their character, handed
+  to the GM, canon that night only on the GM's seal (box/README.md:235).
+  `kids` (an idea) is the seat that asks and never seals (open.md:530). Not
+  yet: a picture kept as a picture (the pile and the kernel read only its
+  words), a drawing read during the night rather than at its end, and a
+  page that shows it; ink & bone keeps a portrait per character, an 80px
+  circle uploaded from the sheet (its README.md, line 326).
+  Decided by the maintainer: typing is the main way in, "the picture is
+  just a picture"; nothing is read from it.
+- **looks, want 8** (willow's image suite, demo/craft-assembly: the Craft
+  apps, Photoshop, Illustrator and the rest rebuilt in Rust; the pile holds
+  photocraft, drawcraft, artcraft and designcraft's .md at the demo's pins).
+  For a kid's drawing: photocraft crops and straightens
+  (`docs/scorecard.md:176`) and removes a background as a background job
+  (`docs/target-app-parity.md:478`); drawcraft (VectorCraft) traces a
+  scanned pencil sketch into clean vector art, measured on "Sketched Art"
+  scans (`docs/image-trace-quality.md:729`). Both run in a browser, the same
+  app through eframe's web runner on WebGPU or WebGL2
+  (`photocraft docs/development.md:485`, `drawcraft docs/development.md:11`),
+  but photocraft's wasm is about 25 MiB (`packaging/web/README.md:95`): a
+  tool for the GM's machine, not a page a phone loads at the table.
+  drawcraft is MIT or Apache-2.0; its ArtCraft name and logos are
+  trademarks (its README.md, lines 370 and 381).
+- **looks, the first mock** (`looks/mock.md`, laid as `ours/mock.md`): the
+  GM's page in ASCII, from my-table.md: the screen, a lookup called to the
+  centre, a fight in the centre, a kid's creature put in; what it shows that
+  isn't built. **Open:** whether a kid's drawing goes in as made, or through
+  the image suite first (the maintainer left it open, 2026-11-22).
+- **looks, want 9** (the players' own screen; a GM is a player at other
+  tables). A seat already has: its own hand or cup in the view
+  (the-table/README.md:206), `offer` (box/session.py:21), x and p with no
+  reason asked (open.md:443, :449), the recap of only what was sealed
+  (box/session.py:30), and a sheet nothing shows yet
+  (open-gaps-from-the-boxes.md:84). A player's lookup must never reach
+  `gm-only/`: a child's "how does it end?" was answered from it word for
+  word (open.md:579); `kids`, the binder without `gm-only/`, is the answer
+  and isn't built. One person at many tables in many seats: sharing the
+  GM's chair is item 15, not built (open.md:462); `grant` and `witness` are
+  ideas. The player's screen is in mock.md.
+- **looks, want 10** (share, done in willow's demos; the pile holds share
+  whole and the blackout, annex and johnson demos). **Each seat its own
+  box:** annex's compartments are each "a pile, a record, a key of its own,
+  so access to one is never access to another"; material crosses only as a
+  sealed package, a `sent` row on one chain and a `received` on the other
+  (demo/annex/README.md). So a player's lookup asks their own box, which
+  holds what the GM sent them and their own notes, and can't reach the GM's
+  binder by construction: the answer to want 9's `gm-only/` leak, built,
+  where `kids` isn't. **One person, many tables:** an identity is a key
+  pair kept outside the box; `rotate` changes it loudly, and a package for
+  a key you rotated from is still yours (share/README.md:75). **A page per
+  person, already built twice:** annex_os.py (a green-screen terminal) and
+  blackout's kiosk.py (a 2013 office PC) are one self-contained page each,
+  built from what the scene wrote, never reading a box, a key or a pile:
+  choose your badge or log on, and see only your own sealed answers, what
+  you sent and what arrived; anyone else's is "nothing on record". The
+  look is the point: each is dressed as the machine it pretends to run on.
+  That is the GM's and the players' screens, and the screen art is their
+  dress. **Johnson:** one report through five people, forwarded, each chain
+  knowing only its own hop; a correction follows the same path.
+  **Both page demos run here** (2026-11-22, at the pin): annex's scene in
+  8 s and blackout's in 10 s, both exit 0; their pages screenshotted in
+  `looks/results/demos/` with how to make them again. Annex wearing the
+  Intake badge: its own door OPEN, seven LOCKED, "not on record for you".
+  The kiosk logged on as one person: sealed (with where it came from),
+  sent (to whom, when), received (from whom, good). Both are built once
+  from a finished scene; a table's page would follow packages arriving
+  during the night.
+- **looks, built: the seat boxes and the GM's screen** (2026-11-22, the
+  session after the handoff). Every box rebuilt in a fresh cloud session at
+  the pin, each as its last committed run said (looks, gm-projects,
+  our-two-repos and srd-engines flag nothing; session-2026-11-20 and
+  safe-app-store flag box-health, as before). Asked first, the box pointed
+  at what the house already had: open_table.py lays the GM's box (the
+  binder, the prep sheet, house rules waiting), annex's scene.py lays a box
+  per compartment, annex_os.py builds a page from what a scene wrote, and
+  the table frame (ui/tables/frame.src.html) is the dress. And it said the
+  fork: `share` sends only sealed answers, and a box laid in a cloud
+  session has the machine's key (open.md:492). **The maintainer chose
+  annex-style demo keys:** fictional seats, keys the scene makes and throws
+  away, seals that stand in for a GM's yes. So `box/table_scene.py` lays
+  the GM's seat by open_table, two players' seats over piles of their own
+  (`box/seat-stack.md` their stack), seals the hound's page into the screen
+  and the Draws rule to the table (received `good` by both), plays
+  Tamsin's first beat on the record (game-master's `act`, the dice box's
+  roll), shows the wall (a player asked about the hound: exit 42), and
+  writes table.json; `ui/screen.py` builds the GM's screen from it alone,
+  no network. 7 tests (tests/test_table_scene.py); whole suite 23 failed
+  (`ONESCRIPT_HOME`, as before) and 338 passed. `share` is pinned now.
+  Two things the box caught: mock.md's hound line was not the binder's
+  (Wit 0, Weird 1; corrected), and the binder's notes have a Juno and a
+  Pell, so the placeholder players are Ash and Wren.
+- **looks, built: the player's screen** (2026-11-22, the same session).
+  Asked first, the box listed what a seat already has (MEMORY want 9):
+  `offer` (box/session.py:21), x and p with no reason asked (open.md:443,
+  :449), the recap of only what was sealed, the sheet nothing showed. So
+  the scene now has Ash bring something in as Tamsin (game-master's
+  `offer`: a proposal on the GM's record, waiting on the GM's call; nothing
+  answers it), reads what crossed from the package that held (its words,
+  claim and cited places), and writes `table`: what everyone at the table
+  sees and hears (the scene read out, the dice landing, whose turn), never
+  the binder. `ui/screen.py --seat NAME` builds a player's screen from only
+  their seat and `table`: the GM's part and other seats are not in the page
+  at all, so the wall holds however the page is read (tested); its lookup
+  over the hound says "nothing on record for you". The GM's call shows the
+  offer. Not built, and the page says so: a drawing kept, our lines (none
+  written), previously on (nothing sealed about the character), my hand
+  (blind-deal), a GM's chair at another table in `[ my tables ]`. 12 tests
+  in tests/test_table_scene.py; whole suite 23 failed (`ONESCRIPT_HOME`, as
+  before) and 343 passed.
+- **looks, built: `[ my tables ▾ ]`, one person at many tables**
+  (2026-11-22, the same session). Asked first, the box said the shape
+  (MEMORY want 10, share/README.md:29): a person is one identity, an
+  Ed25519 key pair outside every box, and a box for each seat they hold;
+  sharing the GM's chair (open.md item 15) is another thing and stays
+  unbuilt. So table_scene.py lays a week: Rook runs The Lantern Fair on
+  Thursday (Ash and Wren play), Ash runs Ironworks on Sunday (Wren and Rook
+  play). One identity each, carried to both tables (a package to Wren on
+  Thursday and on Sunday is for the same key, from two GMs; tested). The
+  wall is per seat, not per person: Rook's Sunday box can't answer from the
+  binder his Thursday box holds. `open_table.py open --world ID` opens a
+  story other than The Lantern Fair; every GM's box still holds the one
+  binder this repository keeps. `ui/screen.py build --night DIR --person
+  NAME` writes one page per person, a screen per seat, switched by
+  `[ my tables ▾ ]`; it holds only that person's seats, and a GM's screen
+  never holds a player's own notes (tested for all three people).
+- **looks, built: a page that follows packages arriving** (2026-11-22, the
+  same session). Asked first, the box said how a package travels: "the way
+  a family already moves things: email, a USB stick, a chat message, a
+  synced folder" (open.md:499); share never goes online. **The maintainer
+  chose both:** one drop folder per person, synced or saved into by hand,
+  and a page that reloads itself. `table_scene.py later` is the night going
+  on (the GM seals another rule and sends it into each player's drop
+  folder); `box/follow.py` on a person's device receives each package into
+  the seat at the table whose GM sent it (one identity, many seats), keeps
+  it, and builds the page again; the page loads a stamp file beside it and
+  reloads when it moves (no server; run in a browser: two arrivals, two
+  reloads, nothing touched). A package edited on the way is `broken` on the
+  seat's chain and shown as arrived and not held, never its words; one for
+  someone else is `not-for-you`; the same one twice is said once. 19 tests;
+  whole suite 23 failed (`ONESCRIPT_HOME`, as before), 350 passed.
+- **looks, built: players sending back** (2026-11-22, the same session).
+  Asked first, the box said an offer is "canon that night only on the GM's
+  seal" (box/README.md:235) and `kids` is the seat that never seals
+  (open.md:530); share carries only sealed answers. **The maintainer chose:**
+  a player seals their own words in their own box ("this is what I brought,
+  in my words"), canon only on the GM's yes; and all three kinds travel:
+  offers, notes to the GM, a creature typed with its picture. `box/bring.py`
+  hands in and sends, never seals (share refuses what the player hasn't);
+  the GM's follow.py hands an offer or creature in through game-master's
+  `offer`, waiting on the GM's call, and shows a note to the GM alone; a
+  picture travels beside its package and is kept only if its SHA-256 is the
+  one in the sealed words. **Found in the build:** one identity at every
+  table can't tell two tables apart when two people sit at each other's
+  (Rook's Sunday offer was filed at Thursday); every package now names its
+  table in its note, inside the signature, and the follower routes by it.
+  25 tests; whole suite 23 failed (`ONESCRIPT_HOME`, as before), 356 passed.
 
 - **TaleWeaver** enforces rules after the model speaks: a "deterministic
   enforcement" pass, rule violations fed back into a second narration pass,

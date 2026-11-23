@@ -15,7 +15,8 @@
     "tests/test_write.py",
     "tests/test_clash.py",
     "tests/test_table_turn.py",
-    "tests/test_dw_play.py"
+    "tests/test_dw_play.py",
+    "tests/test_table_scene.py"
   ],
   "targets": {
     "box/willow_pin.py": "all",

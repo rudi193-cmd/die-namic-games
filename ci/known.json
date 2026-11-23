@@ -3,6 +3,18 @@
   "secrets-audit": [
     {
       "group": "a password typed with its label",
+      "where": "box/table_scene.py",
+      "what": "value not shown",
+      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is a path joined in Python, a seat's run folder / its stack log's file name, no credential"
+    },
+    {
+      "group": "a password typed with its label",
+      "where": "tests/test_table_scene.py",
+      "what": "value not shown",
+      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is a path joined in Python, the GM's drop folder / a package's file name, no credential"
+    },
+    {
+      "group": "a password typed with its label",
       "where": "game-lab/README.md",
       "what": "value not shown",
       "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is two sim file names side by side, no credential"
@@ -264,6 +276,49 @@
       "where": "boxes/srd-engines/results/page.md",
       "what": "docs/architecture/001-creature-interfaces.md: not there",
       "why": "a passage the box served, quoted as it stands in the repository it was asked over (willow or dndwright); the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/looks/results/page.md",
+      "what": "../../adapters/stdlib/stack/: not there",
+      "count": 2,
+      "why": "a passage the looks box served, quoted as it stands in the repository it was asked over (willow, at the pin); the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/looks/results/page.md",
+      "what": "../packaging/web/README.md: not there",
+      "why": "a passage the looks box served, quoted as it stands in the repository it was asked over (photocraft, at craft-assembly's pin); the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/looks/results/page.md",
+      "what": "docs/image-trace-quality.md: not there",
+      "why": "a passage the looks box served, quoted as it stands in the repository it was asked over (drawcraft, at craft-assembly's pin); the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/looks/results/page.md",
+      "what": "play-agent.md: not there",
+      "why": "a passage the looks box served, quoted as it stands in the repository it was asked over (TaleWeaver, at gm-projects' pin); the link holds there, beside that passage, not in Die-Namic"
+    },
+    {
+      "group": "link",
+      "where": "boxes/looks/results/page.md",
+      "what": "board.py: not there",
+      "why": "a passage the looks box served from Die-Namic's own box/ pages, quoted as it stands; the link is relative to that file's folder and holds there, not beside boxes/looks/results/"
+    },
+    {
+      "group": "link",
+      "where": "boxes/looks/results/page.md",
+      "what": "../open.md: not there",
+      "why": "a passage the looks box served from Die-Namic's own boxes/MEMORY.md, quoted as it stands; the link is relative to that file's folder and holds there, not beside boxes/looks/results/"
+    },
+    {
+      "group": "link",
+      "where": "boxes/looks/results/page.md",
+      "what": "pot/: not there",
+      "why": "a passage the looks box served from Die-Namic's own boxes/MEMORY.md, quoted as it stands; the link is relative to that file's folder and holds there, not beside boxes/looks/results/"
     }
   ]
 }
