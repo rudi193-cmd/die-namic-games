@@ -3,7 +3,9 @@ whose files are the pinned bytes."""
 
 from __future__ import annotations
 
+import json
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -76,4 +78,104 @@ def test_a_refusal_names_the_pinned_commit_by_its_first_twelve(alone, monkeypatc
     with pytest.raises(willow_pin.Unpinned) as got:
         willow_pin.root()
     said = str(got.value)
-    assert f"(willow {commit[:12]});" in said and f"off the pin at {commit[:12]}," in said
+    assert (
+        f"(willow {commit[:12]});" in said and f"off the pin at {commit[:12]}," in said
+    )
+
+
+# ── repin: the one way to move the pin ──────────────────────────────────────
+def git_willow(to: Path) -> Path:
+    """A copy of the pinned willow, made a git repository of its own."""
+    w = copy_of_willow(to)
+    for args in (["init", "-q"], ["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "w"]):  # fmt: skip
+        assert willow_pin.git(w, *args).returncode == 0
+    return w
+
+
+def commit(w: Path) -> str:
+    willow_pin.git(w, "add", "-A")
+    willow_pin.git(
+        w, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "more"
+    )
+    return willow_pin.git(w, "rev-parse", "HEAD").stdout.strip()
+
+
+def a_pin(tmp: Path) -> Path:
+    at = tmp / "willow.pin.json"
+    shutil.copy(willow_pin.PIN, at)
+    return at
+
+
+def test_repin_at_the_pinned_bytes_changes_nothing_but_the_commit(tmp_path):
+    at, w = a_pin(tmp_path), git_willow(tmp_path / "w")
+    code, said = willow_pin.repin(w, at=at)
+    assert code == 0 and said.startswith("pinned willow ") and "\n" not in said
+    old, new = willow_pin.pin(), json.loads(at.read_text())
+    assert new["files"] == old["files"] and new["add_ons"] == old["add_ons"]
+    assert list(new) == list(old) and new["commit"] != old["commit"]
+
+
+def test_a_new_file_in_a_pinned_add_on_comes_in_and_its_tests_do_not(tmp_path):
+    at, w = a_pin(tmp_path), git_willow(tmp_path / "w")
+    dice = w.joinpath("adapters", "stdlib", "play-dice")
+    dice.joinpath("faces.txt").write_text("1 2 3 4 5 6\n")
+    dice.joinpath("test_more.py").write_text("")
+    dice.joinpath("play_dice.py").write_text("# moved on\n")
+    head = commit(w)
+    code, said = willow_pin.repin(w, at=at)
+    assert code == 0, said
+    assert "added: adapters/stdlib/play-dice/faces.txt" in said
+    assert "changed: adapters/stdlib/play-dice/play_dice.py" in said
+    pinned = json.loads(at.read_text())
+    assert pinned["commit"] == head and "adapters/stdlib/play-dice/test_more.py" not in pinned["files"]  # fmt: skip
+    names = list(pinned["files"])
+    at_new = names.index("adapters/stdlib/play-dice/faces.txt")
+    assert names[at_new - 1].startswith("adapters/stdlib/play-dice/")  # beside its own
+
+
+def test_add_and_drop_name_an_add_on_and_say_what_moved(tmp_path):
+    at, w = a_pin(tmp_path), git_willow(tmp_path / "w")
+    new = w.joinpath("adapters", "stdlib", "new-one")
+    new.mkdir()
+    new.joinpath("new_one.py").write_text("x = 1\n")
+    new.joinpath("README.md").write_text("# new-one\n")
+    commit(w)
+    code, said = willow_pin.repin(w, add=["new-one"], drop=["play-dice"], at=at)
+    assert code == 0, said
+    pinned = json.loads(at.read_text())
+    assert "new-one" in pinned["add_ons"] and "play-dice" not in pinned["add_ons"]
+    i = pinned["add_ons"].index("new-one")
+    assert (
+        pinned["add_ons"][i + 1] > "new-one" > pinned["add_ons"][i - 1]
+    )  # in its place
+    assert "added: adapters/stdlib/new-one/new_one.py" in said
+    assert "gone: adapters/stdlib/play-dice/play_dice.py" in said
+
+
+def test_repin_refuses_and_leaves_the_pin_as_it_was(tmp_path):
+    at, w = a_pin(tmp_path), git_willow(tmp_path / "w")
+    before = at.read_text()
+    cases = [
+        (tmp_path / "nowhere", {}, "isn't a willow git checkout"),
+        (w, {"add": ["no-such"]}, "has no add-on no-such"),
+        (w, {"drop": ["no-such"]}, "no-such isn't an add-on the pin names"),
+    ]
+    (tmp_path / "nowhere").mkdir()
+    for where, more, why in cases:
+        code, said = willow_pin.repin(where, at=at, **more)
+        assert code == 2 and why in said, said
+    w.joinpath("kernel.py").write_text("# changed, not committed\n")
+    code, said = willow_pin.repin(w, at=at)
+    assert code == 2 and "changes not committed in pinned files" in said and "kernel.py" in said  # fmt: skip
+    assert at.read_text() == before
+
+
+def test_the_command_line(tmp_path, monkeypatch):
+    script = [sys.executable, str(HERE / "willow_pin.py")]
+    for bad in ([], ["move"], ["check", "--add", "x"], ["repin", "--willow"], ["repin", "--add"]):  # fmt: skip
+        got = subprocess.run(script + bad, capture_output=True, text=True, check=False)
+        assert got.returncode == 2 and "willow_pin.py repin" in got.stderr, bad
+    got = subprocess.run(script + ["check", "--willow", str(REAL)], capture_output=True, text=True, check=False)  # fmt: skip
+    assert got.returncode == 0 and "is the pinned willow" in got.stdout
+    got = subprocess.run(script + ["check", "--willow", str(tmp_path)], capture_output=True, text=True, check=False)  # fmt: skip
+    assert got.returncode == 1 and "no willow there" in got.stdout

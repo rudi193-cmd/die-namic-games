@@ -18,6 +18,16 @@ file the box runs by its SHA-256, and [`willow_pin.py`](willow_pin.py)
 finds a willow checkout (`WILLOW_ROOT`, or one beside die-namic-games) and
 refuses one whose files differ.
 
+Moving the pin is one command, on a willow checkout with nothing
+uncommitted in what's pinned:
+
+    python box/willow_pin.py check [--willow DIR]
+    python box/willow_pin.py repin [--willow DIR] [--add NAME ...] [--drop NAME ...]
+
+`repin` pins the checkout's commit: kernel.py and every file of each pinned
+add-on but its tests, so an add-on's new file comes in by itself. `--add`
+pins another add-on, `--drop` lets one go; it says what moved.
+
 ## What's in the box
 
 | Part | What it is | Read or played by |

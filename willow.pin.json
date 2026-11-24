@@ -1,7 +1,7 @@
 {
   "_what": "Die-Namic plays with willow's kernel and add-ons where they live, in willow. This pins them: the commit, and each file the box runs at that commit by its SHA-256. box/willow_pin.py finds a willow checkout and refuses one whose files differ.",
   "willow": "https://github.com/willow-memory/Willow",
-  "commit": "180c85a3ff7d35aa8449bf04306a75cc44c77c0f",
+  "commit": "8230e6c3821a2fad0cca722c1430018eb23aced4",
   "add_ons": [
     "all-passages",
     "backup",
