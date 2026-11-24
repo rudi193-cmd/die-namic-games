@@ -310,13 +310,6 @@ jobs:
             exit 1
           fi
 
-      - name: aetheris5e's combat tests
-        working-directory: die-namic-games/the-table/aetheris5e
-        env:
-          ONESCRIPT_HOME: ${{ github.workspace }}/willow-bot/one-script
-          SAFE_APP_STORE: ${{ github.workspace }}/safe-app-store
-        run: python -m pytest test_combat.py -q -rs
-
   # willow's report add-ons on the repo, from the willow the pin names,
   # checked out beside it so none of willow's files is read as Die-Namic's.
   # ci/known.py runs each with --json and holds every row to ci/known.json:

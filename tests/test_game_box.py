@@ -843,6 +843,12 @@ def test_ideas_with_no_table_say_how_to_ask(tmp_path):
     assert got.returncode == 2 and "python box/ideas.py --table DIR" in got.stderr
 
 
+def test_ideas_refuse_a_folder_open_table_never_laid(tmp_path):
+    got = py(HERE / "ideas.py", "--table", tmp_path)
+    assert got.returncode == 2
+    assert got.stderr == f"refused: {tmp_path} isn't a box laid by open_table.py\n"
+
+
 def test_ideas_with_no_seed_are_dealt_from_todays(t):
     import datetime
 
