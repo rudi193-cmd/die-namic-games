@@ -194,10 +194,12 @@ def gone(box: Path, rows: list[dict]) -> dict:
 
 def replaced_note(day: str, by: str) -> str:
     """How a replaced truth reads: a yes taken back as a slip says so
-    (clash.py's SLIP), a real replacement names what stands now."""
+    (clash.py's SLIP, the table add-on's words; or the words a record kept
+    before game-canon took the table's), a real replacement names what
+    stands now."""
     import clash
 
-    if by == clash.SLIP:
+    if by in (clash.SLIP, "nothing: that yes was pressed by mistake"):
         return f"taken back on {day}, pressed by mistake"
     return f"replaced on {day} by: {by}"
 

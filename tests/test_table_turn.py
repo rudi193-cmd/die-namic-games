@@ -225,9 +225,7 @@ def test_u_takes_back_a_yes_pressed_by_mistake_and_erases_nothing(home):
     kinds = [r["kind"] for r in rows(home) if r.get("subject") == offer["subject"] and r["kind"] in ("seal", "decline")]  # fmt: skip
     assert kinds == ["seal"]  # the yes is never undone; it is stood over
     back = [r for r in rows(home) if r["kind"] == "table-replaces" and r["old"] == offer["subject"]]  # fmt: skip
-    assert (
-        len(back) == 1 and back[0]["fact"] == "nothing: that yes was pressed by mistake"
-    )
+    assert len(back) == 1 and back[0]["fact"] == "nothing: that yes was a slip"
     canon = subprocess.run([sys.executable, BOX / "session.py", "--table", home / "table", "recap"], capture_output=True, text=True, check=False).stdout  # fmt: skip
     assert (
         "Tamsin has a ladder" not in canon.split("## For the GM's eyes")[0]
