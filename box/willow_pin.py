@@ -125,15 +125,27 @@ def git(where: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["git", "-C", str(where), *args], capture_output=True, text=True, check=False)  # fmt: skip
 
 
+def pinned(name: str) -> bool:
+    """A test, or what pytest reads beside them, is never pinned."""
+    return not name.startswith("test_") and name != "conftest.py"
+
+
+def folder_of(tracked: list[str], name: str) -> str:
+    """Where an add-on lives in the commit's tree, or "" when it has none."""
+    for kind in KINDS:
+        top = "adapters/%s/%s" % (kind, name)  # noqa: UP031
+        if any(f.startswith(top + "/") for f in tracked):
+            return top
+    return ""
+
+
 def pinned_of(tracked: list[str], name: str) -> list[str]:
     """An add-on's files as the pin holds them: each one git holds in its
     folder, its tests left out."""
-    for kind in KINDS:
-        top = "adapters/%s/%s/" % (kind, name)  # noqa: UP031
-        got = [f for f in tracked if f.startswith(top)]
-        if got:
-            return [f for f in got if not f.rsplit("/", 1)[-1].startswith("test_") and not f.endswith("/conftest.py")]  # fmt: skip
-    return []
+    top = folder_of(tracked, name)
+    if not top:
+        return []
+    return [f for f in tracked if f.startswith(top + "/") and pinned(f.rsplit("/", 1)[-1])]  # fmt: skip
 
 
 def in_order(old: list[str], new: list[str]) -> list[str]:
@@ -166,15 +178,20 @@ def repin(where: Path, add: list[str] = (), drop: list[str] = (), at: Path | Non
         if n not in names:
             later = next((i for i, m in enumerate(names) if m > n), len(names))
             names.insert(later, n)
-    files = [KERNEL]
+    files, folders = [KERNEL], [KERNEL]
     for n in names:
         got = pinned_of(tracked, n)
         if not got:
             return 2, f"refused: willow {commit[:12]} has no add-on {n}"
         files += got
-    dirty = git(where, "status", "--porcelain", "--", *files).stdout.strip()
+        folders.append(folder_of(tracked, n))
+    # what isn't committed in a pinned folder, new files too, its tests aside
+    status = git(
+        where, "status", "--porcelain", "--untracked-files=all", "--", *folders
+    )
+    dirty = [x for x in status.stdout.splitlines() if pinned(x[3:].rsplit("/", 1)[-1])]
     if dirty:
-        return 2, "refused: changes not committed in pinned files:\n" + dirty
+        return 2, "refused: changes not committed in pinned files:\n" + "\n".join(dirty)
     new = {}
     for rel in in_order(list(old["files"]), files):
         blob = subprocess.run(["git", "-C", str(where), "show", commit + ":" + rel], capture_output=True, check=False)  # fmt: skip

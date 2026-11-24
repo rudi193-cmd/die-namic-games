@@ -164,6 +164,15 @@ def test_repin_refuses_and_leaves_the_pin_as_it_was(tmp_path):
     for where, more, why in cases:
         code, said = willow_pin.repin(where, at=at, **more)
         assert code == 2 and why in said, said
+    dice = w.joinpath("adapters", "stdlib", "play-dice")
+    dice.joinpath("test_later.py").write_text("")  # a test: never pinned
+    other = tmp_path / "other"
+    other.mkdir()
+    assert willow_pin.repin(w, at=a_pin(other))[0] == 0
+    dice.joinpath("new.py").write_text("")  # in a pinned folder, not committed
+    code, said = willow_pin.repin(w, at=at)
+    assert code == 2 and "adapters/stdlib/play-dice/new.py" in said, said
+    dice.joinpath("new.py").unlink()
     w.joinpath("kernel.py").write_text("# changed, not committed\n")
     code, said = willow_pin.repin(w, at=at)
     assert code == 2 and "changes not committed in pinned files" in said and "kernel.py" in said  # fmt: skip
