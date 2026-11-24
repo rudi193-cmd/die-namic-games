@@ -107,11 +107,15 @@ def test_two_fights_on_one_record_both_hold(table):
 def test_a_blow_edited_and_the_chain_rehashed_is_refused(table):
     fight(table, "fight", "warden")
 
-    def edit(old):
-        hit = next(
-            r for r in old if r["kind"] == "encounter-blow" and " hits " in r["note"]
+    def edit(old):  # the dice are the tower's, so a fight may have no hit: swap one
+        swap = {" hits ": " misses ", " misses ": " hits "}
+        blow = next(
+            r
+            for r in old
+            if r["kind"] == "encounter-blow" and any(w in r["note"] for w in swap)
         )
-        hit["note"] = hit["note"].replace(" hits ", " misses ", 1)
+        was = next(w for w in swap if w in blow["note"])
+        blow["note"] = blow["note"].replace(was, swap[was], 1)
         return old
 
     forge(table, edit)
@@ -138,7 +142,10 @@ def test_a_blow_or_the_ending_dropped_is_refused(table, cut):
 def test_a_row_edited_without_its_hash_is_the_chains_to_refuse(table):
     fight(table, "fight", "warden")
     path = table / "record" / "record.jsonl"
-    path.write_text(path.read_text().replace(" hits ", " misses ", 1))
+    text = path.read_text()  # the tower's dice: a fight may have no hit, or no miss
+    was, now = (" hits ", " misses ") if " hits " in text else (" misses ", " hits ")
+    assert was in text
+    path.write_text(text.replace(was, now, 1))
     for argv in (["check"], ["fight", "warden"]):
         got = fight(table, *argv)
         assert got.returncode == 2 and "the record doesn't verify" in got.stderr
@@ -215,11 +222,15 @@ def test_the_tables_check_plays_its_fights_again(table):
     )
     assert ok.returncode != 2
 
-    def edit(old):
-        hit = next(
-            r for r in old if r["kind"] == "encounter-blow" and " hits " in r["note"]
+    def edit(old):  # the dice are the tower's, so a fight may have no hit: swap one
+        swap = {" hits ": " misses ", " misses ": " hits "}
+        blow = next(
+            r
+            for r in old
+            if r["kind"] == "encounter-blow" and any(w in r["note"] for w in swap)
         )
-        hit["note"] = hit["note"].replace(" hits ", " misses ", 1)
+        was = next(w for w in swap if w in blow["note"])
+        blow["note"] = blow["note"].replace(was, swap[was], 1)
         return old
 
     forge(table, edit)
