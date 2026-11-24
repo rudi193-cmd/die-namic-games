@@ -81,7 +81,7 @@ def test_the_heroes_fight_a_foe_and_every_blow_is_a_row_that_checks_from_the_rec
     kinds = {r["kind"] for r in recs}
     assert {"fight-begin", "fight-row", "tower-drop", "tower-out"} <= kinds
     assert (
-        not {"fight-open", "fight-blow", "fight-end"} & kinds
+        not {"encounter-open", "encounter-blow", "encounter-end"} & kinds
     )  # fight.py's are not touched
     done = subprocess.run([sys.executable, str(BOX / "open_table.py"), "check", "--table", str(home / "table")], capture_output=True, text=True, check=False)  # fmt: skip
     assert "## the story's own fights" in done.stdout, done.stdout + done.stderr

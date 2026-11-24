@@ -289,10 +289,10 @@ def fights(rows: list[dict], session: dict | None) -> list[str]:
     """Each fight box/fight.py kept in SESSION (every one, with no session
     ended), as how it ended: the machine's, so never read aloud."""
     lo, hi = (session["from"], session["to"]) if session else (0, len(rows))
-    ends = {r.get("fight"): r.get("result", {}) for r in rows if r["kind"] == "fight-end"}  # fmt: skip
+    ends = {r.get("fight"): r.get("result", {}) for r in rows if r["kind"] == "encounter-end"}  # fmt: skip
     out = []
     for r in rows:
-        if r["kind"] == "fight-open" and lo <= r["n"] <= hi and r["n"] in ends:
+        if r["kind"] == "encounter-open" and lo <= r["n"] <= hi and r["n"] in ends:
             res = ends[r["n"]]
             standing = ", ".join(res.get("party_survivors", []) + res.get("foe_survivors", [])) or "no one"  # fmt: skip
             said = {"party": "the party won", "foe": "the party fell", "stalemate": "neither side fell"}.get(res.get("outcome"), f"it ended {res.get('outcome')!r}")  # fmt: skip

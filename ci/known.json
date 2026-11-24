@@ -52,21 +52,9 @@
     },
     {
       "group": "a password typed with its label",
-      "where": "box/fight.py",
-      "what": "value not shown",
-      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is a path joined with pathlib's /, the-table / aetheris5e, no credential"
-    },
-    {
-      "group": "a password typed with its label",
       "where": "tests/test_play.py",
       "what": "value not shown",
       "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here it is a path joined with pathlib's /, pile / sessions, no credential"
-    },
-    {
-      "group": "a password typed with its label",
-      "where": "box/dw_story.py",
-      "what": "value not shown",
-      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here a path built from a folder and two names, `parents[1] / \"the-table\" / \"aetheris5e\"`, no credential"
     }
   ],
   "ref-check": [

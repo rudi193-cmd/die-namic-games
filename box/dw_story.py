@@ -24,7 +24,7 @@ A character's own `"fight": {...}` in the world file wins over any of these
 its hero has 30 hit points gets 30. Only seated characters fight for the
 party, as the box seats them (`"seat": true`).
 
-A stat block (aetheris5e's `statblocks.py`) already is numbers: armor class,
+A stat block (aetheris5e's, in willow's play-fight5e) already is numbers: armor class,
 hit points, initiative, and attacks with a bonus and a damage expression. Its
 first attack is used, `multiattack` blows a turn; its specials, saves and
 resistances are NOT carried (nothing here reads them).
@@ -36,9 +36,10 @@ import json
 import sys
 from pathlib import Path
 
-AETHERIS = Path(__file__).resolve().parents[1] / "the-table" / "aetheris5e"
-sys.path.insert(0, str(AETHERIS))
-import statblocks
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import willow_pin
+
+statblocks = willow_pin.addon("play-fight5e", "statblocks")  # aetheris5e's, in willow
 
 FIGHT_KEYS = {"hp", "ac", "init_mod", "attack_bonus", "damage", "attacks"}
 

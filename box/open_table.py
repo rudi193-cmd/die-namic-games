@@ -171,7 +171,7 @@ def cmd_page(table: Path, which: str) -> int:
     if chain.returncode != kernel.ALIVE:
         return fail(f"the chain: {(chain.stderr or chain.stdout).strip()}")
     rows, _ = kernel.read(box / "record.jsonl")
-    if which == "check" and any(r["kind"] == "fight-open" for r in rows):
+    if which == "check" and any(r["kind"] == "encounter-open" for r in rows):
         fights = run(str(FIGHT), "--table", str(table), "check")
         print("\n## the fights\n" + (fights.stdout or fights.stderr).rstrip())
         if fights.returncode != kernel.ALIVE:

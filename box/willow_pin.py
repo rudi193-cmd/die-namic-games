@@ -66,3 +66,37 @@ def root() -> Path:
         "set WILLOW_ROOT, or check willow out beside die-namic-games. "
         + "; ".join(tried)
     )
+
+
+def script(name: str) -> Path:
+    """An add-on's script in the pinned willow, by the add-on's name: where it
+    lives (adapters/stdlib or adapters/deps), its dashes as underscores. Only
+    a pinned add-on: one willow.pin.json doesn't name is refused."""
+    if name not in pin()["add_ons"]:
+        raise Unpinned(f"{name} isn't an add-on willow.pin.json pins")
+    base = root() / "adapters"
+    for kind in ("stdlib", "deps"):
+        f = base / kind / name / (name.replace("-", "_") + ".py")
+        if f.is_file():
+            return f
+    raise Unpinned(f"{name} is pinned but not in the willow at {base.parent}")
+
+
+def addon(name: str, module: str = ""):
+    """A pinned add-on's script loaded as a module, once: what the box reads
+    with it (a page, a sheet) is the add-on's own code, never a copy here.
+    MODULE names another file of the add-on's (play-fight5e's statblocks),
+    loaded with the add-on's folder first on the path, as its script is."""
+    import importlib.util
+    import sys
+
+    main = script(name)
+    key = "willow_" + name.replace("-", "_") + ("_" + module if module else "")
+    if key not in sys.modules:
+        if module:
+            sys.path.insert(0, str(main.parent))
+        spec = importlib.util.spec_from_file_location(key, main.with_name(module + ".py") if module else main)  # fmt: skip
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules[key] = mod  # a dataclass looks itself up by its module
+        spec.loader.exec_module(mod)
+    return sys.modules[key]

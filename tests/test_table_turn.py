@@ -144,7 +144,7 @@ def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
         in out
     )
     assert "⚔️  the party ambushed by 4 Scorched Belt Raiders" in out
-    end = next(r for r in rows(home) if r["kind"] == "fight-end")["result"]
+    end = next(r for r in rows(home) if r["kind"] == "encounter-end")["result"]
     said = {"party": "The party won", "foe": "The party fell"}[end["outcome"]]
     assert f"⚔️  {said} in {end['rounds']} rounds. Still standing: " in out
     assert "(What the fight means for the story is yours to say, GM.)\n  Enter: roll" in out  # fmt: skip
@@ -153,12 +153,12 @@ def test_a_fight_in_the_story_it_belongs_to_is_kept_and_checks(home):
     )  # the board, after
     assert out.index("  Their side") < out.index(f"⚔️  {said} in")
     held = subprocess.run([sys.executable, BOX / "fight.py", "--table", home / "table", "check"], capture_output=True, text=True, check=False)  # fmt: skip
-    assert held.returncode == 0 and held.stdout.startswith("1 fight on the record")
+    assert held.returncode == 0 and held.stdout.startswith("1 encounter on the record")
 
 
 def test_no_fight_where_it_doesnt_belong(home):
     _code, out, _left = table_turn(home, [("Which story?", ""), (">", "f")])
-    assert "Press Enter to roll, type your two dice (like 4 6), or h, o, s, u, x or p." in out and "fight-open" not in json.dumps(rows(home))  # fmt: skip
+    assert "Press Enter to roll, type your two dice (like 4 6), or h, o, s, u, x or p." in out and "encounter-open" not in json.dumps(rows(home))  # fmt: skip
 
 
 LAMP = (
@@ -180,7 +180,7 @@ def test_x_at_a_roll_sets_the_part_aside_and_the_gm_says_what_happens(home):
     assert "   Said aloud.\n" in out and not any(t in out for t in LAMP)
     assert not left
     xs = [r for r in rows(home) if r["kind"] == "table-x"]
-    assert len(xs) == 1 and xs[0]["who"] == "table" and xs[0]["at"] == 0
+    assert len(xs) == 1 and xs[0]["who"] == "lines-veils" and xs[0]["at"] == 0
     assert not {"why", "reason", "for", "because", "name", "character", "by"} & set(xs[0])  # fmt: skip
 
 
@@ -452,7 +452,9 @@ def test_a_fight_the_story_turns_on_is_the_gms_call_and_the_next_moment_follows_
     offer = next(r for r in rows(home) if r["kind"] == "table-offer" and r.get("as") == "fight")  # fmt: skip
     answer = [r["kind"] for r in rows(home) if r.get("subject") == offer["subject"] and r["kind"] in ("seal", "decline")]  # fmt: skip
     assert answer == ["seal" if call == "y" else "decline"]
-    end = next(r for r in rows(home) if r["kind"] == "fight-end")["result"]["outcome"]
+    end = next(r for r in rows(home) if r["kind"] == "encounter-end")["result"][
+        "outcome"
+    ]
     assert ("Your word over the dice" in out) == ((end == "party") != (call == "y"))
     assert all(c.returncode == 0 for c in checks(home)), [
         c.stderr for c in checks(home)
@@ -485,7 +487,7 @@ def test_p_at_a_roll_pauses_the_whole_night_and_it_is_picked_up_again(home):
     assert code == 42 and not left
     assert "Paused. Nobody needs to say why. Run this again when you're ready." in out
     pauses = [r for r in rows(home) if r["kind"] == "table-pause"]
-    assert len(pauses) == 1 and pauses[0]["who"] == "table"
+    assert len(pauses) == 1 and pauses[0]["who"] == "lines-veils"
     assert not {"why", "reason", "for", "because", "name", "character", "by"} & set(pauses[0])  # fmt: skip
     assert not [r for r in rows(home) if r["kind"] == "table-x"]
     _code, again, _ = table_turn(home, [("Which story?", ""), (">", "")])
@@ -510,7 +512,7 @@ def test_x_at_the_gms_call_sets_it_aside_and_decides_nothing(home):
     assert "It's true now." not in out and "It didn't happen." not in out
     new = rows(home)[len(before) :]
     xs = [r for r in new if r["kind"] == "table-x"]
-    assert len(xs) == 1 and xs[0]["part"] == "call" and xs[0]["who"] == "table"
+    assert len(xs) == 1 and xs[0]["part"] == "call" and xs[0]["who"] == "lines-veils"
     assert not [r for r in new if r["kind"] in ("seal", "decline")]
     assert not {"why", "reason", "for", "because", "name", "character", "by"} & set(xs[0])  # fmt: skip
 

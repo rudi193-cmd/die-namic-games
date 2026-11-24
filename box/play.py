@@ -135,14 +135,26 @@ except willow_pin.Unpinned as e:
     raise SystemExit(2) from None
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "adapters" / "stdlib" / "game-master"))
-import carry
 import clash
 import game_master as gm
 import kernel
-import safety
 import session
 
+carry = willow_pin.addon("carry-sheet")  # what the characters carry and come through
+safety = willow_pin.addon("lines-veils")  # what never happens at our table
+
 KERNEL = ROOT / "kernel.py"
+
+
+def addon(name: str, *argv: str) -> str:
+    """A pinned add-on run by its command line, writing its own rows; what it
+    printed. One that refuses stops the night with its reason, never quietly."""
+    done = subprocess.run([sys.executable, str(willow_pin.script(name)), *argv], capture_output=True, text=True, check=False)  # fmt: skip
+    if done.returncode != kernel.ALIVE:
+        raise SystemExit(f"{name} refused: {done.stderr.strip()}")
+    return done.stdout
+
+
 TOWER = ROOT / "adapters" / "stdlib" / "dice-tower" / "dice_tower.py"
 SEAL_END = ROOT / "adapters" / "stdlib" / "session-seal" / "session_seal.py"
 FIRST = "lantern-fair"  # the story offered when none has been played
@@ -561,14 +573,15 @@ def aside(table: Path, now: str, game: dict, at: int | None = None, part: str = 
     names no one and gives no reason: `game` is the story's open row, `at`
     the moment it is for (how many it had played). At a GM's call or moment
     (PART "call" or "moment") the row says which kind of part, nothing more."""
-    more = {"part": part} if part else {}
-    kernel.append(table / "record", now, safety.X, who="table", game=game["open"]["n"], at=len(game["beats"]) if at is None else at, **more)  # fmt: skip
+    at = len(game["beats"]) if at is None else at
+    more = ["--part", part] if part else []
+    addon("lines-veils", "--box", str(table / "record"), "x", "--game", str(game["open"]["n"]), "--at", str(at), *more, "--now", now)  # fmt: skip
 
 
 def pause(table: Path, now: str, game: dict) -> None:
     """The pause: the whole night stopped, kept as only that it was (a
     `table-pause` row: no one named, no reason). Raises Pause."""
-    kernel.append(table / "record", now, safety.PAUSE, who="table", game=game["open"]["n"], at=len(game["beats"]))  # fmt: skip
+    addon("lines-veils", "--box", str(table / "record"), "pause", "--game", str(game["open"]["n"]), "--at", str(len(game["beats"])), "--now", now)  # fmt: skip
     raise Pause
 
 
@@ -619,7 +632,7 @@ def write_on_sheet(box: Path, world: dict, now: str) -> bool | None:
         if got is None:
             print(f"   Start with a name ({', '.join(names)}), then finds, uses, is hurt or is healed.")  # fmt: skip
             continue
-        kernel.append(box, now, carry.KIND, who="gm", **got)
+        addon("carry-sheet", "--box", str(box), "write", "--names", ",".join(names), line, "--now", now)  # fmt: skip
         print(f"   On {got['char']}'s sheet.")
         kept = True
 
@@ -972,7 +985,7 @@ def fight(table: Path, now: str, world: dict | None = None, world_file: Path | N
     if shown.returncode == kernel.ALIVE:
         print("\n" + shown.stdout.rstrip() + "\n")
     rows, _ = kernel.read(table / "record" / "record.jsonl")
-    res = next(r for r in reversed(rows) if r["kind"] == "fight-end")["result"]
+    res = next(r for r in reversed(rows) if r["kind"] == "encounter-end")["result"]
     said = {"party": "The party won", "foe": "The party fell", "stalemate": "Neither side fell"}.get(res["outcome"], "It ended")  # fmt: skip
     standing = ", ".join(res["party_survivors"] + res["foe_survivors"]) or "no one"
     print(f"⚔️  {said} in {res['rounds']} rounds. Still standing: {standing}.")

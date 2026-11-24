@@ -1049,3 +1049,37 @@ pinned 0.29.0, floor 0.5.0), and Die-Namic plays it through the pin.
 Still in `box/` and owed the same move: fight.py and board.py (aetheris5e's
 fights), carry.py, exhaustion.py, safety.py, clash.py, ideas.py, paper.py,
 follow.py, bring.py, table_scene.py.
+
+### Round 11: the other engines moved into willow (2026-11-23)
+
+The same move as Round 10, for every engine left in `box/`. Each is a willow
+add-on of its own, on a branch of its own; the pin names a local branch,
+`die-namic/engines`, that merges them, until they are on willow's main.
+
+| Was here | Is now, in willow | What Die-Namic keeps |
+|---|---|---|
+| `box/safety.py` | `lines-veils` (rows `table-x`, `table-pause`) | play.py reads it through the pin and writes the X-card and the pause by its command line |
+| `box/carry.py` | `carry-sheet` (rows `table-carry`) | the same: read through the pin, written by its command line |
+| `box/exhaustion.py` | `exhaustion` | nothing (nothing on the play path used it) |
+| `box/clash.py` | `game-canon` (rows `table-replaces`, `table-both`) | `clash.py`: the GM's typed choice, and the kernel's seal on the replacement game-canon hands in |
+| `box/ideas.py` | `story-ideas` | `ideas.py`, a caller that hands it the table's record, worlds and binder |
+| `box/fight.py`, `box/board.py`, the-table's `aetheris5e/combat.py` and `statblocks.py` | `play-fight5e` (rows `encounter-open`, `encounter-blow`, `encounter-end`) | `fight.py`, a caller with the same command line; dice go in `tower/encounters` |
+
+Changed on the way:
+
+- **aetheris5e's fights roll on the tower**, every die dropped and brought
+  out, each blow naming the dice behind it, as the story's own fights do. The
+  seed from the row before is gone, and with it the tests that held it; a
+  given fight no longer comes out as that seed gave it. Its rules, stat
+  blocks and encounters are unchanged.
+- **Row kinds:** `fight-open`, `fight-blow` and `fight-end` are now
+  `encounter-*`. A night written before this with the old kinds is no longer
+  read by `check`, `board` or the recap.
+- **`who` on the rows** the add-ons write is the add-on's name (`lines-veils`,
+  `carry-sheet`, `game-canon`, `play-fight5e`), where it was `table`, `gm`,
+  `die-namic` or `fight`. Nothing reads `who`.
+- `dice5e.py` stays in the-table for `gm5e`, `monte_carlo` and `sealed_run`.
+
+Still in `box/`, as the table's own way in: play.py, session.py,
+open_table.py, write.py, author.py, ask.py, table_scene.py and the screens
+(paper.py, follow.py, bring.py), and dw_story.py's made-up fighter defaults.

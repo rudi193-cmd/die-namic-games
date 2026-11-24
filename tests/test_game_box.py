@@ -855,7 +855,9 @@ def test_ideas_with_no_seed_are_dealt_from_todays(t):
 
 
 def test_a_capital_is_lowered_only_where_a_word_begins_a_sentence():
-    import ideas
+    import willow_pin
+
+    ideas = willow_pin.addon("story-ideas")
 
     assert ideas.lower_first("The hound") == "the hound"
     assert ideas.lower_first("NASA sent it") == "NASA sent it"
@@ -865,14 +867,16 @@ def test_a_capital_is_lowered_only_where_a_word_begins_a_sentence():
 def test_a_place_keeps_its_name_mid_sentence_but_its_the(t):
     """ "At Cogwen's workshop", never "At cogwen's workshop": only a place's
     leading The is lowered, as a person's is."""
-    import ideas
+    import willow_pin
+
+    ideas = willow_pin.addon("story-ideas")
 
     t.open()
     (t.dir / "worlds" / "wasp-nest.json").write_text(
         py(HERE / "author.py", t.dir / "stories" / "wasp-nest.md").stdout
     )
     rows = kernel.read(t.box / "record.jsonl")[0]
-    places = ideas.grammar(t.dir, rows)["place"]
+    places = ideas.grammar(t.box, t.dir / "worlds", t.dir / "pile", rows)["place"]
     assert "Cogwen's workshop" in places and "the cellar ceiling" in places
 
 
