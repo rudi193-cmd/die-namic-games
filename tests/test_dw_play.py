@@ -1,7 +1,7 @@
 """The story's own fight on the play path: a story that names its foes gets f, the heroes
-fight one of them with dndwright on dice dropped in the tower, every blow is a row, the
-GM's call on how it stands is asked as for any fight, and `open_table.py check` reads the
-fight back from the record alone."""
+fight one of them with willow's play-fight on dice dropped in the tower, every blow is a
+row, the GM's call on how it stands is asked as for any fight, and `open_table.py check`
+has play-fight read the fight back from the record alone."""
 
 from __future__ import annotations
 
@@ -14,8 +14,9 @@ from pathlib import Path
 import pytest
 from test_table_turn import BOX, rows, table_turn
 
-sys.path.insert(0, str(BOX))
-import dw_record
+pytest.importorskip(
+    "dndwright"
+)  # the story's own fights are play-fight's, on dndwright
 
 
 @pytest.fixture(scope="module")
@@ -78,14 +79,16 @@ def test_the_heroes_fight_a_foe_and_every_blow_is_a_row_that_checks_from_the_rec
     assert "(What the fight means for the story is yours to say, GM.)" in out
     recs = rows(home)
     kinds = {r["kind"] for r in recs}
-    assert {"xfight-open", "xfight-row", "tower-drop", "tower-out"} <= kinds
+    assert {"fight-begin", "fight-row", "tower-drop", "tower-out"} <= kinds
     assert (
-        not {"fight-open", "fight-blow", "fight-end"} & kinds
+        not {"encounter-open", "encounter-blow", "encounter-end"} & kinds
     )  # fight.py's are not touched
-    assert dw_record.check_record(home / "table" / "record") is None
     done = subprocess.run([sys.executable, str(BOX / "open_table.py"), "check", "--table", str(home / "table")], capture_output=True, text=True, check=False)  # fmt: skip
     assert "## the story's own fights" in done.stdout, done.stdout + done.stderr
-    assert "every one played again on the tower's own dice and holds" in done.stdout
+    assert "1 fight on the record, every one holds" in done.stdout
+    assert (
+        "the story's own fights:" not in done.stderr
+    )  # check's own exit is the stack's
 
 
 def test_the_story_that_turns_on_a_fight_asks_the_gm_how_it_stands(home):
