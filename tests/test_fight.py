@@ -1,10 +1,9 @@
 """box/fight.py: aetheris5e's fights, blow by blow on a box's record.
 
-The fights are willow's play-fight5e add-on, through the pin (aetheris5e's
-engine and stat blocks, on the tower's dice); what is tested here is that a
-table keeps one through box/fight.py: every blow a kernel row, and a fight
-edited after the fact refused even when its forger rehashes the chain. The
-engine's own tests are play-fight5e's. The table is the test's, laid in a
+The fights are the-table's (aetheris5e's engine and stat blocks); what is
+tested here is that a box keeps one: every blow a kernel row, the dice
+seeded by the row before, and a fight edited after the fact refused even
+when its forger rehashes the chain. The table is the test's, laid in a
 scratch folder with its own key; nothing here seals."""
 
 from __future__ import annotations
@@ -18,7 +17,6 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("dice")  # play-fight5e's dice library
 BOX = Path(__file__).resolve().parents[1] / "box"
 sys.path.insert(0, str(BOX))
 import willow_pin
@@ -75,33 +73,36 @@ def test_a_fight_is_kept_blow_by_blow_and_checks(table):
     before = len(rows(table))
     got = fight(table, "fight", "warden")
     assert got.returncode == 0, got.stderr
-    kept = [r for r in rows(table)[before:] if r["kind"].startswith("encounter-")]
+    kept = rows(table)[before:]
     opened, *blows, end = kept
-    assert opened["kind"] == "encounter-open" and opened["encounter"] == "warden"
-    assert {r["kind"] for r in rows(table)[before:]} == {"encounter-open", "encounter-blow", "encounter-end", "tower-drop", "tower-out"}  # fmt: skip
-    assert blows and {b["kind"] for b in blows} == {"encounter-blow"}
+    assert opened["kind"] == "fight-open" and opened["encounter"] == "warden"
+    assert opened["seed"] == rows(table)[before - 1]["hash"]  # nobody picked it
+    assert blows and {b["kind"] for b in blows} == {"fight-blow"}
     assert {b["fight"] for b in blows} == {end["fight"]} == {opened["n"]}
     assert blows[0]["note"].startswith("initiative: ")
     assert all(f"  {b['note']}" in got.stdout for b in blows)
     res = end["result"]
     assert f"{res['outcome'].upper()} in {res['rounds']} rounds" in got.stdout
-    assert {r["who"] for r in kept} == {"play-fight5e"}
+    assert {r["who"] for r in kept} == {"fight"}
     assert {r["ts"] for r in kept} == {NOW[1]}  # the time given, not the clock's
     assert not [
         r for r in rows(table) if r["kind"] in ("seal", "decline")
     ]  # it seals nothing
     ok = fight(table, "check")
     assert (
-        ok.returncode == 0
-        and ok.stdout == "1 encounter on the record; every blow holds\n"
+        ok.returncode == 0 and ok.stdout == "1 fight on the record; every blow holds.\n"
     )
 
 
-def test_two_fights_on_one_record_both_hold(table):
-    assert fight(table, "fight", "raiders").returncode == 0
-    assert fight(table, "fight", "raiders").returncode == 0
-    ok = fight(table, "check")
-    assert ok.returncode == 0 and ok.stdout.startswith("2 encounters on the record")
+def test_the_same_record_gives_the_same_fight_and_the_next_a_new_one(laid, tmp_path):
+    a, b = (shutil.copytree(laid, tmp_path / n) for n in "ab")
+    first, again = fight(a, "fight", "raiders"), fight(b, "fight", "raiders")
+    assert first.returncode == again.returncode == 0
+    assert first.stdout == again.stdout
+    second = fight(a, "fight", "raiders")  # seeded by the first fight's end
+    assert second.stdout.split("\n", 1)[1] != first.stdout.split("\n", 1)[1]
+    ok = fight(a, "check")
+    assert ok.returncode == 0 and ok.stdout.startswith("2 fights on the record")
 
 
 def test_a_blow_edited_and_the_chain_rehashed_is_refused(table):
@@ -109,7 +110,7 @@ def test_a_blow_edited_and_the_chain_rehashed_is_refused(table):
 
     def edit(old):
         hit = next(
-            r for r in old if r["kind"] == "encounter-blow" and " hits " in r["note"]
+            r for r in old if r["kind"] == "fight-blow" and " hits " in r["note"]
         )
         hit["note"] = hit["note"].replace(" hits ", " misses ", 1)
         return old
@@ -117,10 +118,12 @@ def test_a_blow_edited_and_the_chain_rehashed_is_refused(table):
     forge(table, edit)
     got = fight(table, "check")
     assert got.returncode == 2
-    assert "isn't what its dice give" in got.stderr, got.stderr
+    assert "blow " in got.stderr and "isn't what its seed gives" in got.stderr, (
+        got.stderr
+    )
 
 
-@pytest.mark.parametrize("cut", ["encounter-blow", "encounter-end"])
+@pytest.mark.parametrize("cut", ["fight-blow", "fight-end"])
 def test_a_blow_or_the_ending_dropped_is_refused(table, cut):
     fight(table, "fight", "warden")
 
@@ -130,9 +133,19 @@ def test_a_blow_or_the_ending_dropped_is_refused(table, cut):
 
     forge(table, drop)
     got = fight(table, "check")
-    assert got.returncode == 2 and "the encounter opened at row" in got.stderr, (
-        got.stderr
-    )
+    assert got.returncode == 2 and "its seed gives" in got.stderr, got.stderr
+
+
+def test_a_seed_that_isnt_the_row_before_is_refused(table):
+    fight(table, "fight", "warden")
+
+    def reseed(old):
+        next(r for r in old if r["kind"] == "fight-open")["seed"] = "0" * 64
+        return old
+
+    forge(table, reseed)
+    got = fight(table, "check")
+    assert got.returncode == 2 and "its seed isn't the hash of the row before it" in got.stderr  # fmt: skip
 
 
 def test_a_row_edited_without_its_hash_is_the_chains_to_refuse(table):
@@ -210,14 +223,14 @@ def test_the_tables_check_plays_its_fights_again(table):
     assert "## the fights" not in py(BOX / "open_table.py", "check", "--table", table).stdout  # fmt: skip
     fight(table, "fight", "bruiser")
     ok = py(BOX / "open_table.py", "check", "--table", table)
-    assert "## the fights\n1 encounter on the record; every blow holds" in ok.stdout, (
+    assert "## the fights\n1 fight on the record; every blow holds." in ok.stdout, (
         ok.stderr
     )
     assert ok.returncode != 2
 
     def edit(old):
         hit = next(
-            r for r in old if r["kind"] == "encounter-blow" and " hits " in r["note"]
+            r for r in old if r["kind"] == "fight-blow" and " hits " in r["note"]
         )
         hit["note"] = hit["note"].replace(" hits ", " misses ", 1)
         return old
@@ -226,9 +239,24 @@ def test_the_tables_check_plays_its_fights_again(table):
     bad = py(BOX / "open_table.py", "check", "--table", table)
     assert (
         bad.returncode == 2
-        and "refused: the fights: play-fight5e: the encounter opened at row"
-        in bad.stderr
+        and "refused: the fights: refused: fight at row" in bad.stderr
     ), bad.stderr
+
+
+def test_a_fights_dice_are_its_seed_read_as_hex(table):
+    """The rule a fight is replayed by, by hand or by check: random.Random of
+    the seed read as a hexadecimal number, the engine and stat blocks as
+    aetheris5e has them."""
+    import random
+
+    import fight as f
+
+    combat, statblocks = f.engine()
+    seed = "00ff" * 16
+    blows, res = f.play("raiders", seed)
+    kept = f.Kept()
+    again = combat.Combat(statblocks.build_encounter("raiders"), random.Random(int(seed, 16)), sink=kept).run()  # fmt: skip
+    assert blows == kept.blows and res == json.loads(json.dumps(again))
 
 
 def test_the_opening_screen_tells_the_gm_how_last_nights_fights_ended(table):
@@ -282,9 +310,9 @@ def test_the_board_needs_no_dice_only_the_rows(table):
 
 
 def test_a_board_it_cant_draw_is_refused(table):
-    assert board(table).stderr == "play-fight5e: no encounter on the record\n"
+    assert board(table).stderr == "refused: no fight on the record\n"
     assert fight(table, "fight", "raiders").returncode == 0
-    at = next(r["n"] for r in rows(table) if r["kind"] == "encounter-open")
-    assert board(table, "--fight", "1").stderr == f"play-fight5e: row 1 doesn't open an encounter; encounters open at rows {at}\n"  # fmt: skip
+    at = next(r["n"] for r in rows(table) if r["kind"] == "fight-open")
+    assert board(table, "--fight", "1").stderr == f"refused: row 1 doesn't open a fight; fights open at rows {at}\n"  # fmt: skip
     assert board(table, "--round", "x").returncode == 2
     assert board(table, "--fight", str(at)).returncode == 0

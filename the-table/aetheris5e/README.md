@@ -12,7 +12,7 @@ registry, or tests; it imports only the-table's host shim (`the_table/host.py`),
 which writes every roll as a `verdict` row in the one-script record, the one
 chain (willows-grove `docs/design/one-script/flatten-2026-10-19.md` F-6). The
 one-script must be beside the-table (`../willow-bot/one-script`, or
-`ONESCRIPT_HOME`); with none, `gm5e` and `sealed_run` say why
+`ONESCRIPT_HOME`); with none, `gm5e`, `sealed_run` and `combat fight` say why
 and exit 2.
 
 The one covenant is identical to the-table's and to `ai-game-master`'s:
@@ -28,7 +28,9 @@ The one covenant is identical to the-table's and to `ai-game-master`'s:
 | `monte_carlo.py` | Runs the whole adventure at volume (default 500 seeded rounds) for three level-3 pregens side by side, and reports where the average rolls out — per-beat success rates, successes-per-run distribution, the "night held together" verdict, and the one beat no policy can resolve. |
 | `gm5e.py` | A live 5e roller CLI (checks, saves, attacks, damage) that appends every roll to the one-script record the moment it happens. `propose` puts a fact before the human as a proposal; `seal` refuses (a seal is the human's, made with their key through the one-script). |
 | `sealed_run.py` | One live playthrough to Maunder's question, then the decision: the machine's seal attempt **refused**, the beat **proposed** for the human's seal (`onescript seal proposal:<hash> --proof ...`), the chain **verified**, and a tampered copy **rejected**. Until flatten F3 the seal itself is the one-script's, not this script's. |
-| `combat.py`, `statblocks.py` | Moved into willow's `play-fight5e` add-on (the engine, the six stat blocks, the pregens and the four encounters), with their tests. |
+| `statblocks.py` | The campaign's six stat blocks (Aether Construct, Mind-Forge Warden, Tide-Touched Scout, Engine-Blooded Bruiser, Scorched Belt Raider, Concord Enforcer) plus the three level-3 pregens as combat sheets, and four named encounters. Each is a fresh-object factory. |
+| `combat.py` | A real 5e combat engine over those stat blocks: initiative, multiattack, attack-vs-AC with crits, typed **damage resistance** (the Bruiser halves force, the Warden halves nonmagical weapons), recharge/AoE specials (Override Pulse stun, Aether Discharge, Salt Spray blind), Overheat, Sneak Attack, Action Surge + a superiority die. Every swing is a `verdict` row; `sim` runs the encounter at volume for balance. |
+| `test_combat.py` | Locks the engine (14 tests) — resistances, stun-skips-turn, dead-don't-act, seeded reproducibility, and the forbidden act: a **tampered combat log refuses to verify**. |
 
 ## Run it
 
@@ -40,18 +42,23 @@ python3 gm5e.py open "Aetheris"     # provision a live campaign box
 python3 gm5e.py check Aether 5 13 --adv "attune to the broadcast"
 python3 sealed_run.py                     # a full playthrough + proposal + tamper test
 
-python3 play_fight5e.py list              # in willow's adapters/deps/play-fight5e: the four encounters
-python3 play_fight5e.py sim enforcers --runs 500   # where a fight rolls out, at volume
+python3 combat.py list                    # the four encounters
+python3 combat.py fight warden --seed 3   # one logged fight, round by round + tamper test
+python3 combat.py sim enforcers 500       # where a fight rolls out, at volume
+python3 -m unittest test_combat           # the engine's own tests
 ```
 
 ### Combat, on the record
 
-The combat engine, the six stat blocks, the three pregens and the four
-encounters moved into willow as the `play-fight5e` add-on (2026-11-23), where
-Die-Namic's `box/fight.py` plays them through its pin, on dice dropped in
-willow's dice-tower. Its rules are the ones written here before; only where
-the dice come from changed. `dice5e.py` stays here for `gm5e`,
-`monte_carlo` and `sealed_run`.
+`combat.py` extends the harness from skill checks to full initiative combat.
+The machine rolls initiative, attacks, saves, and damage, and **remembers**
+every swing in a tamper-evident chain (`fight` verifies the log, then rewrites
+one hit in a copy and watches the verifier refuse) — it still never seals
+anything. The engine owns its own `random.Random`, so a seeded fight (and a
+`sim` sweep) is reproducible. Measured at N=500 the four shipped encounters
+land from a stomp (raiders) through a coin-flip boss (the Warden) to
+action-economy meat-grinders (enforcers, bruiser) — an honest read for a
+healerless level-3 party with no death saves, not a tuned one.
 
 ## Data stays home
 

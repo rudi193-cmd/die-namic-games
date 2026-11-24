@@ -1,12 +1,8 @@
-"""dw_story.py: a story's characters, and aetheris5e's stat blocks, as fighters for willow's play-fight. Python 3.9+.
-
-A fighter is the object play-fight's fighters file holds (its card names the
-fields): name, side, hp, ac, init_mod, attack_bonus, damage, attacks. This
-file says where the numbers come from; play-fight, through the pin, fights.
+"""dw_story.py: a story's characters, and aetheris5e's stat blocks, as dw_fight's Fighters. Python 3.9+.
 
 A story character has a name and a bonus on some of the story's own stats
 (the lantern fair: Grit, Wit, Heart), over a base. It has no hit points, armor
-class or attack. These are the defaults this file MAKES UP, so a fight has
+class or attack. These are the defaults this spike MAKES UP, so the spike has
 one answer; they are a design decision for the table, not a rule from any SRD:
 
   stats        the story's own list; by position: the first is the body
@@ -24,7 +20,7 @@ A character's own `"fight": {...}` in the world file wins over any of these
 its hero has 30 hit points gets 30. Only seated characters fight for the
 party, as the box seats them (`"seat": true`).
 
-A stat block (aetheris5e's, in willow's play-fight5e) already is numbers: armor class,
+A stat block (aetheris5e's `statblocks.py`) already is numbers: armor class,
 hit points, initiative, and attacks with a bonus and a damage expression. Its
 first attack is used, `multiattack` blows a turn; its specials, saves and
 resistances are NOT carried (nothing here reads them).
@@ -36,10 +32,11 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import willow_pin
+from dw_fight import Fighter
 
-statblocks = willow_pin.addon("play-fight5e", "statblocks")  # aetheris5e's, in willow
+AETHERIS = Path(__file__).resolve().parents[1] / "the-table" / "aetheris5e"
+sys.path.insert(0, str(AETHERIS))
+import statblocks
 
 FIGHT_KEYS = {"hp", "ac", "init_mod", "attack_bonus", "damage", "attacks"}
 
@@ -50,8 +47,8 @@ def _bonus(c: dict, stats: list[str], i: int) -> int:
     return int(c.get("stats", {}).get(stats[i], 0))
 
 
-def from_character(c: dict, stats: list[str], side: str = "party") -> dict:
-    """One story character as a fighter, by the defaults above; `c["fight"]` overrides them."""
+def from_character(c: dict, stats: list[str], side: str = "party") -> Fighter:
+    """One story character as a Fighter, by the defaults above; `c["fight"]` overrides them."""
     given = c.get("stats", {})
     body = _bonus(c, stats, 0)
     total = sum(int(v) for v in given.values())
@@ -71,33 +68,33 @@ def from_character(c: dict, stats: list[str], side: str = "party") -> dict:
             f"{c.get('name')}: fight has no {sorted(unknown)}; it takes {sorted(FIGHT_KEYS)}"
         )
     made.update(own)
-    return {"name": c["name"], "side": side, **made}
+    return Fighter(name=c["name"], side=side, **made)
 
 
-def party_from_world(world: dict) -> list[dict]:
+def party_from_world(world: dict) -> list[Fighter]:
     """The seated characters of a story, as the party."""
     stats = list(world.get("stats", []))
     return [from_character(c, stats) for c in world["characters"] if c.get("seat")]
 
 
-def from_statblock(key: str, name: str | None = None) -> dict:
-    """One of aetheris5e's foes (a key of statblocks.FOES) as a fighter."""
+def from_statblock(key: str, name: str | None = None) -> Fighter:
+    """One of aetheris5e's foes (a key of statblocks.FOES) as a Fighter."""
     if key not in statblocks.FOES:
         raise KeyError(f"no foe {key!r}; known: {sorted(statblocks.FOES)}")
     sb = statblocks.FOES[key]()
     if not sb["attacks"]:
         raise ValueError(f"{key} has no attack to fight with")
     a = sb["attacks"][0]
-    return {
-        "name": name or sb["name"],
-        "side": "foes",
-        "hp": sb["hp"],
-        "ac": sb["ac"],
-        "init_mod": sb["init"],
-        "attack_bonus": a["atk"],
-        "damage": a["dmg"],
-        "attacks": sb.get("multiattack", 1),
-    }
+    return Fighter(
+        name=name or sb["name"],
+        side="foes",
+        hp=sb["hp"],
+        ac=sb["ac"],
+        init_mod=sb["init"],
+        attack_bonus=a["atk"],
+        damage=a["dmg"],
+        attacks=sb.get("multiattack", 1),
+    )
 
 
 def world(path: Path) -> dict:

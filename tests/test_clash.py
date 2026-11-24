@@ -178,21 +178,18 @@ def _clash():
 def test_tonight_is_only_what_came_after_the_last_night_ended(monkeypatch):
     clash = _clash()
     held = [{"n": n, "fact": f"fact {n}"} for n in (3, 8, 12)]
-    monkeypatch.setattr(
-        clash.canon, "standing", lambda box, rows: held
-    )  # game-canon's, through the pin
+    monkeypatch.setattr(clash, "standing", lambda box, rows: held)
     two_nights = [{"kind": "session", "to": 5}, {"kind": "session", "to": 10}]
     assert [t["n"] for t in clash.tonight(Path("."), two_nights)] == [12]
     assert [t["n"] for t in clash.tonight(Path("."), [])] == [3, 8, 12]
 
 
-def test_a_replacement_is_the_table_add_ons_own_shape(monkeypatch):
+def test_a_replacement_is_kept_under_the_old_subjects_own_hash(monkeypatch):
     clash = _clash()
     got = {}
-    monkeypatch.setattr(clash.canon.table, "hand_in", lambda box, ts, why, prop: got.update(prop) or "proposal:" + "f" * 64)  # fmt: skip
-    monkeypatch.setattr(clash.canon.kernel, "append", lambda *a, **k: None)
+    monkeypatch.setattr(clash.gm, "hand_in", lambda box, ts, why, prop: (got.update(prop) or "proposal:" + "f" * 64, None))  # fmt: skip
+    monkeypatch.setattr(clash.kernel, "append", lambda *a, **k: None)
     monkeypatch.setattr(clash, "seal", lambda *a: None)
     old = {"subject": "proposal:" + "ab12" * 16, "day": "2026-11-20", "fact": OLD}
     clash.take_back(Path("."), NOW, old)
-    assert got["path"] == "table/replaces/2026-11-20-" + "ab12" * 4 + ".md"
-    assert got["data"] == clash.SLIP + "\n"  # as the table add-on hands one in
+    assert got["path"] == "table/replaces/" + "ab12" * 4 + ".txt"

@@ -19,7 +19,7 @@ FIGHTERS = [
 
 
 def open_row(n: int = 1) -> dict:
-    return {"n": n, "kind": "fight-begin", "fighters": FIGHTERS}
+    return {"n": n, "kind": "xfight-open", "fighters": FIGHTERS}
 
 
 def blow(fight: int, target: str, hp_after: int, rnd: int = 1) -> dict:
@@ -30,11 +30,11 @@ def blow(fight: int, target: str, hp_after: int, rnd: int = 1) -> dict:
         "target": target,
         "hp_after": hp_after,
     }
-    return {"n": 0, "kind": "fight-row", "fight": fight, "row": row}
+    return {"n": 0, "kind": "xfight-row", "fight": fight, "row": row}
 
 
 def end(fight: int, winner: str, rnd: int = 9) -> dict:
-    return {"n": 0, "kind": "fight-row", "fight": fight, "row": {"kind": "end", "round": rnd, "winner": winner}}  # fmt: skip
+    return {"n": 0, "kind": "xfight-row", "fight": fight, "row": {"kind": "end", "round": rnd, "winner": winner}}  # fmt: skip
 
 
 def test_a_fighter_at_one_hit_point_stands_and_one_at_zero_does_not():
