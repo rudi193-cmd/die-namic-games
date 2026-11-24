@@ -67,12 +67,6 @@
       "where": "box/dw_story.py",
       "what": "value not shown",
       "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here a path built from a folder and two names, `parents[1] / \"the-table\" / \"aetheris5e\"`, no credential"
-    },
-    {
-      "group": "a password typed with its label",
-      "where": "box/dw_tower.py",
-      "what": "value not shown",
-      "why": "privacy's pair shape (a word, a slash, a word) taken for a login pair: here a die file's path, `self.die_dir / f\"die-{n}.json\"`, no credential"
     }
   ],
   "ref-check": [

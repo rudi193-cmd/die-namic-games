@@ -113,6 +113,7 @@ Exit codes, the kernel's: 0 done; 42 left with a call or the night waiting;
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import subprocess
@@ -673,6 +674,9 @@ def opening(table: Path, text: str) -> str:
     return text
 
 
+PLAY_FIGHT = (
+    ROOT / "adapters" / "deps" / "play-fight" / "play_fight.py"
+)  # the story's own fights, through the pin
 FIGHTS = {"aetheris-the-waking-tide"}  # the stories aetheris5e's encounters belong to
 
 
@@ -875,35 +879,36 @@ def bring_in(box: Path, world: dict, world_file: Path, now: str) -> bool | None:
 
 def story_foes(world: dict | None) -> list[tuple[str, str]]:
     """(label, stat block key) for the foes this story's own seated characters
-    can fight with dndwright (dw_story.py), or [] when they can't: dndwright
-    isn't installed, the story has no seated characters, or it is one
-    aetheris5e's own party fights in. A story opts in by naming its foes in
-    `"foes"` (keys of aetheris5e's stat blocks, e.g. "scorched_belt_raider");
-    one that doesn't has no such fight, as before."""
+    can fight with willow's play-fight (dw_story.py makes the fighters), or []
+    when they can't: dndwright isn't installed, the story has no seated
+    characters, or it is one aetheris5e's own party fights in. A story opts in
+    by naming its foes in `"foes"` (keys of aetheris5e's stat blocks, e.g.
+    "scorched_belt_raider"); one that doesn't has no such fight, as before."""
     if world is None or world["id"] in FIGHTS or not any(c.get("seat") for c in world.get("characters", [])):  # fmt: skip
         return []
-    try:
-        import dw_story
-    except ImportError:
+    import importlib.util
+
+    if importlib.util.find_spec("dndwright") is None:
         return []
-    keys = world.get("foes", [])
+    import dw_story
+
     out = []
-    for k in keys:
+    for k in world.get("foes", []):
         try:
             f = dw_story.from_statblock(k)
         except (KeyError, ValueError):
             continue
-        out.append((f"The story's own: its heroes against a {f.name} ({f.hp} hit points, armor {f.ac})", k))  # fmt: skip
+        out.append((f"The story's own: its heroes against a {f['name']} ({f['hp']} hit points, armor {f['ac']})", k))  # fmt: skip
     return out
 
 
 def story_fight(table: Path, now: str, world: dict, world_file: Path | None, game: dict | None, key: str) -> bool | None:  # fmt: skip
-    """The story's seated characters against one of aetheris5e's foes, run by
-    dndwright (dw_fight.py) on dice dropped in willow's tower one at a time,
-    every blow a row on the record (dw_record.py: `xfight-*`). Not the box's
-    other fights: fight.py never reads these, and `open_table.py check` reads
-    them from the record alone. True once fought; None if the person left."""
-    import dw_record
+    """The story's seated characters against one of aetheris5e's foes, fought
+    by willow's play-fight, through the pin: dndwright's rules, on dice dropped
+    in willow's tower one at a time, every blow a row on the record
+    (`fight-begin`, `fight-row`). Not the box's other fights: fight.py never
+    reads these, and `open_table.py check` has play-fight read them again from
+    the record alone. True once fought; None if the person left."""
     import dw_story
 
     box = table / "record"
@@ -911,18 +916,21 @@ def story_fight(table: Path, now: str, world: dict, world_file: Path | None, gam
     party = dw_story.party_from_world(world)
     folder = table / "tower" / "fights"
     folder.mkdir(parents=True, mode=0o700, exist_ok=True)
-    rows = dw_record.record(box, [*party, foe], folder, now)
-    print(f"\n⚔️  {', '.join(f.name for f in party)} against a {foe.name}")
-    for r in rows:
-        if r["kind"] == "blow":
-            hit = f"hits for {r['damage']}" + (" (a crit!)" if r["crit"] else "") + f", {r['hp_after']} left" if r["hit"] else "misses"  # fmt: skip
-            print(f"   {r['who']} → {r['target']}: {r['d20']} makes {r['total']} against {r['ac']}: {hit}")  # fmt: skip
-        elif r["kind"] == "down":
-            print(f"   {r['who']} is down.")
+    fighters = table / "tower" / "fighters.json"
+    fighters.write_text(json.dumps([*party, foe], indent=1), encoding="utf-8")
+    print(f"\n⚔️  {', '.join(f['name'] for f in party)} against a {foe['name']}")
+    done = subprocess.run([sys.executable, str(PLAY_FIGHT), "--box", str(box), "fight", "--fighters", str(fighters), "--to", str(folder), "--now", now], capture_output=True, text=True, check=False)  # fmt: skip
+    if done.returncode != kernel.ALIVE:
+        print(f"   The fight didn't happen: {done.stderr.strip()}")
+        return True
+    for line in done.stdout.splitlines():
+        if not line.startswith("("):
+            print("   " + line)
     recs, _ = kernel.read(box / "record.jsonl")
-    summary = session.xfight_summary(recs, max(r["n"] for r in recs if r["kind"] == "xfight-open"))  # fmt: skip
-    won = rows[-1].get("winner")
-    said = {"party": "The party won", "foes": "The party fell", "stalemate": "Neither side fell"}.get(won, "It ended")  # fmt: skip
+    begun = max(r["n"] for r in recs if r["kind"] == session.FIGHT_BEGIN)
+    summary = session.xfight_summary(recs, begun)
+    won = {"party": "party", "foe": "foes"}.get(summary["outcome"], "stalemate")
+    said = {"party": "The party won", "foes": "The party fell", "stalemate": "Neither side fell"}[won]  # fmt: skip
     standing = ", ".join(summary["party_survivors"] + summary["foe_survivors"]) or "no one"  # fmt: skip
     print(f"⚔️  {said} in {summary['rounds']} rounds. Still standing: {standing}.")
     if world is not None and "fight" in world.get("offers", []):

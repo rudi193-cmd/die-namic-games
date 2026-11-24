@@ -1022,3 +1022,30 @@ foes (none does now; the lantern fair is a kids' fair, and its tests say it has
 no fights); whether the made-up defaults (hit points, armor, attack) are the
 table's; whether dndwright goes in a requirements file (it is not in one: the
 repo has none); and the PR.
+
+### Round 10: the fight moved into willow (2026-11-23)
+
+The maintainer's word: Die-Namic is put together from willow's pieces, pinned
+back, and the fight had been built here instead. It is now willow's
+`play-fight` add-on (`adapters/deps/play-fight`, a deps card: dndwright,
+pinned 0.29.0, floor 0.5.0), and Die-Namic plays it through the pin.
+
+- **Gone from here:** `box/dw_fight.py`, `box/dw_record.py`, `box/dw_tower.py`
+  and their tests. The fight's tests are play-fight's own, in willow (39, at
+  the pin and at the floor).
+- **Kept here:** `box/dw_story.py`, where a fighter's numbers come from (the
+  made-up defaults are still the table's to take or change). It now makes the
+  plain objects play-fight's fighters file holds.
+- **Rows renamed:** `xfight-open` and `xfight-row` are play-fight's
+  `fight-begin` and `fight-row`; each fight row now names the tower dice
+  behind it, so the spike's limit (nothing else may use the tower during a
+  fight) is gone. A night written before this with `xfight-*` rows is no
+  longer read by `check` or the recap.
+- **The fight ends in the round** the last foe goes down; the spike said the
+  round after.
+- **The pin** moved to willow's `addons/play-fight` commit, which also brings
+  session-seal's change from willow #389 (a log's end sealed).
+
+Still in `box/` and owed the same move: fight.py and board.py (aetheris5e's
+fights), carry.py, exhaustion.py, safety.py, clash.py, ideas.py, paper.py,
+follow.py, bring.py, table_scene.py.

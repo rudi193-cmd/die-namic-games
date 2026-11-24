@@ -1,7 +1,7 @@
 {
   "_what": "Die-Namic plays with willow's kernel and add-ons where they live, in willow. This pins them: the commit, and each file the box runs at that commit by its SHA-256. box/willow_pin.py finds a willow checkout and refuses one whose files differ.",
   "willow": "https://github.com/willow-memory/Willow",
-  "commit": "370f74a3fce0f43cc5abf7aa32b2f879f8e7209d",
+  "commit": "1534d603e6b2ba81622ca0be082055eb058ab5a7",
   "add_ons": [
     "all-passages",
     "backup",
@@ -44,7 +44,8 @@
     "todo",
     "contradictions",
     "dice-tower",
-    "share"
+    "share",
+    "play-fight"
   ],
   "files": {
     "adapters/deps/ocr/README.md": "d82c1e8e212f18c39d7b98fe854ec029fa6e8d43dacccfbd10cecb1fa3e14a78",
@@ -105,8 +106,8 @@
     "adapters/stdlib/record-history/record_history.py": "b117ef493b89dbd78371b8465e949ea9dd32aa6fc49e401da0c7256b628b2def",
     "adapters/stdlib/rules/README.md": "de82b684134379c3f253047daaa36b116339665e082c0d1f7c61d6014413c39f",
     "adapters/stdlib/rules/rules.py": "80f5c2a32b4b427191e3f5dc3277552ff7b2699726f79bd35a562767bb42539f",
-    "adapters/stdlib/session-seal/README.md": "896e958b2f4c2760b591c7f69e296c978d06997cd11609e2bdb5e133ed8074bc",
-    "adapters/stdlib/session-seal/session_seal.py": "9f42a6dd02727c0eb4da201be6858d33a71dbe07fc511d3ecc392dd6acae4671",
+    "adapters/stdlib/session-seal/README.md": "4d9226597cc5defad57a2af9d627051759bac3b921eae0c4fffe6b68f862648c",
+    "adapters/stdlib/session-seal/session_seal.py": "a589f3598df83a468fce190166fc1dae33fce0fdf57f4c6c470473c612a00841",
     "adapters/stdlib/stack/README.md": "b6c229d9d9e3c6f130146bfbd0e181c7a39d97235daa16d11f7dd1b08cd4f643",
     "adapters/stdlib/stack/example.md": "9c81ef75066fff2f1a95503d8e8502aef9d34cb71638473e4190e67e5a5c3c5d",
     "adapters/stdlib/stack/examples/asked.md": "fe14038931629b8dd5c89e0b11cf1d7ad228f338397668aafc52b07ef7b44a23",
@@ -146,6 +147,10 @@
     "adapters/stdlib/dice-tower/dice_tower.py": "6d598727be32463f5c8e53542705065b76580d252ee749927e7745e13b02609d",
     "adapters/stdlib/share/README.md": "f89c46927753b89e19c205fdad8c5bc80c96d080ef8b787136cb9f0eef94f625",
     "adapters/stdlib/share/ed25519.py": "ca54a7ae5f6b7b003d6333b62db4e83704fb09088c93cab63739884212d4487e",
-    "adapters/stdlib/share/share.py": "08134908e7e6ce83e6c173a5fbe109032385398ad0d820e7e1ee8ada6c28208b"
+    "adapters/stdlib/share/share.py": "08134908e7e6ce83e6c173a5fbe109032385398ad0d820e7e1ee8ada6c28208b",
+    "adapters/deps/play-fight/README.md": "a7e5ec0038bb7e65fd900ebd1a51d9636cf853f05694d9f715462e13ce10b4c9",
+    "adapters/deps/play-fight/play_fight.py": "aa0da7c7142da367b6b75648d3d6cdb8e22e2ff0970fe49cb6588b060a00fc49",
+    "adapters/deps/play-fight/requirements.txt": "7e8770a5cacce9ccfd98a819e28c48675cca004b6897c0c8f66d8aea9525394f",
+    "adapters/deps/play-fight/requirements-floor.txt": "3f6fba9766146ecc7cf43cb568c42c9bec80a1e544eece4545888d7e754bf1e9"
   }
 }

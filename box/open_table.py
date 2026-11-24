@@ -76,6 +76,7 @@ WORDS = HERE / "gm-words.txt"
 WORLDS = HERE / "worlds"
 PAGES = {"prep": HERE / "gm-stack.md", "end": HERE / "gm-end.md", "check": HERE / "check.md", "family": HERE / "family-night.md"}  # fmt: skip
 SESSION = HERE / "session.py"
+PLAY_FIGHT = ROOT / "adapters" / "deps" / "play-fight" / "play_fight.py"
 FIGHT = HERE / "fight.py"
 STDLIB = ROOT / "adapters" / "stdlib"
 RULES = STDLIB / "rules" / "rules.py"
@@ -175,16 +176,12 @@ def cmd_page(table: Path, which: str) -> int:
         print("\n## the fights\n" + (fights.stdout or fights.stderr).rstrip())
         if fights.returncode != kernel.ALIVE:
             return fail(f"the fights: {fights.stderr.strip()}")
-    if which == "check" and any(r["kind"] == "xfight-open" for r in rows):
-        try:
-            import dw_record  # the story's own fights need dndwright (dw-fights.md)
-        except ImportError as e:
-            return fail(f"the story's own fights are on the record, and can't be read again here: {e}")  # fmt: skip
-        bad = dw_record.check_record(box)
-        count = sum(1 for r in rows if r["kind"] == "xfight-open")
-        print(f"\n## the story's own fights\n{count} on the record, " + (f"and one doesn't hold: {bad}" if bad else "every one played again on the tower's own dice and holds"))  # fmt: skip
-        if bad:
-            return fail(f"the story's own fights: {bad}")
+    if which == "check" and any(r["kind"] == "fight-begin" for r in rows):
+        # the story's own fights, read again from the record by willow's play-fight (dw-fights.md)
+        own = run(str(PLAY_FIGHT), "--box", str(box), "check")
+        print("\n## the story's own fights\n" + (own.stdout or own.stderr).rstrip())
+        if own.returncode != kernel.ALIVE:
+            return fail(f"the story's own fights: {own.stderr.strip()}")
     if which == "end":  # what the table made true, to close the night on
         canon = run(str(SESSION), "--table", str(table), "canon")
         print("\n## what the table holds true\n" + canon.stdout.rstrip())

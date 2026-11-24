@@ -257,16 +257,20 @@ def promised(pile: Path) -> list[tuple[str, int, str]]:
     return out
 
 
+# willow's play-fight's rows: the story's own fights
+FIGHT_BEGIN, FIGHT_ROW = "fight-begin", "fight-row"
+
+
 def xfight_summary(rows: list[dict], n: int) -> dict:
-    """How the story's own fight opened at row N ended, from its rows alone (dw_record.py's
-    `xfight-*`): the same shape as a fight-end's result, so the recap and the
-    screen read both alike."""
+    """How the story's own fight begun at row N ended, from its rows alone
+    (willow's play-fight: `fight-begin`, `fight-row`): the same shape as a
+    fight-end's result, so the recap and the screen read both alike."""
     opened = next(r for r in rows if r["n"] == n)
     hp = {f["name"]: f["hp"] for f in opened["fighters"]}
     side = {f["name"]: f["side"] for f in opened["fighters"]}
     rounds, winner = 0, None
     for r in rows:
-        if r["kind"] == "xfight-row" and r.get("fight") == n:
+        if r["kind"] == FIGHT_ROW and r.get("fight") == n:
             row = r["row"]
             if row["kind"] == "blow":
                 hp[row["target"]] = row["hp_after"]
@@ -293,9 +297,9 @@ def fights(rows: list[dict], session: dict | None) -> list[str]:
             standing = ", ".join(res.get("party_survivors", []) + res.get("foe_survivors", [])) or "no one"  # fmt: skip
             said = {"party": "the party won", "foe": "the party fell", "stalemate": "neither side fell"}.get(res.get("outcome"), f"it ended {res.get('outcome')!r}")  # fmt: skip
             out.append(f"  {r.get('desc') or r.get('encounter')}: {said} in {res.get('rounds')} rounds; standing: {standing}   (row {r['n']})")  # fmt: skip
-    ended = {r.get("fight") for r in rows if r["kind"] == "xfight-row" and r["row"]["kind"] == "end"}  # fmt: skip
+    ended = {r.get("fight") for r in rows if r["kind"] == FIGHT_ROW and r["row"]["kind"] == "end"}  # fmt: skip
     for r in rows:
-        if r["kind"] == "xfight-open" and lo <= r["n"] <= hi and r["n"] in ended:
+        if r["kind"] == FIGHT_BEGIN and lo <= r["n"] <= hi and r["n"] in ended:
             res = xfight_summary(rows, r["n"])
             standing = ", ".join(res["party_survivors"] + res["foe_survivors"]) or "no one"  # fmt: skip
             said = {"party": "the party won", "foe": "the party fell", "stalemate": "neither side fell"}[res["outcome"]]  # fmt: skip
