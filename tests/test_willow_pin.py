@@ -289,7 +289,7 @@ def test_follow_commits_the_pin_only_when_the_check_passes(alone, monkeypatch, p
     repo = alone / "repo"
     repo.mkdir()
     at = a_pin(repo)
-    for args in (["init", "-q"], ["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "p"]):  # fmt: skip
+    for args in (["init", "-q"], ["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "p"], ["config", "user.name", "t"], ["config", "user.email", "t@t"]):  # fmt: skip
         assert willow_pin.git(repo, *args).returncode == 0
     (w / "kernel.py").write_text("# a newer kernel\n")
     new = commit(w)
