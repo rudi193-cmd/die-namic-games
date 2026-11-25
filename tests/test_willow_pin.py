@@ -312,6 +312,70 @@ def test_follow_commits_the_pin_only_when_the_check_passes(alone, monkeypatch, p
         assert at.read_bytes() == was and after == before
 
 
+def a_repo_to_pin(alone: Path) -> tuple[Path, Path]:
+    """A Die-Namic repo of its own with a pin committed, that names itself."""
+    repo = alone / "repo"
+    repo.mkdir()
+    at = a_pin(repo)
+    for args in (["init", "-q"], ["config", "user.name", "t"], ["config", "user.email", "t@t"], ["add", "-A"], ["commit", "-qm", "p"]):  # fmt: skip
+        assert willow_pin.git(repo, *args).returncode == 0
+    return repo, at
+
+
+def test_follow_by_its_command_line_pins_the_commit_named(alone, monkeypatch, capsys):  # fmt: skip
+    w = git_willow(alone / "w")
+    repo, at = a_repo_to_pin(alone)
+    (w / "kernel.py").write_text("# a newer kernel\n")
+    named = commit(w)
+    (w / "kernel.py").write_text("# newer still\n")
+    commit(w)  # HEAD, and what follow would take with no commit named
+    monkeypatch.setenv("WILLOW_ROOT", str(w))
+    monkeypatch.setattr(willow_pin, "PIN", at)
+    monkeypatch.setattr(willow_pin, "CHECK", [sys.executable, "-c", "pass"])
+    assert willow_pin.main(["follow", named]) == 0
+    said = capsys.readouterr().out
+    assert json.loads(at.read_text())["commit"] == named
+    body = willow_pin.git(repo, "log", "-1", "--format=%B").stdout
+    assert body.startswith(f"Pin willow {named[:12]}\n\n")
+    assert said.splitlines()[1] in body  # what moved, from its first line
+
+
+def test_follow_says_so_when_the_check_passed_but_the_commit_didnt(alone, monkeypatch):  # fmt: skip
+    w = git_willow(alone / "w")
+    repo, at = a_repo_to_pin(alone)
+    hook = repo / ".git/hooks/pre-commit"
+    hook.write_text("#!/bin/sh\nexit 1\n")
+    hook.chmod(0o755)
+    (w / "kernel.py").write_text("# a newer kernel\n")
+    commit(w)
+    monkeypatch.setenv("WILLOW_ROOT", str(w))
+    monkeypatch.setattr(willow_pin, "CHECK", [sys.executable, "-c", "pass"])
+    code, said = willow_pin.follow("HEAD", at=at)
+    assert code == 1 and "the check passed, but the commit didn't" in said, said
+
+
+def test_check_with_no_willow_found_says_why_and_fails(alone, monkeypatch, capsys):  # fmt: skip
+    monkeypatch.setenv("WILLOW_ROOT", str(alone / "nowhere"))
+    assert willow_pin.main(["check"]) == 1
+    assert capsys.readouterr().out.strip()  # why: no willow where it looked
+
+
+def test_prune_by_its_command_line_takes_its_days(alone, monkeypatch, capsys):
+    import os
+    import time
+
+    w = git_willow(alone / "w")
+    monkeypatch.setenv("WILLOW_ROOT", str(w))
+    assert willow_pin.prune(w, keep="") == []  # no copy made yet
+    assert willow_pin.prune(alone, keep="") == []  # not git at all
+    old = willow_pin.pinned_copy(w, willow_pin.git(w, "rev-parse", "HEAD").stdout.strip())  # fmt: skip
+    days3 = time.time() - 3 * willow_pin.DAY
+    os.utime(old / willow_pin.DONE, (days3, days3))
+    assert willow_pin.main(["prune"]) == 0 and old.is_dir()  # 14 days by default
+    assert willow_pin.main(["prune", "--days", "2"]) == 0 and not old.exists()
+    assert capsys.readouterr().out.endswith(f"let go of 1 copy\n  {old.name}\n")
+
+
 def test_prune_lets_go_of_old_copies_but_this_pins(tmp_path):
     import os
     import time
