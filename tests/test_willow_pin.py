@@ -224,7 +224,8 @@ def test_the_command_line_repins_with_add_and_drop(tmp_path, monkeypatch, capsys
 
 def test_the_command_line(tmp_path, monkeypatch):
     script = [sys.executable, str(HERE / "willow_pin.py")]
-    for bad in ([], ["move"], ["check", "--add", "x"], ["repin", "--willow"], ["repin", "--add"]):  # fmt: skip
+    for bad in ([], ["move"], ["check", "--add", "x"], ["repin", "--willow"], ["repin", "--add"],
+                ["repin", "--at"], ["check", "--at", "x"], ["follow", "a", "b"], ["follow", "--x"]):  # fmt: skip
         got = subprocess.run(script + bad, capture_output=True, text=True, check=False)
         assert got.returncode == 2 and "willow_pin.py repin" in got.stderr, bad
     got = subprocess.run(script + ["check", "--willow", str(REAL)], capture_output=True, text=True, check=False)  # fmt: skip
@@ -240,6 +241,75 @@ def test_the_command_line(tmp_path, monkeypatch):
         got.stdout
         == f"{tmp_path} isn't the pinned willow ({short}):\n  no willow there\n"
     )
+
+
+# ── the copy of the pinned commit, and follow ──────────────────────────────
+def test_the_box_runs_the_pinned_commit_whatever_the_checkout_is_on(alone, monkeypatch):  # fmt: skip
+    w = git_willow(alone / "w")
+    pinned = willow_pin.git(w, "rev-parse", "HEAD").stdout.strip()
+    at = a_pin(alone)
+    monkeypatch.setattr(willow_pin, "PIN", at)
+    assert willow_pin.repin(w, at=at)[0] == 0
+    (w / "kernel.py").write_text("# a newer kernel\n")
+    commit(w)  # the checkout moves on; the pin stays
+    (w / "adapters/stdlib/play-dice/play_dice.py").write_text("# mid-change\n")
+    monkeypatch.setenv("WILLOW_ROOT", str(w))
+    got = willow_pin.root()
+    assert got == w / ".git/willow-pinned" / pinned and (got / willow_pin.DONE).is_file()  # fmt: skip
+    assert not willow_pin.drift(got, willow_pin.pin())
+    other = alone / "other-worktree"
+    assert willow_pin.git(w, "worktree", "add", "-q", "--detach", str(other)).returncode == 0  # fmt: skip
+    monkeypatch.setenv("WILLOW_ROOT", str(other))
+    assert willow_pin.root() == got  # every checkout of that git shares it
+
+
+def test_a_commit_its_git_lacks_makes_no_copy(tmp_path):
+    w = git_willow(tmp_path / "w")
+    assert willow_pin.pinned_copy(w, "0" * 40) is None
+    assert willow_pin.pinned_copy(tmp_path, "0" * 40) is None  # not git at all
+
+
+def test_repin_at_a_commit_reads_git_not_the_checkout(tmp_path):
+    at, w = a_pin(tmp_path), git_willow(tmp_path / "w")
+    first = willow_pin.git(w, "rev-parse", "HEAD").stdout.strip()
+    (w / "kernel.py").write_text("# a newer kernel\n")
+    commit(w)
+    (w / "kernel.py").write_text("# changed, not committed\n")
+    code, said = willow_pin.repin(w, at=at, rev=first)
+    assert code == 0, said
+    pinned = json.loads(at.read_text())
+    assert pinned["commit"] == first and pinned["files"] == willow_pin.pin()["files"]
+    code, said = willow_pin.repin(w, at=at, rev="no-such-branch")
+    assert (code, said) == (2, f"refused: willow's git at {w} has no commit no-such-branch")  # fmt: skip
+
+
+@pytest.mark.parametrize("passes", [True, False])
+def test_follow_commits_the_pin_only_when_the_check_passes(alone, monkeypatch, passes):
+    w = git_willow(alone / "w")
+    repo = alone / "repo"
+    repo.mkdir()
+    at = a_pin(repo)
+    for args in (["init", "-q"], ["add", "-A"], ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "p"]):  # fmt: skip
+        assert willow_pin.git(repo, *args).returncode == 0
+    (w / "kernel.py").write_text("# a newer kernel\n")
+    new = commit(w)
+    monkeypatch.setenv("WILLOW_ROOT", str(w))
+    monkeypatch.setattr(willow_pin, "CHECK", [sys.executable, "-c", f"raise SystemExit({int(not passes)})"])  # fmt: skip
+    before, was = willow_pin.git(repo, "rev-parse", "HEAD").stdout, at.read_bytes()
+    code, said = willow_pin.follow("HEAD", at=at)
+    after = willow_pin.git(repo, "rev-parse", "HEAD").stdout
+    if passes:
+        assert code == 0 and said.endswith("the check passed; committed, not pushed"), (
+            said
+        )
+        assert json.loads(at.read_text())["commit"] == new and after != before
+        assert willow_pin.git(repo, "status", "--porcelain").stdout == ""
+        assert willow_pin.follow("HEAD", at=at) == (0, f"the pin is on willow {new[:12]} already: nothing moved")  # fmt: skip
+    else:
+        assert (
+            code == 1 and "the check didn't pass, so the pin is back as it was" in said
+        )
+        assert at.read_bytes() == was and after == before
 
 
 def test_only_a_pinned_add_on_is_loaded_and_only_once():

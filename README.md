@@ -12,8 +12,10 @@ only a person can give (see [promotion.json](promotion.json)).
 
 It plays with [willow](https://github.com/willow-memory/Willow)'s kernel and
 add-ons where they live, pinned by commit and by each file's SHA-256
-([willow.pin.json](willow.pin.json)): put a willow checkout beside this one
-(or set `WILLOW_ROOT`). the-table also adapts two of the store's apps, bureau
+([willow.pin.json](willow.pin.json)): put a willow git checkout beside this
+one (or set `WILLOW_ROOT`), on any branch; the box runs the pinned commit,
+copied from its git. `python box/willow_pin.py follow` moves the pin to
+willow's main, and commits it only if the tests pass. the-table also adapts two of the store's apps, bureau
 and catgrid: put a safe-app-store checkout beside this one (or set
 `SAFE_APP_STORE`).
 
@@ -58,8 +60,8 @@ proposed in `stores/decisions/proposed.json`.
   record through the pin: `python games/play.py play-checkers --table DIR move 11-15`.
 - **[willow.pin.json](willow.pin.json)**: the box plays with willow's
   kernel and add-ons where they live, in willow, pinned by commit and by
-  each file's SHA-256. The box finds a willow checkout (`WILLOW_ROOT`, or
-  one beside die-namic-games) and refuses one whose files differ.
+  each file's SHA-256. The box finds a willow git checkout (`WILLOW_ROOT`,
+  or one beside die-namic-games) and runs a copy of the pinned commit.
 
 ## What came over
 
