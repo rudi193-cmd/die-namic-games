@@ -35,8 +35,8 @@
     "3fe1e297990e": "die_namic/binder.py, a page's name: rsplit('/', 1)[-1] made rsplit('/', 2)[-1]. The last piece after a slash is the same however many splits are made, so no path tells them apart.",
     "568641153d0f": "die_namic/binder.py, tier(): the last tier 2 made 3. The tiers only sort (0 named, 1 meant, then the rest), and 0, 1, 3 sort as 0, 1, 2 do, so no order tells them apart.",
     "0caef1fbb9ae": "box/open_table.py, open's count of what waits on the seal: proposal and passed made proposal or passed. open refuses a table already there, so the record it counts is the one it just wrote, where every proposal passed and no other row has a verdict: and and or count the same rows, and no table open can lay tells them apart.",
-    "e263a02aa212": "box/willow_pin.py, pinned_of(): a file's name rsplit('/', 1)[-1] made rsplit('/', 2)[-1]. The last piece after a slash is the same however many splits are made, so no path tells them apart.",
-    "c7b6d53bb289": "box/willow_pin.py, repin's uncommitted check: a status line's name rsplit('/', 1)[-1] made rsplit('/', 2)[-1]. The last piece after a slash is the same however many splits are made, so no line tells them apart.",
-    "99720d3e3da5": "box/willow_pin.py, repin's uncommitted check: a status line's path x[3:] made x[4:]. Only the name after the last slash is read, and every path git status gives here has a slash but kernel.py, whose name is never a test's with or without its first letter, so no line tells them apart."
+    "3974c07ee91f": "box/willow_pin.py, pinned_of(): a file's name rsplit('/', 1)[-1] made rsplit('/', 2)[-1]. The last piece after a slash is the same however many splits are made, so no path tells them apart.",
+    "2f3076ea1c80": "box/willow_pin.py, repin's uncommitted check: a status line's name rsplit('/', 1)[-1] made rsplit('/', 2)[-1]. The last piece after a slash is the same however many splits are made, so no line tells them apart.",
+    "26ce973b969e": "box/willow_pin.py, copies(): a worktree's .git file split('gitdir:', 1)[1] made split('gitdir:', 2)[1]. git writes gitdir: once in that file, so the piece after the first is the same however many splits are made, and no worktree git makes tells them apart."
   }
 }

@@ -15,18 +15,25 @@ pieces and the code that puts them together were checked together. The
 pieces stay in willow, as add-ons, and the box runs on them there, pinned:
 [`../willow.pin.json`](../willow.pin.json) names willow's commit and each
 file the box runs by its SHA-256, and [`willow_pin.py`](willow_pin.py)
-finds a willow checkout (`WILLOW_ROOT`, or one beside die-namic-games) and
-refuses one whose files differ.
+finds a willow git checkout (`WILLOW_ROOT`, or one beside die-namic-games),
+on any branch, and runs a copy of the pinned commit made from its git once
+and kept in its git folder. A willow that isn't git is run where it is, and
+refused if its files differ.
 
-Moving the pin is one command, on a willow checkout with nothing
-uncommitted in what's pinned:
+Moving the pin is one command:
 
+    python box/willow_pin.py follow [COMMIT]
     python box/willow_pin.py check [--willow DIR]
-    python box/willow_pin.py repin [--willow DIR] [--add NAME ...] [--drop NAME ...]
+    python box/willow_pin.py repin [--willow DIR] [--at COMMIT] [--add NAME ...] [--drop NAME ...]
 
-`repin` pins the checkout's commit: kernel.py and every file of each pinned
-add-on but its tests, so an add-on's new file comes in by itself. `--add`
-pins another add-on, `--drop` lets one go; it says what moved.
+`follow` fetches, repins at COMMIT (origin/main when none is named), runs
+the tests on it, and commits willow.pin.json only if they pass; if they
+fail, the pin is put back. It never pushes. `repin` pins the checkout's
+commit, or `--at` any commit its git has: kernel.py and every file of each
+pinned add-on but its tests, so an add-on's new file comes in by itself.
+`--add` pins another add-on, `--drop` lets one go; it says what moved.
+`prune [--days N]` lets go of copies nothing has run for N days (14 by
+default), never this pin's; one let go is made again when it is wanted.
 
 ## What's in the box
 
