@@ -225,7 +225,7 @@ def test_the_command_line_repins_with_add_and_drop(tmp_path, monkeypatch, capsys
 def test_the_command_line(tmp_path, monkeypatch):
     script = [sys.executable, str(HERE / "willow_pin.py")]
     for bad in ([], ["move"], ["check", "--add", "x"], ["repin", "--willow"], ["repin", "--add"],
-                ["repin", "--at"], ["check", "--at", "x"], ["follow", "a", "b"], ["follow", "--x"]):  # fmt: skip
+                ["repin", "--at"], ["check", "--at", "x"], ["follow", "a", "b"], ["follow", "--x"], ["prune", "x"], ["prune", "--days"]):  # fmt: skip
         got = subprocess.run(script + bad, capture_output=True, text=True, check=False)
         assert got.returncode == 2 and "willow_pin.py repin" in got.stderr, bad
     got = subprocess.run(script + ["check", "--willow", str(REAL)], capture_output=True, text=True, check=False)  # fmt: skip
@@ -310,6 +310,27 @@ def test_follow_commits_the_pin_only_when_the_check_passes(alone, monkeypatch, p
             code == 1 and "the check didn't pass, so the pin is back as it was" in said
         )
         assert at.read_bytes() == was and after == before
+
+
+def test_prune_lets_go_of_old_copies_but_this_pins(tmp_path):
+    import os
+    import time
+
+    w = git_willow(tmp_path / "w")
+    first = willow_pin.git(w, "rev-parse", "HEAD").stdout.strip()
+    (w / "kernel.py").write_text("# a newer kernel\n")
+    second = commit(w)
+    old, new = willow_pin.pinned_copy(w, first), willow_pin.pinned_copy(w, second)
+    month = time.time() - 30 * willow_pin.DAY
+    for at in (old, new):
+        os.utime(at / willow_pin.DONE, (month, month))
+    assert willow_pin.prune(w, keep=second) == [first]
+    assert not old.exists() and new.is_dir()
+    assert willow_pin.prune(w, keep="", days=60) == []  # not old enough
+    assert willow_pin.pinned_copy(w, first) == old and old.is_dir()  # made again
+    os.utime(old / willow_pin.DONE, (month, month))
+    willow_pin.pinned_copy(w, first)  # run: marked as used today
+    assert willow_pin.prune(w, keep=second) == []
 
 
 def test_only_a_pinned_add_on_is_loaded_and_only_once():

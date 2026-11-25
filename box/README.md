@@ -32,6 +32,8 @@ fail, the pin is put back. It never pushes. `repin` pins the checkout's
 commit, or `--at` any commit its git has: kernel.py and every file of each
 pinned add-on but its tests, so an add-on's new file comes in by itself.
 `--add` pins another add-on, `--drop` lets one go; it says what moved.
+`prune [--days N]` lets go of copies nothing has run for N days (14 by
+default), never this pin's; one let go is made again when it is wanted.
 
 ## What's in the box
 
