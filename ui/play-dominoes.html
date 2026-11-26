@@ -846,37 +846,44 @@ style.textContent = `
 .tc .th { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--chalk-dim); font-weight: 800; }
 .tc.you .th { color: var(--go); }
 .tt { display: grid; gap: 2px; min-height: 22px; }
-.tr { display: flex; gap: 1px; }
+.tr { display: flex; flex-wrap: wrap; gap: 6px; }
 .tr.nil { color: var(--chalk-faint); }
-.tm { width: 20px; height: 20px; }
-.tm path { fill: none; stroke: var(--chalk); stroke-width: 2.4; stroke-linecap: round; }
+.tf { width: 54px; height: 54px; }
+.tf path { fill: none; stroke: var(--chalk); stroke-width: 1.8; stroke-linecap: round; }
+.tf path.big { stroke-width: 2.4; }
 .tc .tg { font-weight: 800; font-size: 1.15rem; font-variant-numeric: tabular-nums; border-top: 2px solid var(--chalk-faint); padding-top: 4px; min-width: 3ch; }
 .tc .tg.lead { color: var(--go); }
 @media (max-width: 560px) { .dm-tile svg { width: 30px; height: 58px; } .dm-hand { gap: 6px; } }`;
 document.head.append(style);
 
-/* the scoresheet kept the paper way: an X for every ten, a slash for the odd
-   five, in rows of five X's (fifty), the grand total under each */
+/* the scoresheet kept the paper way: every stroke is five. A figure starts
+   with a big X across the middle (two strokes, ten), then a small X in each of
+   the four blanks between its arms, top, right, bottom, left (two strokes
+   each), so a whole figure is fifty; figures go side by side, the grand total
+   under them */
 let xs = remembered("dn-dominoes-xs");
-const X_MARK = '<svg viewBox="0 0 20 20" class="tm" aria-hidden="true"><path d="M4 4.5 L16 15.5 M15.5 4 L4.5 16"/></svg>';
-const SLASH = '<svg viewBox="0 0 20 20" class="tm" aria-hidden="true"><path d="M15 4 L5 16"/></svg>';
+const STROKES = [
+  "M5 5 L55 55", "M55 5 L5 55", // the big X
+  ...[[30, 12], [48, 30], [30, 48], [12, 30]].flatMap(([x, y]) => [`M${x - 4.5} ${y + 4.5} L${x + 4.5} ${y - 4.5}`, `M${x - 4.5} ${y - 4.5} L${x + 4.5} ${y + 4.5}`]),
+];
+const figure = (n) => `<svg viewBox="0 0 60 60" class="tf" aria-hidden="true">${STROKES.slice(0, n).map((d, i) => `<path d="${d}" class="${i < 2 ? "big" : ""}"/>`).join("")}</svg>`;
 function tallyHTML(points) {
-  const tens = Math.floor(points / 10), five = points % 10 >= 5;
-  const rows = [];
-  for (let i = 0; i < tens; i += 5) rows.push(X_MARK.repeat(Math.min(5, tens - i)));
-  if (five) { if (rows.length && tens % 5) rows[rows.length - 1] += SLASH; else rows.push(SLASH); }
-  return rows.length ? rows.map((r) => `<div class="tr">${r}</div>`).join("") : '<div class="tr nil">—</div>';
+  const strokes = Math.floor(points / 5);
+  if (!strokes) return '<div class="tr nil">—</div>';
+  const out = [];
+  for (let left = strokes; left > 0; left -= 10) out.push(figure(Math.min(10, left)));
+  return `<div class="tr">${out.join("")}</div>`;
 }
 function tallySheet() {
   const lead = G.scores[0] === G.scores[1] ? -1 : G.scores[0] > G.scores[1] ? 0 : 1;
   const col = (i) => `<div class="tc ${i === ME ? "you" : ""}"><div class="th">${WHO[i]}</div><div class="tt" role="img" aria-label="${G.scores[i]} points">${tallyHTML(G.scores[i])}</div><div class="tg ${i === lead ? "lead" : ""}">${G.scores[i]}</div></div>`;
   document.getElementById("score").innerHTML = `<div class="tally">${col(NORTH)}${col(ME)}</div>`;
-  document.getElementById("score-note").textContent = `X is ten, / is five. First to ${TARGET}.`;
+  document.getElementById("score-note").textContent = `Every stroke is five; a whole figure is fifty. First to ${TARGET}.`;
 }
 frame.setup({ seats: false, score: true, deck: true, scoreTitle: "Scoresheet", deckTitle: "The tiles", redraw: () => render() });
 {
   const b = document.createElement("button");
-  b.className = "toggle"; b.id = "t-xs"; b.title = "Keep the score in X's"; b.textContent = "X's";
+  b.className = "toggle"; b.id = "t-xs"; b.title = "Keep the score in X's, a stroke for every five"; b.textContent = "X's";
   b.setAttribute("aria-pressed", xs);
   b.addEventListener("click", () => { xs = !xs; remember("dn-dominoes-xs", xs); b.setAttribute("aria-pressed", xs); render(); });
   document.getElementById("toggles").append(b);
