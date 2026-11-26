@@ -12,6 +12,7 @@ rolls and branches the dice decide; this reads the prompt instead."""
 from __future__ import annotations
 
 import os
+import re
 import select
 import subprocess
 import sys
@@ -96,3 +97,14 @@ def typed_run(argv: list, env: dict, typed: list[str]):
     stderr folded into stdout, as a person sees one screen."""
     code, out = at_table(argv, env, in_order(typed))
     return subprocess.CompletedProcess(argv, code, out, out)
+
+
+def fights_could_start(out: str) -> None:
+    """A fight the table asked for that couldn't start is this machine, not the
+    night: say why (a missing library, most often), not the question the story
+    went on to ask instead."""
+    import pytest
+
+    m = re.search(r"The fight couldn't start: (.+)", out)
+    if m:
+        pytest.fail(f"a fight couldn't start here: {m.group(1).strip()}", pytrace=False)

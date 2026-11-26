@@ -44,7 +44,9 @@ FILLED = [
 
 def run(script: str, home: Path, typed: list[str], *argv) -> subprocess.CompletedProcess:  # fmt: skip
     """SCRIPT, TYPED a line a question in order, Enter at every roll."""
-    return person.typed_run([BOX / script, *argv], {"DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": NOW}, typed)  # fmt: skip
+    got = person.typed_run([BOX / script, *argv], {"DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": NOW}, typed)  # fmt: skip
+    person.fights_could_start(got.stdout)
+    return got
 
 
 @pytest.fixture(scope="module")

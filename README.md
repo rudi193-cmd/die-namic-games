@@ -26,6 +26,11 @@ and catgrid: put a safe-app-store checkout beside this one (or set
     python games/play.py play-checkers --table DIR new
     python ui/build.py                       # lay the pages in ui/
 
+The story's fights roll on the `dice` library, as CI installs it; without it
+a fight can't start, and the fight tests say so. Before `pytest`:
+
+    pip install pytest -r the-table/aetheris5e/requirements.txt -c lock/requirements.txt
+
 ## What was here: the first engine
 
 [`archive/first-engine/`](archive/first-engine/) is where Die-Namic's game
