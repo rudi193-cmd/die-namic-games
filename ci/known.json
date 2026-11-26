@@ -110,6 +110,18 @@
     },
     {
       "group": "link",
+      "where": "ui/lantern-fair.html",
+      "what": "${esc(src)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/map-maker.html",
+      "what": "${esc(src)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
       "where": "ui/play-catgrid.html",
       "what": "${esc(src)}: not there",
       "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
@@ -123,6 +135,12 @@
     {
       "group": "link",
       "where": "ui/play-dice.html",
+      "what": "${esc(src)}: not there",
+      "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
+    },
+    {
+      "group": "link",
+      "where": "ui/play-dominoes.html",
       "what": "${esc(src)}: not there",
       "why": "a JavaScript template literal (${{esc(...)}}) filled in the browser, not a file path"
     },

@@ -119,6 +119,14 @@ def test_where_offers_the_places_on_the_maps_and_a_number_picks_one(home):
     assert "## Places\n\n- the-stalls: The stalls\n" in story  # the map's own name, so the Table lights it
 
 
+def test_the_maps_count_from_one(home):
+    offered = [p["name"] for f in sorted((BOX / "maps").glob("*.json")) for p in sorted(json.loads(f.read_text())["places"], key=lambda p: p["name"])]  # fmt: skip
+    got = run("write.py", home, [EGG[0], EGG[1], "0", "1", *EGG[3:], "n"])
+    assert got.returncode == 0 and "Type a number from 1 to" in got.stdout
+    first = offered[0]
+    assert f"## Places\n\n- {first.lower().replace(' ', '-')}: {first}\n" in (table(home) / "stories" / "the-garden-egg.md").read_text()
+
+
 def test_a_number_past_the_maps_is_asked_again(home):
     typed = [EGG[0], EGG[1], "99", EGG[2], *EGG[3:], "n"]
     got = run("write.py", home, typed)
