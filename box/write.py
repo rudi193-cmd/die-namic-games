@@ -106,6 +106,37 @@ def slug(name: str, taken: set) -> str:
     return out
 
 
+def mapped() -> list[str]:
+    """The places named on the box's maps (box/maps/, made with the map maker),
+    each with the map it's on, for "where": picking one puts the story there."""
+    out = []
+    for p in sorted((HERE / "maps").glob("*.json")):
+        m = json.loads(p.read_text(encoding="utf-8"))
+        world = HERE / "worlds" / f"{m['world']}.json"
+        title = json.loads(world.read_text(encoding="utf-8"))["title"] if world.exists() else m["world"]
+        out += [f"{pl['name']} ({title} map)" for pl in sorted(m["places"], key=lambda pl: pl["name"])]
+    return out
+
+
+def ask_where(prompt: str, need: bool = True) -> str:
+    """Where it happens: typed, or a number for a place on a map; with need
+    false, Enter answers nothing (the same place as last time)."""
+    places = mapped()
+    if places:
+        print("On the maps:" + "".join(f"\n  {i}. {p}" for i, p in enumerate(places, 1)))
+        prompt = prompt.replace("? ", "? (a number from the maps, or type it) ", 1)
+    while True:
+        got = said(prompt)
+        if got.isdigit() and places:
+            if 1 <= int(got) <= len(places):
+                return places[int(got) - 1].rsplit(" (", 1)[0]
+            print(f"  Type a number from 1 to {len(places)}, or the place itself.")
+            continue
+        if got or not need:
+            return got
+        print("  Somewhere for it to happen: a garden, a ship, a kitchen.")
+
+
 def ideas(table: Path) -> list[str]:
     """Three ideas dealt from the box's own words, by ideas.py."""
     got = play.run(HERE / "ideas.py", "--table", table)
@@ -129,7 +160,7 @@ def ask_story(table: Path) -> dict:
             pick = choose("Which one? (or press Enter for the first) ", dealt + ["My own idea"])  # fmt: skip
             about = dealt[pick] if pick < len(dealt) else must("What's it about? ", "A sentence is enough.")  # fmt: skip
     title = must("\nWhat's it called? ", "A story needs a name.")
-    place = must("Where does it happen? ", "Somewhere for it to happen: a garden, a ship, a kitchen.")  # fmt: skip
+    place = ask_where("Where does it happen? ")
     print("\nWho's in it? (a name, then a few words: Mira, a kid who likes bugs)")
     cast = ask_cast([], "  The first one: ")
     given = said(f"\nWhat are your heroes good at? (press Enter for {', '.join(STRENGTHS)}) ")  # fmt: skip
@@ -286,7 +317,7 @@ def ask_next(table: Path, world: dict) -> dict:
     title = said(f"\nWhat's this part called? (press Enter for {world['title']}: What Happens Next) ", f"{world['title']}: What Happens Next")  # fmt: skip
     last = {p["id"]: p["name"] for p in world["places"]}
     here = world["scenes"][-1]["place"]
-    where = said(f"Where does it happen now? (press Enter for {last[here].lower()}) ")
+    where = ask_where(f"Where does it happen now? (press Enter for {last[here].lower()}) ", need=False)
     about = said("What's it about now? (a sentence, or press Enter) ")
     cast = [{"id": c["id"], "name": c["name"], "role": c["role"], "seat": c["seat"], "stats": c["stats"]} for c in world["characters"]]  # fmt: skip
     print(f"\nEveryone from last time is here: {', '.join(c['name'] for c in cast)}.")

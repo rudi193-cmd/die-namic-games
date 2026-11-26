@@ -106,6 +106,24 @@ def test_leaving_before_the_end_writes_nothing(home):
     assert not (table(home) / "stories" / "the-garden-egg.md").exists()
 
 
+def test_where_offers_the_places_on_the_maps_and_a_number_picks_one(home):
+    maps = json.loads((BOX / "maps" / "lantern-fair.json").read_text())
+    names = sorted(p["name"] for p in maps["places"])
+    typed = [EGG[0], EGG[1], str(names.index("The stalls") + 1), *EGG[3:], "n"]
+    got = run("write.py", home, typed)
+    assert got.returncode == 0, got.stdout
+    assert "On the maps:\n" in got.stdout and "The stalls (The Lantern Fair map)" in got.stdout
+    story = (table(home) / "stories" / "the-garden-egg.md").read_text()
+    assert "## Places\n\n- the-stalls: The stalls\n" in story  # the map's own name, so the Table lights it
+
+
+def test_a_number_past_the_maps_is_asked_again(home):
+    typed = [EGG[0], EGG[1], "99", EGG[2], *EGG[3:], "n"]
+    got = run("write.py", home, typed)
+    assert "Type a number from 1 to" in got.stdout and got.returncode == 0
+    assert "- the-school-garden: The school garden\n" in (table(home) / "stories" / "the-garden-egg.md").read_text()
+
+
 def test_the_boxes_that_need_an_answer_ask_again(home):
     typed = [EGG[0], "", EGG[1], "", EGG[2], *EGG[3:], "n"]
     got = run("write.py", home, typed)

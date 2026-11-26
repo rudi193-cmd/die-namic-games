@@ -92,12 +92,23 @@ PAGES = {
 # shelf beside the games/ folder's, marked so.
 SKETCHES = {
     "lantern-fair": {
-        "page": {"name": "Lantern Fair", "lid": "#2b2550", "ink": "#ffd98a"},
+        "page": {"name": "Lantern Fair", "lid": "#2b2550", "ink": "#ffd98a", "uses": ["fair-tiles"]},
         "title": "Lantern Fair",
         "summary": "Build the night market on the river, tile by tile: match canal to canal and lane to lane, hang your lanterns, and score what you close.",
         "came": "A tile-laying game made for Die-Namic on 2026-11-26, set in the box's own Lantern Fair: canals, lanes and stalls, one of them dark.",
     },
+    "map-maker": {
+        "page": {"name": "Map Maker", "lid": "#3b2f5c", "ink": "#fff3c4", "uses": ["fair-tiles"]},
+        "title": "map maker",
+        "summary": "Lay a story's town with the fair's tiles, dealt from seed words or by hand, and name its squares, wells and bridges as the world's places.",
+        "came": "Made for Die-Namic on 2026-11-26 from Lantern Fair's tiles: a map kept in box/maps/ beside its world, lit at the Table and offered by write.py.",
+    },
 }
+
+
+def maps() -> list[dict]:
+    """The maps in box/maps/, one a world, each named for the world it maps."""
+    return [json.loads(p.read_text()) for p in sorted((GAME / "box" / "maps").glob("*.json"))]
 
 
 def sketch(gid: str, s: dict) -> dict:
@@ -164,7 +175,8 @@ def box() -> dict:
 
 def table_page(g: dict, lid: dict, also: list, extra: dict | None = None, out: str | None = None) -> None:
     frame = (HERE / "tables" / "frame.src.html").read_text()
-    script = (HERE / "tables" / f"{g['id']}.js").read_text()
+    # the scripts it shares with other pages (tables/NAME.js), then its own
+    script = "\n".join((HERE / "tables" / f"{name}.js").read_text() for name in [*lid.get("uses", []), g["id"]])
     for mark in ("/*__TITLE__*/", "/*__GAME_SCRIPT__*/"):
         assert frame.count(mark) == 1, f"frame: needs one {mark}"
     assert "</script" not in script, f"{g['id']}.js: no </script inside"
@@ -184,14 +196,15 @@ def main() -> None:
     for gid, lid in PAGES.items():
         table_page(by_id[gid], lid, [by_id[a] for a in lid.get("also", [])])
     sketches = [sketch(gid, s) for gid, s in SKETCHES.items()]
+    drawn = {"maps": maps(), "worlds": [{"id": w["id"], "title": w["title"], "places": [p["name"] for p in w["places"]]} for w in worlds]}
     for g in sketches:
-        table_page(g, SKETCHES[g["id"]]["page"], [])
+        table_page(g, SKETCHES[g["id"]]["page"], [], drawn)
     # each game on the shelf that has a page, and the page that plays it
     pages = {gid: gid for gid in PAGES} | {a: gid for gid, lid in PAGES.items() for a in lid.get("also", [])}
     pages |= {gid: gid for gid in SKETCHES}
     data = {"games": games, "sketches": sketches, "worlds": [w["title"] for w in worlds], "pages": pages}
     lay("index.src.html", "index.html", data)
-    table_page(TABLE, {"name": "The Table", "lid": "#c8442f", "ink": "#fff3e2"}, [], held, "table.html")
+    table_page(TABLE, {"name": "The Table", "lid": "#c8442f", "ink": "#fff3e2", "uses": ["fair-tiles"]}, [], {**held, "maps": drawn["maps"]}, "table.html")
     print(f"index.html: {len(games)} games; table.html: {len(worlds)} worlds; "
           f"pages: {', '.join(f'{g}.html' for g in [*PAGES, *SKETCHES])}")
 

@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Map Maker · Die-Namic</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Literata:ital,opsz,wght@0,7..72,400;1,7..72,400&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: the card table under one lamp. The header wears the game's lid colour; the felt is that colour darkened; seats sit round the felt with your hand along the bottom; the side holds the scoresheet, the deck, the log and the record's commands. Every game turns on only the parts it has. One look on purpose. */
+:root {
+  --lid: #b8263f;
+  --lid-ink: #fff0f2;
+  --felt: color-mix(in srgb, var(--lid) 22%, #0d1513);
+  --felt-2: color-mix(in srgb, var(--lid) 14%, #0a100f);
+  --rail: color-mix(in srgb, var(--lid) 30%, #2a1a10);
+  --chalk: #f4ecdc;
+  --chalk-dim: #c6c0b2;
+  --chalk-faint: #8d897e;
+  --edge: #ffffff1c;
+  --card: #fffaf0;
+  --card-edge: #d8ccb4;
+  --red: #c8352b;
+  --black: #1f1d1a;
+  --go: #ffd34d;
+  --go-ink: #3a2a00;
+  --lid-font: "Bowlby One", "Arial Black", Impact, sans-serif;
+  --ui: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --prose: "Literata", "Iowan Old Style", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: #0b1110; color: var(--chalk); font-family: var(--ui); font-size: 15px; line-height: 1.45; }
+button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; padding: 0; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 3px solid var(--go); outline-offset: 2px; }
+
+.band { background: var(--lid); color: var(--lid-ink); }
+.band-in, .wrap {
+  max-width: 1240px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.band-in { padding-block: 16px 18px; display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: end; justify-content: space-between; }
+.back { font-weight: 800; font-size: 0.85rem; color: inherit; text-decoration: none; opacity: 0.85; }
+.back:hover { opacity: 1; text-decoration: underline; }
+h1 { font-family: var(--lid-font); font-weight: 400; font-size: clamp(2rem, 5vw, 3rem); line-height: 1; margin: 4px 0 0; }
+.line { font-family: var(--prose); margin: 6px 0 0; max-width: 60ch; opacity: 0.9; }
+.toggles { display: flex; gap: 8px; flex-wrap: wrap; }
+.toggle { font-weight: 700; font-size: 0.82rem; padding: 6px 12px; border-radius: 999px; border: 2px solid color-mix(in srgb, var(--lid-ink) 45%, transparent); }
+.toggle[aria-pressed="true"] { background: var(--lid-ink); color: var(--lid); border-color: var(--lid-ink); }
+
+.wrap { padding-block: 20px 48px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+@media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); } }
+
+/* the felt */
+.felt {
+  background: radial-gradient(120% 90% at 50% 40%, var(--felt), var(--felt-2));
+  border: 10px solid var(--rail); border-radius: 22px;
+  box-shadow: inset 0 0 40px #0008, 0 20px 40px -20px #000;
+  padding: 16px; display: grid; gap: 14px; min-width: 0;
+}
+.status { text-align: center; font-weight: 700; font-size: 1rem; min-height: 1.5em; }
+.status b { color: var(--go); }
+.ring {
+  display: grid; gap: 10px; min-width: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-areas: ". north ." "west middle east";
+  align-items: center;
+}
+.seat { display: grid; gap: 6px; justify-items: center; min-width: 0; text-align: center; }
+.seat[data-seat="north"] { grid-area: north; }
+.seat[data-seat="west"] { grid-area: west; }
+.seat[data-seat="east"] { grid-area: east; }
+.seat-name { font-weight: 800; font-size: 0.82rem; letter-spacing: 0.04em; display: flex; gap: 8px; align-items: baseline; justify-content: center; flex-wrap: wrap; }
+.seat-name .meta { font-family: var(--mono); font-weight: 500; font-size: 0.72rem; color: var(--chalk-dim); }
+.seat.turn .seat-name { color: var(--go); }
+.seat.turn .seat-name::before { content: "▸ "; }
+.middle { grid-area: middle; min-height: 190px; display: grid; place-items: center; gap: 10px; }
+.stage { min-height: 260px; display: grid; place-items: center; gap: 10px; min-width: 0; } /* a game with no seats: its whole felt */
+.mine { display: grid; gap: 8px; justify-items: center; }
+.mine .seat-name { font-size: 0.9rem; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; min-height: 40px; align-items: center; }
+@media (max-width: 560px) {
+  .ring { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "west north east" "middle middle middle"; }
+  .felt { padding: 10px; border-width: 7px; }
+  .seat .seat-name { flex-direction: column; align-items: center; gap: 0; }
+  .seat .hand { max-width: 100%; overflow: hidden; }
+  .seat .hand .pc { margin-left: -27px; }
+  .seat .hand .pc:first-child { margin-left: 0; }
+}
+
+/* cards */
+.hand { display: flex; justify-content: center; flex-wrap: nowrap; max-width: 100%; padding: 14px 4px 4px; }
+.hand.mine-hand { flex-wrap: wrap; row-gap: 10px; }
+.hand .pc { margin-left: calc(var(--overlap, -18px)); }
+.hand .pc:first-child { margin-left: 0; }
+.pc {
+  --w: 62px; width: var(--w); aspect-ratio: 5 / 7; flex: none; position: relative;
+  background: var(--card); color: var(--black); border-radius: 7px; border: 1px solid var(--card-edge);
+  box-shadow: 0 3px 8px -3px #000c; font-family: var(--ui); font-weight: 800;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.pc.red { color: var(--red); }
+.pc .ix { position: absolute; top: 4px; left: 5px; display: grid; justify-items: center; line-height: 0.95; font-size: calc(var(--w) * 0.24); }
+.pc .ix i { font-style: normal; font-size: 0.85em; }
+.pc .pip { position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(var(--w) * 0.5); padding-top: 12%; }
+.pc .pip.face { font-family: var(--lid-font); font-weight: 400; font-size: calc(var(--w) * 0.42); }
+.pc.img { background: transparent; border: 0; padding: 0; overflow: hidden; }
+.pc.img img { display: block; width: 100%; height: 100%; object-fit: fill; border-radius: inherit; pointer-events: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.toggle.pick { display: inline-flex; gap: 6px; align-items: center; padding: 4px 6px 4px 12px; }
+.toggle.pick select { font: inherit; font-weight: 700; font-size: 0.8rem; color: inherit; background: transparent; border: 0; border-radius: 999px; padding: 2px 4px; max-width: 12rem; }
+.toggle.pick select option { color: #111; }
+.pc.back { background: repeating-linear-gradient(45deg, var(--lid) 0 5px, color-mix(in srgb, var(--lid) 55%, #fff) 5px 9px); border: 3px solid var(--card); }
+.pc.small { --w: 34px; border-radius: 5px; }
+.pc.small .ix { top: 2px; left: 3px; }
+.pc.small .pip { display: none; }
+.pc.big { --w: 84px; }
+button.pc:not(:disabled):hover, button.pc.chosen { transform: translateY(-12px); box-shadow: 0 10px 16px -6px #000c; }
+button.pc.chosen { outline: 3px solid var(--go); outline-offset: 1px; }
+button.pc:disabled { filter: brightness(0.62) saturate(0.6); }
+.mine-hand button.pc:disabled { transform: none; }
+.mine-hand.quiet button.pc:disabled { filter: none; } /* hints off: not your turn reads as waiting, not as wrong */
+.pile { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; }
+
+/* dice: a d6 by its pips, any other die as its shape with its number */
+.dice-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.d6 {
+  --s: 44px; width: var(--s); height: var(--s); flex: none; border-radius: calc(var(--s) * 0.2);
+  background: #fffaf0; box-shadow: inset 0 -3px 0 #d9ccb4, 0 4px 8px -4px #000c;
+  display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: calc(var(--s) * 0.16);
+}
+.d6 b { width: calc(var(--s) * 0.17); height: calc(var(--s) * 0.17); border-radius: 50%; background: #2a1f22; place-self: center; visibility: hidden; }
+.d6 b.on { visibility: visible; }
+.d6.small { --s: 26px; }
+.d6.big { --s: 64px; }
+.d6.hidden { background: #3a3430; box-shadow: inset 0 -3px 0 #221d1a, 0 4px 8px -4px #000c; }
+.d6.hidden b { display: none; }
+.d6.dim, .dn.dim { opacity: 0.32; }
+.d6.mark { box-shadow: 0 0 0 3px var(--go), 0 4px 8px -4px #000c; }
+.d6.wild b.on { background: var(--red); }
+.dn { --s: 56px; width: var(--s); height: var(--s); flex: none; position: relative; display: grid; place-items: center; }
+.dn svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dn span { position: relative; font-family: var(--lid-font); font-size: calc(var(--s) * 0.34); color: #2a1f22; line-height: 1; }
+.dn small { position: absolute; bottom: -14px; font-family: var(--mono); font-size: 0.6rem; color: var(--chalk-faint); }
+.roll-in { animation: roll-in .45s cubic-bezier(.3,.7,.4,1); }
+@keyframes roll-in { 0% { transform: translateY(-14px) rotate(-160deg) scale(.8); } 100% { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .roll-in { animation: none; } }
+.seat.out { opacity: 0.4; }
+.count { font-family: var(--mono); font-size: 0.75rem; color: var(--chalk-dim); text-align: center; }
+
+.btn { border-radius: 9px; padding: 9px 18px; font-weight: 800; background: var(--go); color: var(--go-ink); }
+.btn:hover:not(:disabled) { filter: brightness(1.08); }
+.btn:disabled { opacity: 0.4; }
+.btn.ghost { background: transparent; color: var(--chalk); border: 2px solid var(--edge); }
+.suit-pick { display: flex; gap: 8px; }
+.suit-pick button { width: 46px; height: 46px; border-radius: 10px; background: var(--card); font-size: 1.5rem; color: var(--black); }
+.suit-pick button.red { color: var(--red); }
+
+/* the side */
+.side { display: grid; gap: 14px; min-width: 0; }
+.panel { border: 1px solid var(--edge); border-radius: 12px; padding: 14px; display: grid; gap: 10px; background: #ffffff06; min-width: 0; }
+.panel h2 { margin: 0; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--chalk-dim); font-weight: 800; }
+.panel p { margin: 0; }
+.note { font-size: 0.82rem; color: var(--chalk-faint); font-family: var(--prose); }
+.sheet-wrap { overflow-x: auto; }
+table.sheet { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.85rem; }
+.sheet th, .sheet td { padding: 5px 6px; text-align: right; border-bottom: 1px solid var(--edge); white-space: nowrap; }
+.sheet th:first-child, .sheet td:first-child { text-align: left; color: var(--chalk-dim); font-weight: 500; }
+.sheet thead th { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--chalk-dim); }
+.sheet thead th.you { color: var(--go); }
+.sheet tfoot td { font-weight: 800; border-bottom: 0; border-top: 2px solid var(--chalk-faint); font-size: 0.95rem; }
+.sheet td.lead { color: var(--go); }
+.sheet .empty td { color: var(--chalk-faint); font-style: italic; text-align: left; }
+.deck-row { display: flex; justify-content: space-between; gap: 8px; font-size: 0.88rem; }
+.deck-row span:last-child { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--chalk-dim); }
+ol.log { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 260px; overflow-y: auto; font-size: 0.85rem; }
+ol.log li { color: var(--chalk-dim); }
+ol.log li b { color: var(--chalk); }
+details.record summary { cursor: pointer; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--chalk-dim); font-weight: 800; }
+.cmds { margin: 10px 0 0; background: #00000055; border-radius: 8px; padding: 10px 12px; overflow-x: auto; font-family: var(--mono); font-size: 0.72rem; line-height: 1.7; white-space: pre; }
+@media (prefers-reduced-motion: reduce) { .pc { transition: none; } }
+</style>
+
+<header class="band">
+  <div class="band-in">
+    <div>
+      <a class="back" href="index.html">← all the games</a>
+      <h1 id="title"></h1>
+      <p class="line" id="line"></p>
+    </div>
+    <div class="toggles" id="toggles"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <main class="felt" id="felt">
+    <div class="status" id="status" aria-live="polite"></div>
+    <div class="ring" id="ring" hidden>
+      <div class="seat" data-seat="north"></div>
+      <div class="seat" data-seat="west"></div>
+      <div class="middle" id="middle"></div>
+      <div class="seat" data-seat="east"></div>
+    </div>
+    <div class="stage" id="stage" hidden></div>
+    <div class="mine" id="mine" hidden></div>
+    <div class="actions" id="actions"></div>
+  </main>
+  <aside class="side">
+    <div id="extra-panels" style="display:contents"></div>
+    <section class="panel" id="p-score" hidden><h2 id="score-title">Scoresheet</h2><div class="sheet-wrap" id="score"></div><p class="note" id="score-note"></p></section>
+    <section class="panel" id="p-deck" hidden><h2 id="deck-title">The deck</h2><div id="deck"></div></section>
+    <section class="panel" id="p-log"><h2>The game so far</h2><ol class="log" id="log"></ol></section>
+    <section class="panel" id="p-record"><p class="note" id="credit" style="margin:0 0 8px"></p><details class="record"><summary>Play it on the record</summary><div class="cmds" id="cmds"></div><p class="note" id="record-note" style="margin-top:8px"></p></details></section>
+  </aside>
+</div>
+
+<script>
+/* ---------- the frame: what every card game here shares ---------- */
+const GAME = {"id": "map-maker", "title": "map maker", "summary": "Lay a story's town with the fair's tiles, dealt from seed words or by hand, and name its squares, wells and bridges as the world's places.", "commands": [], "notes": "", "came": "Made for Die-Namic on 2026-11-26 from Lantern Fair's tiles: a map kept in box/maps/ beside its world, lit at the Table and offered by write.py.", "checked": "", "card": "", "sketch": true, "name": "Map Maker", "lid": "#3b2f5c", "ink": "#fff3c4", "uses": ["fair-tiles"], "also": [], "decks": [], "maps": [{"world": "lantern-fair", "seed": "the lantern fair", "tiles": [[0, -5, "fork", 0], [1, -5, "canal-bend", 3], [1, -4, "square-edge", 1], [0, -3, "lane-bend", 0], [1, -3, "lane-bend", 2], [0, -2, "fork", 0], [1, -2, "bridge", 3], [-1, -1, "square-three", 3], [0, -1, "canal", 0], [0, 0, "start", 0], [1, 0, "lane", 1], [1, 1, "stall-end", 3], [2, 1, "lane-stall", 3], [3, 1, "lane-stall", 1], [4, 1, "lane-dark", 1], [-2, 2, "square-edge", 2], [-1, 2, "square-through", 0], [0, 2, "lane-bend", 1], [1, 2, "square-mouth", 1], [2, 2, "square-mouth", 3], [3, 2, "dark-end", 1], [1, 3, "lane", 1], [2, 3, "lane", 3], [1, 4, "landing", 0]], "places": [{"name": "The lantern bridge", "at": "0,0:br"}, {"name": "The stalls", "at": "1,1:c"}]}], "worlds": [{"id": "aetheris-the-waking-tide", "title": "Aetheris — The Waking Tide", "places": ["the seawall", "the engine gallery"]}, {"id": "clockwork-cellar", "title": "The Clockwork Cellar", "places": ["The mill stair", "The gear cellar"]}, {"id": "hasbeen-late-shift", "title": "Hasbeen — Late Shift", "places": ["the empty floor"]}, {"id": "ironworks-last-pour", "title": "Ironworks — Last Pour", "places": ["the condemned gate", "the cooling hall"]}, {"id": "lantern-fair", "title": "The Lantern Fair", "places": ["The stalls", "The lantern bridge"]}, {"id": "the-wasp-nest", "title": "The Wasp Nest", "places": ["The cellar ceiling", "Cogwen's workshop"]}]}; // this game's words, from its README, and its lid
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = (ms) => new Promise((r) => setTimeout(r, reduced ? Math.min(ms, 120) : ms));
+const rnd = (n) => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
+function shuffle(xs) { const a = xs.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+const SEATS = ["north", "east", "south", "west"]; // as the record names them
+const YOU = 2;
+const SEAT_NAME = (i) => (i === YOU ? "You" : SEATS[i][0].toUpperCase() + SEATS[i].slice(1));
+
+/* a standard card: rank 2..14, suit C D H S, written as the record writes it (QS, 10H) */
+const SUIT_GLYPH = { C: "♣", D: "♦", H: "♥", S: "♠" };
+const SUIT_NAME = { C: "clubs", D: "diamonds", H: "hearts", S: "spades" };
+const RANK_TEXT = (r) => ({ 11: "J", 12: "Q", 13: "K", 14: "A" }[r] || String(r));
+const cardName = (c) => RANK_TEXT(c.r) + c.s;
+const said = (c) => RANK_TEXT(c.r) + SUIT_GLYPH[c.s];
+const sameCard = (a, b) => a.r === b.r && a.s === b.s;
+const deck52 = () => "CDHS".split("").flatMap((s) => Array.from({ length: 13 }, (_, i) => ({ r: i + 2, s })));
+const sortHand = (h) => h.sort((a, b) => "CDHS".indexOf(a.s) - "CDHS".indexOf(b.s) || a.r - b.r);
+
+/* willow-bot's seeded stream (sha256-stream/v1), as the add-ons draw from it:
+   u32 is the first four bytes, big-endian, of SHA-256(seed || an 8-byte
+   big-endian counter); below(k) by rejection. A seed given as text is
+   SHA-256(text), as play-catgrid and play-life take --seed. So the same seed
+   here builds the same board the record does. SHA-256 is synchronous on
+   purpose: a board search draws thousands of times inside a recursion. */
+const SHA_K = new Uint32Array([0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+function sha256(bytes) {
+  const l = bytes.length, padded = new Uint8Array(((l + 9 + 63) >> 6) << 6);
+  padded.set(bytes); padded[l] = 0x80;
+  const bits = l * 8; const dv = new DataView(padded.buffer);
+  dv.setUint32(padded.length - 8, Math.floor(bits / 2 ** 32)); dv.setUint32(padded.length - 4, bits >>> 0);
+  const H = new Uint32Array([0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]);
+  const W = new Uint32Array(64), rot = (x, n) => (x >>> n) | (x << (32 - n));
+  for (let o = 0; o < padded.length; o += 64) {
+    for (let i = 0; i < 16; i++) W[i] = dv.getUint32(o + i * 4);
+    for (let i = 16; i < 64; i++) {
+      const s0 = rot(W[i - 15], 7) ^ rot(W[i - 15], 18) ^ (W[i - 15] >>> 3), s1 = rot(W[i - 2], 17) ^ rot(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+      W[i] = (W[i - 16] + s0 + W[i - 7] + s1) >>> 0;
+    }
+    let [a, b, c, d, e, f, g, h] = H;
+    for (let i = 0; i < 64; i++) {
+      const t1 = (h + (rot(e, 6) ^ rot(e, 11) ^ rot(e, 25)) + ((e & f) ^ (~e & g)) + SHA_K[i] + W[i]) >>> 0;
+      const t2 = ((rot(a, 2) ^ rot(a, 13) ^ rot(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) >>> 0;
+      h = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = b; b = a; a = (t1 + t2) >>> 0;
+    }
+    H[0] += a; H[1] += b; H[2] += c; H[3] += d; H[4] += e; H[5] += f; H[6] += g; H[7] += h;
+  }
+  const out = new Uint8Array(32); const ov = new DataView(out.buffer); H.forEach((v, i) => ov.setUint32(i * 4, v)); return out;
+}
+const utf8 = (s) => new TextEncoder().encode(s);
+const hex = (b) => Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+class Stream {
+  constructor(seed) { this.seed = seed; this.n = 0; this.buf = new Uint8Array(seed.length + 8); this.buf.set(seed); }
+  static fromText(text) { return new Stream(sha256(utf8(text))); }
+  u32() {
+    const dv = new DataView(this.buf.buffer); dv.setUint32(this.seed.length, Math.floor(this.n / 2 ** 32)); dv.setUint32(this.seed.length + 4, this.n >>> 0);
+    this.n++; const d = sha256(this.buf); return ((d[0] << 24) | (d[1] << 16) | (d[2] << 8) | d[3]) >>> 0;
+  }
+  below(k) { const cap = 2 ** 32 - (2 ** 32 % k); let x; do { x = this.u32(); } while (x >= cap); return x % k; }
+  pick(items) { return items[this.below(items.length)]; }
+  shuffled(items) { const out = Array.from(items); for (let i = out.length - 1; i > 0; i--) { const j = this.below(i + 1); [out[i], out[j]] = [out[j], out[i]]; } return out; }
+}
+/* oracle-text: a Tracery grammar, every branch picked by the stream seeded
+   "SEED:oracle:N" (the raw text, not its hash), as the add-on reads it:
+   #symbol#, modifiers .a .s .ed .capitalize .capitalizeAll .allCaps chained,
+   [name:rule] to say the same thing again later in one reading. */
+const ORACLE_TOKEN = /#([^#]*)#|\[([^\[\]:]+):((?:[^\[\]]|\[[^\[\]]*\])*)\]/g;
+const ORACLE_MOD = {
+  a: (w) => ("aeiou".includes(w.slice(0, 1).toLowerCase()) && w ? "an " : "a ") + w,
+  s: (w) => (/[sxzh]$/.test(w) ? w + "es" : w.length > 1 && w.endsWith("y") && !"aeiou".includes(w[w.length - 2]) ? w.slice(0, -1) + "ies" : w + "s"),
+  ed: (w) => (w.endsWith("e") ? w + "d" : w.length > 1 && w.endsWith("y") && !"aeiou".includes(w[w.length - 2]) ? w.slice(0, -1) + "ied" : w + "ed"),
+  capitalize: (w) => w.slice(0, 1).toUpperCase() + w.slice(1),
+  capitalizeAll: (w) => w.split(" ").map((x) => x.slice(0, 1).toUpperCase() + x.slice(1)).join(" "),
+  allCaps: (w) => w.toUpperCase(),
+};
+function oracleExpand(text, grammar, rng, names, depth = 0) {
+  if (depth > 40) throw new Error("rules that expand without end");
+  return text.replace(ORACLE_TOKEN, (m, sym, name, rule) => {
+    if (name !== undefined) { names[name] = oracleExpand(rule, grammar, rng, names, depth + 1); return ""; }
+    const [symbol, ...mods] = sym.split(".");
+    let out;
+    if (symbol in names) out = names[symbol];
+    else if (symbol in grammar) { const rules = grammar[symbol]; const r = typeof rules === "string" ? rules : rules[rng.below(rules.length)]; out = oracleExpand(r, grammar, rng, names, depth + 1); }
+    else throw new Error(`no symbol “${symbol}” in the grammar`);
+    for (const mod of mods) { if (!ORACLE_MOD[mod]) throw new Error(`no modifier “${mod}”: ${Object.keys(ORACLE_MOD).join(", ")}`); out = ORACLE_MOD[mod](out); }
+    return out;
+  });
+}
+function oracleReading(grammar, seed, i, origin = "origin") {
+  if (!(origin in grammar)) throw new Error(`no symbol “${origin}” in the grammar`);
+  return oracleExpand(`#${origin}#`, grammar, new Stream(utf8(`${seed}:oracle:${i}`)), {});
+}
+
+const seedWords = () => { const w = ["lantern", "river", "gear", "goat", "bridge", "stall", "cellar", "kettle", "harbor", "willow", "fox", "comet"]; return `${w[rnd(w.length)]} ${100 + rnd(900)}`; };
+
+/* dice: d6 by pips; others (d4, d8, d10, d12, d20, d100) as a shape with the number */
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+function dieHTML(n, o = {}) {
+  const cls = ["d6", o.size || "", o.hidden ? "hidden" : "", o.dim ? "dim" : "", o.mark ? "mark" : "", o.wild ? "wild" : "", o.roll ? "roll-in" : ""].join(" ");
+  const label = o.hidden ? "a die, under the cup" : `a ${n}`;
+  return `<div class="${cls}" role="img" aria-label="${label}">${[...Array(9)].map((_, i) => `<b class="${!o.hidden && (PIPS[n] || []).includes(i) ? "on" : ""}"></b>`).join("")}</div>`;
+}
+const SHAPE = {
+  4: "50,6 94,88 6,88", 8: "50,4 92,50 50,96 8,50", 10: "50,4 94,40 50,96 6,40", 100: "50,4 94,40 50,96 6,40",
+  12: "50,4 93,35 77,90 23,90 7,35", 20: "50,3 93,27 93,73 50,97 7,73 7,27",
+};
+const TINT = { 4: "#f4c7a1", 8: "#c9e0f5", 10: "#d8f0c8", 12: "#f3d3f0", 20: "#fff1b8", 100: "#e3e0d6" };
+function polyDieHTML(sides, n, o = {}) {
+  if (sides === 6) return dieHTML(n, o);
+  const pts = SHAPE[sides] || "8,8 92,8 92,92 8,92";
+  return `<div class="dn ${o.dim ? "dim" : ""} ${o.roll ? "roll-in" : ""}" role="img" aria-label="d${sides} showing ${n}"><svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="${pts}" fill="${TINT[sides] || "#eee"}" stroke="#00000055" stroke-width="3" stroke-linejoin="round"/></svg><span>${n}</span><small>d${sides}</small></div>`;
+}
+
+/* card art: a fetched deck when one is chosen (decks/ID/QS.svg), else drawn here */
+const RANK_FILE = (r) => ({ 10: "T", 11: "J", 12: "Q", 13: "K", 14: "A" }[r] || String(r));
+function artHTML(src, label) { return `<img src="${esc(src)}" alt="" draggable="false" onerror="this.closest('.pc').classList.remove('img');this.remove()"><span class="sr">${esc(label)}</span>`; }
+
+function cardHTML(c, o = {}) {
+  const cls = ["pc", o.size || "", o.extra || ""].join(" ");
+  if (!c || o.back) {
+    const b = frame.backArt();
+    return b ? `<div class="${cls} img" aria-label="a card, face down">${artHTML(b, "")}</div>` : `<div class="${cls} back" aria-label="a card, face down"></div>`;
+  }
+  const deck = frame.deckArt();
+  if (deck) {
+    const label = `${RANK_TEXT(c.r)} of ${SUIT_NAME[c.s]}`;
+    const art = artHTML(`decks/${deck.id}/${RANK_FILE(c.r)}${c.s}.${deck.ext}`, label);
+    if (o.button) return `<button class="${cls} img ${o.chosen ? "chosen" : ""}" data-card="${cardName(c)}" ${o.disabled ? "disabled" : ""} aria-label="${label}">${art}</button>`;
+    return `<div class="${cls} img" role="img" aria-label="${label}">${art}</div>`;
+  }
+  const red = c.s === "H" || c.s === "D";
+  const face = c.r > 10;
+  const inner = `<span class="ix">${RANK_TEXT(c.r)}<i>${SUIT_GLYPH[c.s]}</i></span><span class="pip ${face ? "face" : ""}">${face ? RANK_TEXT(c.r) : SUIT_GLYPH[c.s]}</span>`;
+  const label = `${RANK_TEXT(c.r)} of ${SUIT_NAME[c.s]}`;
+  if (o.button) return `<button class="${cls} ${red ? "red" : ""} ${o.chosen ? "chosen" : ""}" data-card="${cardName(c)}" ${o.disabled ? "disabled" : ""} aria-label="${label}">${inner}</button>`;
+  return `<div class="${cls} ${red ? "red" : ""}" role="img" aria-label="${label}">${inner}</div>`;
+}
+
+/* two switches, off unless you turn them on, remembered in this browser only:
+   hints lights the cards the rules allow and says what to follow; open shows
+   the other seats' hands, as the record plays them */
+const remembered = (k) => { try { return localStorage.getItem(k) === "1"; } catch (e) { return false; } };
+const remember = (k, v) => { try { localStorage.setItem(k, v ? "1" : "0"); } catch (e) {} };
+
+const recall = (k, fallback) => { try { const v = localStorage.getItem(k); return v === null ? fallback : v; } catch (e) { return fallback; } };
+
+const frame = {
+  open: remembered("dn-open"),
+  hints: remembered("dn-hints"),
+  /* the art: a deck for the faces and a back, each by id, "" for drawn */
+  deckId: "",
+  backId: "",
+  deckArt() { return (GAME.decks || []).find((d) => d.id === this.deckId) || null; },
+  backArt() {
+    if (!this.backId) return null;
+    const [id, name] = this.backId.split("/");
+    const d = (GAME.decks || []).find((x) => x.id === id);
+    return d && d.backs.includes(name) ? `decks/${id}/back-${name}.svg` : null;
+  },
+  setup(opts) {
+    document.documentElement.style.setProperty("--lid", GAME.lid);
+    document.documentElement.style.setProperty("--lid-ink", GAME.ink);
+    $("title").textContent = GAME.name;
+    $("line").textContent = GAME.summary;
+    $("cmds").textContent = GAME.commands.join("\n");
+    $("record-note").textContent = "There the deal is seeded by the record's tip and every card is a row; here the shuffle is your browser's and nothing is kept.";
+    $("ring").hidden = !opts.seats; $("mine").hidden = !opts.seats; $("stage").hidden = !!opts.seats;
+    $("p-score").hidden = !opts.score; $("p-deck").hidden = !opts.deck;
+    if (opts.scoreTitle) $("score-title").textContent = opts.scoreTitle;
+    if (opts.deckTitle) $("deck-title").textContent = opts.deckTitle;
+    const t = [];
+    if (opts.hints !== false) t.push(`<button class="toggle" id="t-hints" aria-pressed="${this.hints}" title="Light the cards the rules allow">Hints</button>`);
+    if (opts.seats) t.push(`<button class="toggle" id="t-open" aria-pressed="${this.open}" title="Show the other seats' cards">Hands open</button>`);
+    /* the art, when any was fetched: a deck for the faces, and (for a 52) a back from any deck */
+    const decks = GAME.decks || [], kind = GAME.deckKind;
+    if (decks.length) {
+      const blue = decks.find((d) => d.backs.includes("blue"));
+      this.deckId = recall(`dn-deck-${kind}`, decks[0].id);
+      if (this.deckId && !decks.some((d) => d.id === this.deckId)) this.deckId = decks[0].id;
+      const backs = decks.flatMap((d) => d.backs.map((b) => [`${d.id}/${b}`, `${d.name}: ${b.replace(/_/g, " ")}`]));
+      this.backId = recall("dn-back", blue ? `${blue.id}/blue` : backs.length ? backs[0][0] : "");
+      if (this.backId && !backs.some(([v]) => v === this.backId)) this.backId = "";
+      t.push(`<label class="toggle pick"><span>Deck</span><select id="t-deck">${[["", "Drawn"], ...decks.map((d) => [d.id, d.name])].map(([v, l]) => `<option value="${esc(v)}" ${v === this.deckId ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`);
+      if (backs.length) t.push(`<label class="toggle pick"><span>Back</span><select id="t-back">${[["", "Drawn"], ...backs].map(([v, l]) => `<option value="${esc(v)}" ${v === this.backId ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`);
+    }
+    $("toggles").innerHTML = t.join("");
+    const credit = () => { const d = this.deckArt(); $("credit").textContent = d ? `Cards: ${d.name}, by ${d.credit}. ${d.license}.` : ""; };
+    const sel = (id, key, prop) => { const s = $(id); if (s) s.addEventListener("change", () => { this[prop] = s.value; try { localStorage.setItem(key, s.value); } catch (e) {} credit(); opts.redraw(); }); };
+    sel("t-deck", `dn-deck-${kind}`, "deckId"); sel("t-back", "dn-back", "backId");
+    credit();
+    for (const [id, key, prop] of [["t-hints", "dn-hints", "hints"], ["t-open", "dn-open", "open"]]) {
+      const b = $(id);
+      if (b) b.addEventListener("click", () => { this[prop] = !this[prop]; remember(key, this[prop]); b.setAttribute("aria-pressed", this[prop]); opts.redraw(); });
+    }
+  },
+  status(html) { $("status").innerHTML = html; },
+  /* a move the rules refuse: name the rule, never the answer */
+  refuse(rule) { $("status").innerHTML = `<span style="color:#ff9b85">Not allowed: ${esc(rule)}</span>`; },
+  actions(html) { $("actions").innerHTML = html; },
+  middle(html) { $("middle").innerHTML = html; },
+  stage(html) { $("stage").innerHTML = html; },
+  /* each other seat: its name, a line about it, and its hand, open or face down */
+  /* a seat holding anything (a cup, a stack): its name, a line, and what the game draws there */
+  seatAny(i, inner, o = {}) {
+    const el = document.querySelector(`.seat[data-seat="${SEATS[i]}"]`);
+    el.classList.toggle("turn", !!o.turn);
+    el.classList.toggle("out", !!o.out);
+    el.innerHTML = `<div class="seat-name">${esc(SEAT_NAME(i))}<span class="meta">${o.meta || ""}</span></div>${inner}`;
+  },
+  mineAny(inner, o = {}) {
+    $("mine").innerHTML = `<div class="seat-name" style="${o.turn ? "color:var(--go)" : ""}">${o.turn ? "▸ " : ""}You · south<span class="meta">${o.meta || ""}</span></div>${inner}`;
+  },
+  seat(i, hand, o = {}) {
+    const el = document.querySelector(`.seat[data-seat="${SEATS[i]}"]`);
+    el.classList.toggle("turn", !!o.turn);
+    const cards = this.open ? sortHand(hand.slice()).map((c) => cardHTML(c, { size: "small" })).join("") : hand.map(() => cardHTML(null, { size: "small" })).join("");
+    el.innerHTML = `<div class="seat-name">${esc(SEAT_NAME(i))}<span class="meta">${o.meta || ""}</span></div><div class="hand" style="--overlap:${hand.length > 8 ? "-22px" : "-14px"}">${cards}</div>`;
+  },
+  /* your hand: buttons. With hints on, only the cards the rules allow are lit;
+     with hints off, every card is live on your turn and the game says no. */
+  mine(hand, o = {}) {
+    const el = $("mine");
+    const allowed = o.can || (() => false), chosen = o.chosen || (() => false);
+    const can = o.any ? () => true : this.hints ? allowed : () => !!o.turn && !o.locked;
+    el.innerHTML = `<div class="seat-name ${o.turn ? "" : ""}" style="${o.turn ? "color:var(--go)" : ""}">${o.turn ? "▸ " : ""}You · south<span class="meta">${o.meta || ""}</span></div>
+      <div class="hand mine-hand ${this.hints ? "" : "quiet"}" style="--overlap:${hand.length > 10 ? "-24px" : "-8px"}">${hand.map((c) => cardHTML(c, { button: true, disabled: !can(c), chosen: chosen(c) })).join("")}</div>`;
+  },
+  /* the scoresheet: a column a seat, a row a hand, totals underneath */
+  score({ cols, rows, totals, lead, note, empty, head = "Hand", you = YOU }) {
+    $("score").innerHTML = `<table class="sheet"><thead><tr><th>${esc(head)}</th>${cols.map((c, i) => `<th class="${i === you ? "you" : ""}">${esc(c)}</th>`).join("")}</tr></thead>
+      <tbody>${rows.length ? rows.map((r) => `<tr><td>${esc(r.label)}</td>${r.cells.map((v) => `<td>${v}</td>`).join("")}</tr>`).join("") : `<tr class="empty"><td colspan="${cols.length + 1}">${esc(empty || "No hands yet")}</td></tr>`}</tbody>
+      ${totals ? `<tfoot><tr><td>Total</td>${totals.map((v, i) => `<td class="${lead && lead.includes(i) ? "lead" : ""}">${v}</td>`).join("")}</tr></tfoot>` : ""}</table>`;
+    $("score-note").textContent = note || "";
+  },
+  /* the deck: what is where, in rows */
+  deck(rows, note) {
+    $("deck").innerHTML = rows.map(([k, v]) => `<div class="deck-row"><span>${esc(k)}</span><span>${esc(v)}</span></div>`).join("") + (note ? `<p class="note">${esc(note)}</p>` : "");
+  },
+  log(html) { const li = document.createElement("li"); li.innerHTML = html; $("log").prepend(li); },
+  /* a side panel of the game's own, above the scoresheet: made once, its body redrawn */
+  panel(id, title, html) {
+    let p = $("p-" + id);
+    if (!p) {
+      p = document.createElement("section"); p.className = "panel"; p.id = "p-" + id;
+      p.innerHTML = `<h2>${esc(title)}</h2><div id="${id}"></div>`;
+      $("extra-panels").append(p);
+    }
+    if (html !== undefined) $(id).innerHTML = html;
+    return $(id);
+  },
+  clearLog() { $("log").innerHTML = ""; },
+};
+</script>
+<script>
+/* The fair's tiles, shared by every page that lays them: Lantern Fair, the map
+   maker and the Table's maps. A tile is square, its edges N E S W each a canal,
+   a lane, a square or quay; its segments join the edges they name. This file
+   draws them, and holds the board a finger pans and pinches. */
+const N = 0, E = 1, So = 2, W = 3;
+const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+const MID = [[50, 0], [100, 50], [50, 100], [0, 50]];
+const GOODS = ["spice", "silk", "sweets", "masks"];
+const GOOD_COL = { spice: "#e0662f", silk: "#9a68d8", sweets: "#ee86b0", masks: "#e9c74a" };
+const KIND_NAME = { L: "lane", C: "canal", P: "square" };
+
+/* the tiles, edges N E S W; a segment joins the edges it names, and one with an
+   end stops there (at a stall, a well, a crossing, a basin, a landing or a
+   square it opens onto). A square segment is paving along the edges it names. */
+const TILES = [
+  { id: "lane", n: 6, segs: [{ k: "L", e: [N, So] }] },
+  { id: "lane-bend", n: 6, segs: [{ k: "L", e: [N, E] }] },
+  { id: "lane-stall", n: 6, segs: [{ k: "L", e: [N, So], stalls: ["lit"] }] },
+  { id: "lane-dark", n: 3, segs: [{ k: "L", e: [N, So], stalls: ["dark"] }] },
+  { id: "stall-end", n: 3, segs: [{ k: "L", e: [So], end: "stall", stalls: ["lit"] }] },
+  { id: "dark-end", n: 1, segs: [{ k: "L", e: [So], end: "stall", stalls: ["dark"] }] },
+  { id: "well", n: 3, segs: [{ k: "L", e: [E], end: "well" }, { k: "L", e: [So], end: "well" }, { k: "L", e: [W], end: "well" }] },
+  { id: "crossing", n: 2, segs: [N, E, So, W].map((e) => ({ k: "L", e: [e], end: "cross" })) },
+  { id: "canal", n: 5, segs: [{ k: "C", e: [N, So] }] },
+  { id: "canal-bend", n: 4, segs: [{ k: "C", e: [N, E] }] },
+  { id: "basin", n: 3, segs: [{ k: "C", e: [So], end: "basin" }] },
+  { id: "fork", n: 2, segs: [{ k: "C", e: [E, So, W] }] },
+  { id: "bridge", n: 4, bridge: true, segs: [{ k: "C", e: [N, So] }, { k: "L", e: [E, W] }] },
+  { id: "bridge-stall", n: 2, bridge: true, segs: [{ k: "C", e: [N, So] }, { k: "L", e: [E, W], stalls: ["lit"] }] },
+  { id: "landing", n: 4, segs: [{ k: "C", e: [E, W] }, { k: "L", e: [So], end: "landing" }] },
+  { id: "square-edge", n: 4, segs: [{ k: "P", e: [N] }] },
+  { id: "square-mouth", n: 4, segs: [{ k: "P", e: [N] }, { k: "L", e: [So], end: "square" }] },
+  { id: "square-corner", n: 3, segs: [{ k: "P", e: [N, E] }] },
+  { id: "square-through", n: 2, segs: [{ k: "P", e: [N, So] }] },
+  { id: "square-three", n: 2, segs: [{ k: "P", e: [N, E, W] }] },
+  { id: "square-three-mouth", n: 2, segs: [{ k: "P", e: [N, E, W] }, { k: "L", e: [So], end: "square" }] },
+  { id: "square-corner-mouths", n: 2, segs: [{ k: "P", e: [N, E] }, { k: "L", e: [So], end: "square" }, { k: "L", e: [W], end: "square" }] },
+  { id: "square-full", n: 1, segs: [{ k: "P", e: [N, E, So, W] }] },
+  { id: "start", n: 0, bridge: true, segs: [{ k: "C", e: [N, So] }, { k: "L", e: [E, W], stalls: ["lit"] }] },
+];
+const T = Object.fromEntries(TILES.map((t) => [t.id, t]));
+const stallsOf = (id) => T[id].segs.flatMap((s, i) => (s.stalls || []).map((st) => ({ seg: i, lit: st === "lit" })));
+const edgeOf = (id, rot, dir) => { const e = (dir - rot + 4) % 4; const s = T[id].segs.find((g) => g.e.includes(e)); return s ? s.k : "Q"; };
+const key = (x, y) => `${x},${y}`;
+const tileName = (id) => id.replace(/-/g, " ");
+
+const COL = { quay: "#2f2c44", quay2: "#3a3654", water: "#1d6f8a", water2: "#5fc0d6", lane: "#dcc093", lane2: "#9e7f55", pave: "#6e5a86", pave2: "#8a74a3", glow: "#ffcf5a", you: "#ffcf5a", north: "#8fd8ff" };
+function segPath(s) {
+  if (s.e.length === 2) { const [a, b] = [MID[s.e[0]], MID[s.e[1]]]; return `M${a[0]} ${a[1]} Q50 50 ${b[0]} ${b[1]}`; }
+  return s.e.map((e) => `M${MID[e][0]} ${MID[e][1]} L50 50`).join(" ");
+}
+function anchor(s) {
+  const m = MID[s.e[0]];
+  const f = s.k === "P" ? 0.42 : s.e.length === 1 && !s.end ? 0.5 : s.e.length === 1 ? (s.end === "square" ? 0.3 : 0.42) : 0.58;
+  return [m[0] + (50 - m[0]) * f, m[1] + (50 - m[1]) * f];
+}
+const PAVE = { 0: "0,0 100,0 68,42 32,42", 1: "100,0 100,100 58,68 58,32", 2: "0,100 100,100 68,58 32,58", 3: "0,0 0,100 42,68 42,32" };
+function squareSVG(s) {
+  let out = s.e.length === 4 ? `<rect width="100" height="100" fill="${COL.pave}"/>` : s.e.map((e) => `<polygon points="${PAVE[e]}" fill="${COL.pave}"/>`).join("");
+  if (s.e.length >= 2 && s.e.length < 4) out += `<rect x="30" y="30" width="40" height="40" fill="${COL.pave}"/>`;
+  out += `<g stroke="${COL.pave2}" stroke-width="1" opacity="0.6">${s.e.map((e) => { const [x, y] = MID[e]; return e % 2 ? `<path d="M${x === 0 ? 8 : 92} 20 V80 M${x === 0 ? 18 : 82} 28 V72"/>` : `<path d="M20 ${y === 0 ? 8 : 92} H80 M28 ${y === 0 ? 18 : 82} H72"/>`; }).join("")}</g>`;
+  return out;
+}
+function stallSVG(x, y, st) {
+  const c = GOOD_COL[st.good] || "#c9553f";
+  return `${st.lit ? `<circle cx="${x + 13}" cy="${y + 6}" r="24" fill="url(#glow)"/>` : ""}<rect x="${x}" y="${y}" width="26" height="19" rx="2" fill="${st.lit ? "#a8483a" : "#4a4552"}"/><path d="M${x - 3} ${y + 2} h32 l-4 -8 h-24 z" fill="${c}" opacity="${st.lit ? 1 : 0.55}"/><path d="M${x + 5} ${y - 6} v8 M${x + 13} ${y - 6} v8 M${x + 21} ${y - 6} v8" stroke="#fff8" stroke-width="2"/><circle cx="${x + 13}" cy="${y + 8}" r="3.6" fill="${st.lit ? "#fff2b0" : "#1f1c26"}"/>`;
+}
+function tileInner(id, stalls) {
+  const def = T[id];
+  let s = `<rect width="100" height="100" fill="${COL.quay}"/><path d="M0 33 H100 M0 66 H100 M33 0 V100 M66 0 V100" stroke="${COL.quay2}" stroke-width="1"/>`;
+  for (const g of def.segs.filter((g) => g.k === "C")) {
+    s += `<path d="${segPath(g)}" stroke="${COL.water}" stroke-width="34" fill="none"/>`;
+    if (g.end === "basin") s += `<circle cx="50" cy="50" r="24" fill="${COL.water}"/>`;
+    if (g.e.length === 3) s += `<circle cx="50" cy="50" r="17" fill="${COL.water}"/>`;
+    s += `<path d="${segPath(g)}" stroke="${COL.water2}" stroke-width="2" stroke-dasharray="6 9" fill="none" opacity="0.7"/>`;
+  }
+  for (const g of def.segs.filter((g) => g.k === "L")) {
+    const d = g.end === "landing" ? `M50 100 L50 67` : segPath(g);
+    s += `<path d="${d}" stroke="${COL.lane2}" stroke-width="22" fill="none"/><path d="${d}" stroke="${COL.lane}" stroke-width="16" fill="none"/>`;
+    if (g.end === "landing") s += `<path d="M42 70 H58 M42 75 H58 M42 80 H58" stroke="${COL.lane2}" stroke-width="1.5"/>`;
+  }
+  for (const g of def.segs.filter((g) => g.k === "P")) s += squareSVG(g);
+  if (def.bridge) s += `<path d="M31 39 H69 M31 61 H69" stroke="#6b4e2e" stroke-width="3"/><path d="M33 39 V61 M67 39 V61" stroke="#6b4e2e" stroke-width="1.5" opacity="0.7"/>`;
+  const ends = new Set(def.segs.map((g) => g.end).filter(Boolean));
+  if (ends.has("well")) s += `<circle cx="50" cy="50" r="13" fill="#8c8698"/><circle cx="50" cy="50" r="7" fill="#15131f"/>`;
+  if (ends.has("cross")) s += `<circle cx="50" cy="50" r="15" fill="#8c8698"/><circle cx="50" cy="50" r="10" fill="${COL.water}"/><circle cx="50" cy="50" r="3" fill="${COL.water2}"/>`;
+  (stalls || stallsOf(id).map((x) => ({ ...x, good: null }))).forEach((st) => {
+    const g = def.segs[st.seg];
+    s += g.end === "stall" ? stallSVG(37, 42, st) : id === "start" || id === "bridge-stall" ? stallSVG(5, 70, st) : stallSVG(64, 42, st);
+  });
+  return s;
+}
+const tileG = (x, y, id, rot, stalls, extra = "") => `<g transform="translate(${x * 100} ${y * 100}) rotate(${rot * 90} 50 50)" ${extra}>${tileInner(id, stalls)}</g>`;
+const onTile = (t, inner) => `<g transform="translate(${t.x * 100} ${t.y * 100}) rotate(${t.rot * 90} 50 50)">${inner}</g>`;
+
+/* glows for lit stalls and lanterns, once per board */
+const FAIR_DEFS = `<defs><radialGradient id="glow"><stop offset="0" stop-color="${COL.glow}" stop-opacity="0.55"/><stop offset="1" stop-color="${COL.glow}" stop-opacity="0"/></radialGradient><filter id="lit"><feGaussianBlur stdDeviation="2.5"/></filter></defs>`;
+
+/* The board under a finger: drag to pan, pinch or wheel to zoom, tap to choose.
+   It holds which part of the fair is shown, in board units (a tile is 100),
+   and hands a tap back as a point on the board. */
+class FairBoard {
+  constructor(svg, wrap, onTap, o = {}) {
+    Object.assign(this, { svg, wrap, onTap, view: null, min: o.min || 560 });
+    if (o.tools !== false) {
+      const t = document.createElement("div");
+      t.className = "fb-tools";
+      t.innerHTML = `<button aria-label="zoom in">+</button><button aria-label="zoom out">−</button><button aria-label="fit the whole map">⤢</button>`;
+      const [zin, zout, fit] = t.children, mid = () => { const r = wrap.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+      zin.onclick = () => this.zoomAt(1.3, ...mid());
+      zout.onclick = () => this.zoomAt(1 / 1.3, ...mid());
+      fit.onclick = () => { this.fit(this.lastTiles || []); this.apply(); };
+      wrap.append(t);
+    }
+    if (o.still) return;
+    const pts = new Map();
+    let moved = false, start = null, pinch = null;
+    svg.addEventListener("pointerdown", (e) => {
+      if (e.isPrimary) { pts.clear(); pinch = null; } // a first finger down: any other the board thought was down has gone
+      svg.setPointerCapture(e.pointerId);
+      pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pts.size === 1) { moved = false; start = { cx: e.clientX, cy: e.clientY, v: { ...this.view } }; }
+      if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), w: this.view.w }; moved = true; }
+    });
+    svg.addEventListener("pointermove", (e) => {
+      if (!pts.has(e.pointerId)) return;
+      pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pts.size === 2 && pinch) {
+        const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+        this.zoomAt(this.view.w / (pinch.w * (pinch.d / d)), (a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
+        return;
+      }
+      if (pts.size === 1 && start) {
+        const dx = e.clientX - start.cx, dy = e.clientY - start.cy;
+        if (!moved && Math.hypot(dx, dy) < 7) return;
+        moved = true;
+        const k = this.view.w / wrap.clientWidth;
+        this.view = { ...this.view, x: start.v.x - dx * k, y: start.v.y - dy * k };
+        this.apply();
+      }
+    });
+    svg.addEventListener("pointerup", (e) => {
+      if (!pts.has(e.pointerId)) return;
+      pts.delete(e.pointerId);
+      if (pts.size < 2) pinch = null;
+      if (pts.size === 0 && !moved) onTap(...this.toBoard(e.clientX, e.clientY));
+      if (pts.size === 0) start = null;
+    });
+    svg.addEventListener("pointercancel", (e) => { pts.delete(e.pointerId); pinch = null; });
+    svg.addEventListener("wheel", (e) => { e.preventDefault(); this.zoomAt(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX, e.clientY); }, { passive: false });
+    window.addEventListener("resize", () => this.apply());
+  }
+  aspect() { return this.wrap.clientWidth / Math.max(1, this.wrap.clientHeight); }
+  toBoard(cx, cy) { const p = this.svg.createSVGPoint(); p.x = cx; p.y = cy; const q = p.matrixTransform(this.svg.getScreenCTM().inverse()); return [q.x, q.y]; }
+  /* the whole of these tiles in sight, with a tile's room around them */
+  fit(tiles) {
+    this.lastTiles = [...tiles];
+    const xs = this.lastTiles.map((t) => t.x), ys = this.lastTiles.map((t) => t.y);
+    if (!xs.length) { xs.push(0); ys.push(0); }
+    const x0 = Math.min(...xs) - 1, x1 = Math.max(...xs) + 2, y0 = Math.min(...ys) - 1, y1 = Math.max(...ys) + 2, a = this.aspect();
+    let w = (x1 - x0) * 100, h = (y1 - y0) * 100;
+    if (w / h < a) w = h * a; else h = w / a;
+    w = Math.max(w, this.min);
+    this.view = { x: ((x0 + x1) / 2) * 100 - w / 2, y: ((y0 + y1) / 2) * 100 - w / a / 2, w };
+  }
+  /* a tile kept in sight: the view slides only as far as it must */
+  keep(x, y) {
+    const h = this.view.w / this.aspect(), m = 12;
+    const [x0, y0, x1, y1] = [x * 100 - m, y * 100 - m, x * 100 + 100 + m, y * 100 + 100 + m];
+    if (x1 - x0 > this.view.w || y1 - y0 > h) return;
+    if (x0 < this.view.x) this.view.x = x0; else if (x1 > this.view.x + this.view.w) this.view.x = x1 - this.view.w;
+    if (y0 < this.view.y) this.view.y = y0; else if (y1 > this.view.y + h) this.view.y = y1 - h;
+  }
+  /* a tile in the middle, this wide */
+  centre(x, y, w) { const a = this.aspect(); this.view = { x: x * 100 + 50 - w / 2, y: y * 100 + 50 - w / a / 2, w }; }
+  zoomAt(f, cx, cy) {
+    const [bx, by] = this.toBoard(cx, cy), w = Math.min(5000, Math.max(220, this.view.w / f)), k = w / this.view.w;
+    this.view = { x: bx - (bx - this.view.x) * k, y: by - (by - this.view.y) * k, w };
+    this.apply();
+  }
+  apply() { if (this.view) this.svg.setAttribute("viewBox", `${this.view.x} ${this.view.y} ${this.view.w} ${this.view.w / this.aspect()}`); }
+}
+/* where on the board a point on a tile is, the tile turned as it lies */
+function onBoard(t, ax, ay) {
+  const r = (t.rot * Math.PI) / 2;
+  return [t.x * 100 + 50 + (ax - 50) * Math.cos(r) - (ay - 50) * Math.sin(r), t.y * 100 + 50 + (ax - 50) * Math.sin(r) + (ay - 50) * Math.cos(r)];
+}
+
+{
+  const s = document.createElement("style");
+  s.textContent = `
+.fb-wrap { position: relative; border-radius: 14px; overflow: hidden; background: radial-gradient(120% 100% at 50% 30%, #1c1a2e, #0d0c16); box-shadow: inset 0 0 30px #000a; }
+.fb-svg { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.fb-tools { position: absolute; right: 8px; top: 8px; display: grid; gap: 6px; }
+.fb-tools button { width: 40px; height: 40px; border-radius: 10px; background: #0008; color: var(--chalk); font-size: 1.2rem; font-weight: 800; border: 1px solid #ffffff30; }`;
+  document.head.append(s);
+}
+
+/* the places on a tile a map can name: a square, the end of a lane or canal (a
+   well, a crossing, a basin, a stall at a lane's end), a bridge, a stall
+   beside a lane, a landing. Each is "x,y:KEY" on a map, its point on the tile. */
+function landmarks(id) {
+  const def = T[id], out = [];
+  def.segs.forEach((s, i) => { if (s.k === "P") out.push({ k: "sq", kind: "square", at: anchor(s) }); });
+  const ends = def.segs.map((s) => s.end).filter(Boolean);
+  const centre = ends.find((e) => ["well", "cross", "basin", "stall"].includes(e));
+  if (centre) out.push({ k: "c", kind: { well: "well", cross: "crossing", basin: "basin", stall: "stall" }[centre], at: [50, 50] });
+  if (def.bridge) out.push({ k: "br", kind: "bridge", at: [50, 50] });
+  if (def.segs.some((s) => s.stalls && s.end !== "stall")) out.push({ k: "st", kind: "stall", at: id === "start" || id === "bridge-stall" ? [18, 79] : [77, 51] });
+  if (ends.includes("landing")) out.push({ k: "ld", kind: "landing", at: [50, 74] });
+  return out;
+}
+/* a map's tiles as the board holds them, and its named places by where they are */
+function mapTiles(map) { return new Map(map.tiles.map(([x, y, id, rot]) => [key(x, y), { x, y, id, rot, stalls: stallsOf(id).map((s) => ({ ...s, good: null })) }])); }
+function placeAt(tiles, at) {
+  const [k, lk] = at.split(":"), t = tiles.get(k);
+  if (!t) return null;
+  const lm = landmarks(t.id).find((l) => l.k === lk);
+  return lm ? { t, lm, pt: onBoard(t, ...lm.at) } : null;
+}
+/* a label on the board, upright whatever way its tile is turned */
+function labelSVG(px, py, text, cls = "") {
+  const w = Math.max(40, text.length * 9.2 + 18);
+  return `<g class="fb-label ${cls}"><circle cx="${px}" cy="${py}" r="9"/><rect x="${px - w / 2}" y="${py - 44}" width="${w}" height="26" rx="13"/><text x="${px}" y="${py - 26}">${esc(text)}</text></g>`;
+}
+{
+  const s = document.createElement("style");
+  s.textContent = `
+.fb-label circle { fill: #fff3c4; stroke: #2a2140; stroke-width: 3; }
+.fb-label rect { fill: #16121fdd; stroke: #fff3c488; stroke-width: 1.5; }
+.fb-label text { fill: #fff3c4; font: 700 15px var(--ui); text-anchor: middle; }
+.fb-label.here circle { fill: var(--go); r: 13; }
+.fb-label.here rect { fill: var(--go); stroke: var(--go); }
+.fb-label.here text { fill: var(--go-ink); }`;
+  document.head.append(s);
+}
+
+/* The map maker: a town laid with the fair's tiles, for a story's world.
+   Deal one from seed words (the same words deal the same town), or lay it by
+   hand: pick a tile, tap a spot, tap it to turn, Place; every edge it touches
+   must match. Lift takes a tile back up. Name puts a name on a square, a well,
+   a crossing, a basin, a bridge, a stall or a landing: each named one is a
+   place in the world, and the Table lights it when a scene is there, and
+   write.py offers it when a story asks where. Save gives the map as a file
+   for box/maps/; nothing here is kept on its own. */
+const MAPS = GAME.maps || [], WORLDS = GAME.worlds || [];
+let M, mode = "lay", pick = "lane", rot = 0, spot = null, naming = null, board = null;
+
+function blank(world) { return { world, seed: "", tiles: new Map([[key(0, 0), { x: 0, y: 0, id: "start", rot: 0, stalls: stallsOf("start").map((s) => ({ ...s, good: null })) }]]), places: [] }; }
+function fromMap(m) { return { world: m.world, seed: m.seed || "", tiles: mapTiles(m), places: m.places.map((p) => ({ ...p })) }; }
+const tileOf = (x, y, id, r) => ({ x, y, id, rot: r, stalls: stallsOf(id).map((s) => ({ ...s, good: null })) });
+
+function fitsHere(x, y, id, r) {
+  if (M.tiles.has(key(x, y))) return false;
+  let touches = false;
+  for (let d = 0; d < 4; d++) {
+    const nb = M.tiles.get(key(x + DIRS[d][0], y + DIRS[d][1]));
+    if (!nb) continue;
+    touches = true;
+    if (edgeOf(id, r, d) !== edgeOf(nb.id, nb.rot, (d + 2) % 4)) return false;
+  }
+  return touches || M.tiles.size === 0;
+}
+function openSpots() {
+  const out = new Map();
+  for (const t of M.tiles.values()) for (const [dx, dy] of DIRS) { const k = key(t.x + dx, t.y + dy); if (!M.tiles.has(k)) out.set(k, [t.x + dx, t.y + dy]); }
+  return [...out.values()];
+}
+
+/* a town dealt from seed words: the fair's tiles shuffled by the words, each
+   set at a spot the words pick among those it fits */
+function deal(words, size) {
+  const rng = Stream.fromText(`lantern-map:${words}`);
+  M = blank(M ? M.world : "lantern-fair");
+  M.seed = words;
+  const pool = rng.shuffled(TILES.filter((t) => t.id !== "start").flatMap((t) => Array(t.n).fill(t.id)));
+  for (const id of pool) {
+    if (M.tiles.size >= size) break;
+    const ok = [];
+    for (const [x, y] of openSpots()) for (let r = 0; r < 4; r++) if (fitsHere(x, y, id, r)) ok.push([x, y, r]);
+    if (!ok.length) continue;
+    const [x, y, r] = rng.pick(ok);
+    M.tiles.set(key(x, y), tileOf(x, y, id, r));
+  }
+  spot = null; naming = null;
+  board.fit(M.tiles.values());
+  render();
+}
+
+function landmarkNear(bx, by) {
+  let best = null;
+  for (const t of M.tiles.values()) for (const lm of landmarks(t.id)) {
+    const [px, py] = onBoard(t, ...lm.at), d = Math.hypot(px - bx, py - by);
+    if (d < 34 && (!best || d < best.d)) best = { d, at: `${key(t.x, t.y)}:${lm.k}`, kind: lm.kind };
+  }
+  return best;
+}
+function tapBoard(bx, by) {
+  const x = Math.floor(bx / 100), y = Math.floor(by / 100);
+  if (mode === "lay") {
+    if (M.tiles.has(key(x, y)) || !openSpots().some(([a, b]) => a === x && b === y)) return;
+    spot = [x, y];
+    if (!fitsHere(x, y, pick, rot)) for (let r = 1; r < 4; r++) if (fitsHere(x, y, pick, (rot + r) % 4)) { rot = (rot + r) % 4; break; }
+  } else if (mode === "lift") {
+    if (!M.tiles.has(key(x, y)) || M.tiles.size === 1) return;
+    M.tiles.delete(key(x, y));
+    M.places = M.places.filter((p) => !p.at.startsWith(key(x, y) + ":"));
+  } else {
+    const lm = landmarkNear(bx, by);
+    naming = lm ? { at: lm.at, kind: lm.kind } : null;
+  }
+  render();
+}
+function placeTile() {
+  if (!spot) return frame.refuse("tap a spot beside the town first");
+  if (!fitsHere(spot[0], spot[1], pick, rot)) return frame.refuse("every edge it touches has to match: canal to canal, lane to lane, square to square, quay to quay");
+  M.tiles.set(key(...spot), tileOf(spot[0], spot[1], pick, rot));
+  spot = null;
+  render();
+}
+function nameIt(name) {
+  name = name.trim();
+  if (!naming) return;
+  M.places = M.places.filter((p) => p.at !== naming.at);
+  if (name) {
+    if (M.places.some((p) => p.name.toLowerCase() === name.toLowerCase())) return frame.refuse(`${name} is already a place on this map`);
+    M.places.push({ name, at: naming.at });
+  }
+  naming = null;
+  render();
+}
+function saved() {
+  const tiles = [...M.tiles.values()].sort((a, b) => a.y - b.y || a.x - b.x).map((t) => [t.x, t.y, t.id, t.rot]);
+  return { world: M.world, seed: M.seed, tiles, places: M.places.slice().sort((a, b) => a.name.localeCompare(b.name)) };
+}
+/* written the way box/maps keeps it: one tile a line, so a change reads in a diff */
+function savedText() {
+  const m = saved();
+  return `{\n "world": ${JSON.stringify(m.world)},\n "seed": ${JSON.stringify(m.seed)},\n "tiles": [\n${m.tiles.map((t) => `  ${JSON.stringify(t)}`).join(",\n")}\n ],\n "places": [\n${m.places.map((p) => `  ${JSON.stringify(p)}`).join(",\n")}\n ]\n}\n`;
+}
+
+function boardSVG() {
+  let s = FAIR_DEFS;
+  if (mode === "lay") for (const [x, y] of openSpots()) s += `<rect x="${x * 100 + 4}" y="${y * 100 + 4}" width="92" height="92" rx="8" class="lf-spot"/>`;
+  for (const t of M.tiles.values()) s += tileG(t.x, t.y, t.id, t.rot, t.stalls);
+  if (mode === "lift") for (const t of M.tiles.values()) if (M.tiles.size > 1) s += `<rect x="${t.x * 100 + 3}" y="${t.y * 100 + 3}" width="94" height="94" class="mm-lift"/>`;
+  if (mode === "name") for (const t of M.tiles.values()) for (const lm of landmarks(t.id)) {
+    const at = `${key(t.x, t.y)}:${lm.k}`;
+    if (M.places.some((p) => p.at === at)) continue;
+    const [px, py] = onBoard(t, ...lm.at);
+    s += `<circle cx="${px}" cy="${py}" r="14" class="mm-spot ${naming && naming.at === at ? "on" : ""}"/>`;
+  }
+  for (const p of M.places) { const w = placeAt(M.tiles, p.at); if (w) s += labelSVG(w.pt[0], w.pt[1], p.name, naming && naming.at === p.at ? "here" : ""); }
+  if (mode === "lay" && spot) {
+    const ok = fitsHere(spot[0], spot[1], pick, rot);
+    s += tileG(spot[0], spot[1], pick, rot, null, `opacity="0.9"`) + `<rect x="${spot[0] * 100 + 1.5}" y="${spot[1] * 100 + 1.5}" width="97" height="97" class="lf-held ${ok ? "ok" : "no"}"/>`;
+  }
+  return s;
+}
+
+function render() {
+  const worldName = (WORLDS.find((w) => w.id === M.world) || {}).title || M.world;
+  if (!document.getElementById("mm-wrap")) {
+    frame.stage(`<div class="mm"><div class="mm-head"><div class="mm-modes" role="group" aria-label="what a tap does">${[["lay", "Lay"], ["lift", "Lift"], ["name", "Name"]].map(([k, l]) => `<button class="lf-kind" data-mode="${k}">${l}</button>`).join("")}</div>
+      <div class="mm-deal"><input id="mm-seed" aria-label="seed words" placeholder="seed words"><select id="mm-size" aria-label="how many tiles">${[16, 24, 36, 48].map((n) => `<option ${n === 24 ? "selected" : ""}>${n}</option>`).join("")}</select><button class="btn ghost" id="mm-deal">Deal</button></div></div>
+      <div class="lf-wrap fb-wrap" id="mm-wrap"><svg id="mm-svg" class="fb-svg"></svg></div><div class="lf-bottom" id="mm-bottom"></div></div>`);
+    board = new FairBoard(document.getElementById("mm-svg"), document.getElementById("mm-wrap"), tapBoard, { min: 640 });
+    document.querySelectorAll("[data-mode]").forEach((b) => (b.onclick = () => { mode = b.dataset.mode; spot = null; naming = null; render(); }));
+    document.getElementById("mm-deal").onclick = () => deal(document.getElementById("mm-seed").value.trim() || seedWords(), +document.getElementById("mm-size").value);
+    board.fit(M.tiles.values());
+  }
+  document.querySelectorAll("[data-mode]").forEach((b) => { b.classList.toggle("on", b.dataset.mode === mode); b.setAttribute("aria-pressed", b.dataset.mode === mode); });
+  document.getElementById("mm-seed").value = M.seed;
+  board.lastTiles = [...M.tiles.values()];
+  board.apply();
+  document.getElementById("mm-svg").innerHTML = boardSVG();
+  let bottom = "";
+  if (mode === "lay") {
+    const palette = TILES.filter((t) => t.id !== "start").map((t) => `<button class="mm-pal ${t.id === pick ? "on" : ""}" data-pick="${t.id}" aria-label="${tileName(t.id)}"><svg viewBox="0 0 100 100" width="52" height="52">${tileG(0, 0, t.id, 0, null)}</svg></button>`).join("");
+    bottom = `<div class="mm-palette" role="group" aria-label="tiles">${palette}</div><button class="lf-hand" id="mm-turn" aria-label="the tile: tap to turn it"><svg viewBox="0 0 100 100" width="72" height="72">${tileG(0, 0, pick, rot, null)}</svg><span>tap to turn</span></button><button class="btn" id="mm-place" ${spot ? "" : "disabled"}>Place</button>`;
+  } else if (mode === "lift") bottom = `<div class="lf-ask">Tap a tile to lift it.</div>`;
+  else if (naming) {
+    const free = (WORLDS.find((w) => w.id === M.world) || { places: [] }).places.filter((p) => !M.places.some((q) => q.name.toLowerCase() === p.toLowerCase()));
+    const cur = M.places.find((p) => p.at === naming.at);
+    bottom = `<div class="mm-name"><label>Name this ${naming.kind}<input id="mm-name" value="${esc(cur ? cur.name : "")}" placeholder="The lantern bridge"></label>${free.length ? `<div class="mm-chips">${free.map((p) => `<button class="mm-chip" data-name="${esc(p)}">${esc(p)}</button>`).join("")}</div>` : ""}<div class="mm-row"><button class="btn" id="mm-ok">Name it</button>${cur ? `<button class="btn ghost" id="mm-unname">Take the name off</button>` : ""}</div></div>`;
+  } else bottom = `<div class="lf-ask">Tap a ring to name a square, well, crossing, basin, bridge, stall or landing.</div>`;
+  document.getElementById("mm-bottom").innerHTML = bottom;
+  document.querySelectorAll("[data-pick]").forEach((b) => (b.onclick = () => { pick = b.dataset.pick; rot = 0; if (spot && !fitsHere(spot[0], spot[1], pick, rot)) for (let r = 1; r < 4; r++) if (fitsHere(spot[0], spot[1], pick, r)) { rot = r; break; } render(); }));
+  const on = (id, f) => { const b = document.getElementById(id); if (b) b.onclick = f; };
+  on("mm-turn", () => { rot = (rot + 1) % 4; render(); });
+  on("mm-place", placeTile);
+  on("mm-ok", () => nameIt(document.getElementById("mm-name").value));
+  on("mm-unname", () => nameIt(""));
+  document.querySelectorAll("[data-name]").forEach((b) => (b.onclick = () => nameIt(b.dataset.name)));
+  const nm = document.getElementById("mm-name");
+  if (nm) { nm.onkeydown = (e) => { if (e.key === "Enter") nameIt(nm.value); }; }
+  frame.status(`<b>${esc(worldName)}</b>: ${M.tiles.size} tiles, ${M.places.length} place${M.places.length === 1 ? "" : "s"} named${M.seed ? ` · dealt from “${esc(M.seed)}”` : ""}`);
+  frame.panel("places", "The places on the map", M.places.length ? `<ul class="lf-rules">${M.places.slice().sort((a, b) => a.name.localeCompare(b.name)).map((p) => `<li><b>${esc(p.name)}</b> · ${esc(placeAt(M.tiles, p.at)?.lm.kind || "")}</li>`).join("")}</ul>` : `<p class="note">None named yet: choose Name and tap a ring.</p>`);
+  frame.panel("save", "Save the map", `<p class="note">Kept as <code>box/maps/${esc(M.world)}.json</code>, beside the world. The Table and write.py read it from there.</p><div class="mm-row"><button class="btn" id="mm-copy">Copy</button><button class="btn ghost" id="mm-down">Download</button></div><pre class="mm-json" id="mm-json">${esc(savedText())}</pre>`);
+  on("mm-copy", async () => { try { await navigator.clipboard.writeText(savedText()); frame.status("<b>Copied.</b> Paste it into box/maps/" + esc(M.world) + ".json."); } catch (e) { frame.refuse("the browser wouldn't copy; select the text below instead"); } });
+  on("mm-down", () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([savedText()], { type: "application/json" })); a.download = `${M.world}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); });
+}
+
+const style = document.createElement("style");
+style.textContent = `
+.mm { display: grid; gap: 10px; width: 100%; min-width: 0; justify-self: stretch; }
+.mm > * { min-width: 0; }
+.mm-head { display: flex; gap: 10px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+.mm-modes, .mm-deal, .mm-row, .mm-chips { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.mm-deal input, .mm-deal select, .mm-name input { font: inherit; color: var(--chalk); background: #0006; border: 1px solid var(--edge); border-radius: 9px; padding: 9px 10px; min-height: 44px; }
+.mm-deal input { width: 11em; }
+.lf-wrap { height: min(58vh, 560px); min-height: 300px; }
+.lf-kind { padding: 10px 14px; min-height: 44px; border-radius: 10px; border: 2px solid var(--edge); font-weight: 800; }
+.lf-kind.on { border-color: var(--go); color: var(--go); }
+.lf-spot { fill: #ffffff08; stroke: #ffffff40; stroke-width: 2; stroke-dasharray: 8 6; }
+.lf-held { fill: none; stroke-width: 4; } .lf-held.ok { stroke: var(--go); } .lf-held.no { stroke: #ff7a66; stroke-dasharray: 10 6; }
+.mm-lift { fill: #ff7a6612; stroke: #ff7a6680; stroke-width: 2; stroke-dasharray: 6 6; }
+.mm-spot { fill: #ffcf5a22; stroke: var(--go); stroke-width: 3; stroke-dasharray: 5 4; }
+.mm-spot.on { fill: var(--go); }
+.lf-bottom { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; min-height: 90px; }
+.mm-palette { display: flex; gap: 6px; overflow-x: auto; width: 100%; min-width: 0; padding: 4px 2px 8px; flex: 1 1 100%; }
+.mm-pal { flex: none; border-radius: 8px; border: 2px solid transparent; line-height: 0; }
+.mm-pal.on { border-color: var(--go); }
+.mm-pal svg { border-radius: 5px; }
+.lf-hand { display: grid; justify-items: center; gap: 2px; padding: 6px; border-radius: 12px; border: 2px solid var(--go); background: #0006; }
+.lf-hand span { font-size: 0.7rem; color: var(--chalk-dim); }
+.lf-ask { font-weight: 700; text-align: center; }
+.mm-name { display: grid; gap: 10px; width: 100%; max-width: 480px; }
+.mm-name label { display: grid; gap: 6px; font-weight: 700; }
+.mm-chip { padding: 8px 12px; min-height: 40px; border-radius: 999px; border: 1px solid var(--go); color: var(--go); font-weight: 700; }
+.mm-json { margin: 0; max-height: 220px; overflow: auto; background: #00000055; border-radius: 8px; padding: 10px; font: 0.7rem/1.5 var(--mono); white-space: pre; }
+.lf-rules { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 0.85rem; color: var(--chalk-dim); }
+.lf-rules b { color: var(--chalk); }`;
+document.head.append(style);
+
+frame.setup({ seats: false, score: false, deck: false, hints: false, redraw: () => render() });
+document.getElementById("p-record").hidden = true;
+document.getElementById("p-log").hidden = true;
+M = MAPS.length ? fromMap(MAPS[0]) : blank("lantern-fair");
+render();
+if (!MAPS.length) deal(seedWords(), 24);
+
+</script>
