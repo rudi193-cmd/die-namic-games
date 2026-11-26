@@ -1,0 +1,41 @@
+{
+ "world": "clockwork-cellar",
+ "set": "cellar",
+ "seed": "the clockwork cellar",
+ "tiles": [
+  [-2,-6,"bridge-stall",2],
+  [-1,-6,"square-three-mouth",1],
+  [-2,-5,"canal-bend",0],
+  [-3,-4,"square-edge",1],
+  [-2,-4,"square-edge",3],
+  [-1,-4,"square-three",1],
+  [-2,-3,"lane-stall",3],
+  [0,-3,"landing",1],
+  [1,-3,"lane-bend",0],
+  [-3,-2,"well",0],
+  [-2,-2,"lane-stall",3],
+  [-1,-2,"crossing",3],
+  [0,-2,"bridge",2],
+  [1,-2,"lane",1],
+  [2,-2,"bridge",2],
+  [-2,-1,"lane-bend",1],
+  [-1,-1,"lane-bend",3],
+  [0,-1,"canal",2],
+  [-3,0,"square-corner",2],
+  [-2,0,"lane",2],
+  [0,0,"start",0],
+  [1,0,"square-three-mouth",1],
+  [-2,1,"crossing",2],
+  [0,1,"canal",2],
+  [1,1,"square-through",2],
+  [-3,2,"fork",1],
+  [-2,2,"lane-dark",2],
+  [1,2,"square-mouth",0],
+  [2,2,"square-three",1],
+  [1,3,"square-corner-mouths",2]
+ ],
+ "places": [
+  {"name":"The gear cellar","at":"1,0:sq"},
+  {"name":"The mill stair","at":"0,-3:ld"}
+ ]
+}

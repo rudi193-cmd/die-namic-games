@@ -32,6 +32,7 @@ def table_turn(home: Path, steps: list, every: dict | None = None, now: str = NO
     env = {"DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": now}
     answer = person.answering(steps, every)
     code, out = person.at_table([BOX / "play.py"], env, answer)
+    person.fights_could_start(out)
     return code, out, answer.left
 
 

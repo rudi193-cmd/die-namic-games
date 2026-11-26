@@ -319,11 +319,44 @@ function stageHTML(tumble) {
     <div style="display:grid;gap:12px;justify-items:center;padding:6px 0 4px">${card}</div>`;
 }
 
+/* the map, when the box has one for this world (box/maps/, made with the map
+   maker): the whole town, the scene's place lit. A map is this world's when it
+   names the world, or names a place this world has. */
+function mapFor(w) {
+  const names = new Set(w.places.map((p) => p.name.toLowerCase()));
+  return (GAME.maps || []).find((m) => m.world === w.id) || (GAME.maps || []).find((m) => m.places.some((p) => names.has(p.name.toLowerCase())));
+}
+function showMap(w) {
+  const m = mapFor(w), sc = scene();
+  const panel = frame.panel("map", "The map");
+  panel.parentElement.hidden = !m;
+  if (!m) return;
+  const here = sc ? ((w.places.find((p) => p.id === sc.place) || {}).name || "").toLowerCase() : "";
+  const tiles = mapTiles(m);
+  let svg = FAIR_DEFS;
+  for (const t of tiles.values()) svg += tileG(t.x, t.y, t.id, t.rot, t.stalls, "", t.set);
+  let lit = null;
+  const labels = [];
+  for (const p of m.places) {
+    const at = placeAt(tiles, p.at);
+    if (!at) continue;
+    const on = p.name.toLowerCase() === here;
+    if (on) lit = at.t;
+    labels.push({ x: at.pt[0], y: at.pt[1], text: p.name, cls: on ? "here" : "" });
+  }
+  svg += labelsSVG(labels);
+  panel.innerHTML = `<div class="fb-wrap" id="tbl-map" style="height:280px"><svg class="fb-svg" id="tbl-map-svg">${svg}</svg></div><p class="note" style="margin:6px 0 0">${here && lit ? `Tonight's scene is at <b>${esc(m.places.find((p) => p.name.toLowerCase() === here).name)}</b>.` : here ? "This scene's place isn't on the map yet: name it in the map maker." : ""}</p>`;
+  const b = new FairBoard(document.getElementById("tbl-map-svg"), document.getElementById("tbl-map"), () => {}, { min: 500 });
+  b.fit(tiles.values());
+  if (lit) b.centre(lit.x, lit.y, Math.min(b.view.w, 560));
+  b.apply();
+}
 function render(tumble) {
   if (!scene() && !S.committed) commit();
   frame.stage(stageHTML(tumble));
   frame.status(""); frame.actions("");
   const w = world();
+  showMap(w);
   frame.panel("cast", "At the table", w.characters.map((c) => `<div style="display:grid;gap:3px;${c.seat ? "" : "opacity:.7"}">
     <div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(c.name)}</b><span class="note">${esc(c.role || "")}${c.seat ? "" : " · not a seat"}</span></div>
     ${c.seat ? `<div style="display:flex;flex-wrap:wrap;gap:4px">${w.stats.map((st) => { const m = statOf(c, st); return `<span style="font-family:var(--mono);font-size:.7rem;padding:1px 6px;border-radius:5px;border:1px solid var(--edge);${m > (w.base_stat ?? 0) ? "color:var(--go)" : "color:var(--chalk-dim)"}">${esc(st)} ${m >= 0 ? "+" : "−"}${Math.abs(m)}</span>`; }).join("")}</div>` : ""}</div>`).join(""));

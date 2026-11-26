@@ -44,7 +44,9 @@ FILLED = [
 
 def run(script: str, home: Path, typed: list[str], *argv) -> subprocess.CompletedProcess:  # fmt: skip
     """SCRIPT, TYPED a line a question in order, Enter at every roll."""
-    return person.typed_run([BOX / script, *argv], {"DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": NOW}, typed)  # fmt: skip
+    got = person.typed_run([BOX / script, *argv], {"DIE_NAMIC_HOME": str(home), "DIE_NAMIC_NOW": NOW}, typed)  # fmt: skip
+    person.fights_could_start(got.stdout)
+    return got
 
 
 @pytest.fixture(scope="module")
@@ -104,6 +106,33 @@ def test_leaving_before_the_end_writes_nothing(home):
     assert got.returncode == 42 and "Nothing was written." in got.stdout
     assert sorted(p.name for p in (table(home) / "worlds").iterdir()) == before
     assert not (table(home) / "stories" / "the-garden-egg.md").exists()
+
+
+def test_where_offers_the_places_on_the_maps_and_a_number_picks_one(home):
+    offered = [p["name"] for f in sorted((BOX / "maps").glob("*.json")) for p in sorted(json.loads(f.read_text())["places"], key=lambda p: p["name"])]  # fmt: skip
+    typed = [EGG[0], EGG[1], str(offered.index("The stalls") + 1), *EGG[3:], "n"]
+    got = run("write.py", home, typed)
+    assert got.returncode == 0, got.stdout
+    assert "On the maps:\n" in got.stdout and "The stalls (The Lantern Fair map)" in got.stdout
+    assert "the cooling hall (Ironworks — Last Pour map)" in got.stdout  # a world found by its id, not its file
+    story = (table(home) / "stories" / "the-garden-egg.md").read_text()
+    assert "## Places\n\n- the-stalls: The stalls\n" in story  # the map's own name, so the Table lights it
+
+
+def test_the_maps_count_from_one(home):
+    offered = [p["name"] for f in sorted((BOX / "maps").glob("*.json")) for p in sorted(json.loads(f.read_text())["places"], key=lambda p: p["name"])]  # fmt: skip
+    got = run("write.py", home, [EGG[0], EGG[1], "0", "1", *EGG[3:], "n"])
+    assert got.returncode == 0 and f"Type a number from 1 to {len(offered)}," in got.stdout
+    assert f"On the maps:\n  1. {offered[0]} (" in got.stdout and f"\n  {len(offered)}. {offered[-1]} (" in got.stdout  # the list shows the numbers typed
+    first = offered[0]
+    assert f"## Places\n\n- {first.lower().replace(' ', '-')}: {first}\n" in (table(home) / "stories" / "the-garden-egg.md").read_text()
+
+
+def test_a_number_past_the_maps_is_asked_again(home):
+    typed = [EGG[0], EGG[1], "99", EGG[2], *EGG[3:], "n"]
+    got = run("write.py", home, typed)
+    assert "Type a number from 1 to" in got.stdout and got.returncode == 0
+    assert "- the-school-garden: The school garden\n" in (table(home) / "stories" / "the-garden-egg.md").read_text()
 
 
 def test_the_boxes_that_need_an_answer_ask_again(home):

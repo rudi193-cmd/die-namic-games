@@ -1,0 +1,41 @@
+{
+ "world": "ironworks-last-pour",
+ "set": "ironworks",
+ "seed": "the last pour",
+ "tiles": [
+  [0,-4,"well",1],
+  [0,-3,"bridge-stall",1],
+  [1,-3,"canal-bend",3],
+  [2,-3,"fork",3],
+  [-3,-2,"stall-end",1],
+  [0,-2,"square-three-mouth",2],
+  [1,-2,"square-edge",3],
+  [-3,-1,"lane-stall",1],
+  [-2,-1,"bridge",2],
+  [-1,-1,"lane",1],
+  [1,-1,"square-edge",2],
+  [-3,0,"square-edge",3],
+  [-1,0,"lane-dark",3],
+  [0,0,"start",0],
+  [1,0,"square-three-mouth",1],
+  [2,0,"square-three",0],
+  [-3,1,"lane",3],
+  [-1,1,"canal",1],
+  [1,1,"square-full",3],
+  [-3,2,"square-mouth",3],
+  [-2,2,"square-corner-mouths",0],
+  [-1,2,"square-three",2],
+  [0,2,"square-mouth",3],
+  [-2,3,"lane-stall",0],
+  [-2,4,"lane",2],
+  [-1,4,"stall-end",2],
+  [0,4,"square-through",0],
+  [-3,5,"lane-stall",0],
+  [-2,5,"lane-dark",2],
+  [-1,5,"canal-bend",1]
+ ],
+ "places": [
+  {"name":"the condemned gate","at":"0,0:br"},
+  {"name":"the cooling hall","at":"1,0:sq"}
+ ]
+}
