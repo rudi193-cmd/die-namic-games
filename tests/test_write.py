@@ -109,12 +109,12 @@ def test_leaving_before_the_end_writes_nothing(home):
 
 
 def test_where_offers_the_places_on_the_maps_and_a_number_picks_one(home):
-    maps = json.loads((BOX / "maps" / "lantern-fair.json").read_text())
-    names = sorted(p["name"] for p in maps["places"])
-    typed = [EGG[0], EGG[1], str(names.index("The stalls") + 1), *EGG[3:], "n"]
+    offered = [p["name"] for f in sorted((BOX / "maps").glob("*.json")) for p in sorted(json.loads(f.read_text())["places"], key=lambda p: p["name"])]  # fmt: skip
+    typed = [EGG[0], EGG[1], str(offered.index("The stalls") + 1), *EGG[3:], "n"]
     got = run("write.py", home, typed)
     assert got.returncode == 0, got.stdout
     assert "On the maps:\n" in got.stdout and "The stalls (The Lantern Fair map)" in got.stdout
+    assert "the cooling hall (Ironworks — Last Pour map)" in got.stdout  # a world found by its id, not its file
     story = (table(home) / "stories" / "the-garden-egg.md").read_text()
     assert "## Places\n\n- the-stalls: The stalls\n" in story  # the map's own name, so the Table lights it
 

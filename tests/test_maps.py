@@ -62,11 +62,16 @@ def checked(*paths: Path) -> list[dict]:
     return json.loads(got.stdout)
 
 
+WORLDS = {w["id"]: w for w in (json.loads(p.read_text()) for p in (ROOT / "box" / "worlds").glob("*.json"))}
+SETS = ("fair", "cellar", "ironworks")
+
+
 def test_there_is_a_map_and_each_names_a_world_in_the_box():
     assert MAPS, "box/maps holds the Lantern Fair's map at least"
     for p in MAPS:
         m = json.loads(p.read_text())
-        assert p.stem == m["world"] and (ROOT / "box" / "worlds" / f"{m['world']}.json").exists(), p.name
+        assert p.stem == m["world"] and m["world"] in WORLDS, p.name
+        assert m.get("set", "fair") in SETS, p.name
 
 
 @pytest.mark.parametrize("path", MAPS, ids=lambda p: p.stem)
@@ -74,10 +79,15 @@ def test_every_map_holds_to_the_tiles(path):
     assert checked(path)[0]["why"] == []
 
 
-def test_the_lantern_fairs_map_has_the_worlds_places_on_it():
-    world = json.loads((ROOT / "box" / "worlds" / "lantern-fair.json").read_text())
-    named = {p["name"] for p in json.loads((ROOT / "box" / "maps" / "lantern-fair.json").read_text())["places"]}
-    assert {p["name"] for p in world["places"]} <= named
+@pytest.mark.parametrize("path", MAPS, ids=lambda p: p.stem)
+def test_a_worlds_map_has_the_worlds_places_on_it(path):
+    m = json.loads(path.read_text())
+    assert {p["name"] for p in WORLDS[m["world"]]["places"]} <= {p["name"] for p in m["places"]}
+
+
+def test_the_cellar_and_the_ironworks_are_mapped_in_their_own_look():
+    looks = {json.loads(p.read_text())["world"]: json.loads(p.read_text()).get("set", "fair") for p in MAPS}
+    assert looks == {"lantern-fair": "fair", "clockwork-cellar": "cellar", "ironworks-last-pour": "ironworks"}
 
 
 def test_a_map_that_doesnt_hold_is_named_by_what_is_wrong(tmp_path):

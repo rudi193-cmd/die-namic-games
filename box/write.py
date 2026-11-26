@@ -112,8 +112,8 @@ def mapped() -> list[str]:
     out = []
     for p in sorted((HERE / "maps").glob("*.json")):
         m = json.loads(p.read_text(encoding="utf-8"))
-        world = HERE / "worlds" / f"{m['world']}.json"
-        title = json.loads(world.read_text(encoding="utf-8"))["title"] if world.exists() else m["world"]
+        worlds = (json.loads(w.read_text(encoding="utf-8")) for w in (HERE / "worlds").glob("*.json"))
+        title = next((w["title"] for w in worlds if w["id"] == m["world"]), m["world"])
         out += [f"{pl['name']} ({title} map)" for pl in sorted(m["places"], key=lambda pl: pl["name"])]
     return out
 

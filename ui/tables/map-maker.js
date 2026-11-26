@@ -9,9 +9,16 @@
 const MAPS = GAME.maps || [], WORLDS = GAME.worlds || [];
 let M, mode = "lay", pick = "lane", rot = 0, spot = null, naming = null, board = null;
 
-function blank(world) { return { world, seed: "", tiles: new Map([[key(0, 0), { x: 0, y: 0, id: "start", rot: 0, stalls: stallsOf("start").map((s) => ({ ...s, good: null })) }]]), places: [] }; }
-function fromMap(m) { return { world: m.world, seed: m.seed || "", tiles: mapTiles(m), places: m.places.map((p) => ({ ...p })) }; }
-const tileOf = (x, y, id, r) => ({ x, y, id, rot: r, stalls: stallsOf(id).map((s) => ({ ...s, good: null })) });
+function blank(world, set = SET_OF_WORLD[world] || "fair") { return { world, set, seed: "", tiles: new Map([[key(0, 0), { x: 0, y: 0, id: "start", rot: 0, set, stalls: stallsOf("start").map((s) => ({ ...s, good: null })) }]]), places: [] }; }
+function fromMap(m) { return { world: m.world, set: m.set || "fair", seed: m.seed || "", tiles: mapTiles(m), places: m.places.map((p) => ({ ...p })) }; }
+/* the world being mapped: its map from box/maps if it has one, else a town dealt for it */
+function openWorld(world) {
+  const m = MAPS.find((x) => x.world === world);
+  M = m ? fromMap(m) : blank(world);
+  spot = null; naming = null;
+  if (m) { board.fit(M.tiles.values()); render(); } else deal(seedWords(), 24);
+}
+const tileOf = (x, y, id, r) => ({ x, y, id, rot: r, set: M ? M.set : "fair", stalls: stallsOf(id).map((s) => ({ ...s, good: null })) });
 
 function fitsHere(x, y, id, r) {
   if (M.tiles.has(key(x, y))) return false;
@@ -34,7 +41,7 @@ function openSpots() {
    set at a spot the words pick among those it fits */
 function deal(words, size) {
   const rng = Stream.fromText(`lantern-map:${words}`);
-  M = blank(M ? M.world : "lantern-fair");
+  M = blank(M ? M.world : "lantern-fair", M ? M.set : "fair");
   M.seed = words;
   const pool = rng.shuffled(TILES.filter((t) => t.id !== "start").flatMap((t) => Array(t.n).fill(t.id)));
   for (const id of pool) {
@@ -52,7 +59,7 @@ function deal(words, size) {
 
 function landmarkNear(bx, by) {
   let best = null;
-  for (const t of M.tiles.values()) for (const lm of landmarks(t.id)) {
+  for (const t of M.tiles.values()) for (const lm of landmarks(t.id, M.set)) {
     const [px, py] = onBoard(t, ...lm.at), d = Math.hypot(px - bx, py - by);
     if (d < 34 && (!best || d < best.d)) best = { d, at: `${key(t.x, t.y)}:${lm.k}`, kind: lm.kind };
   }
@@ -94,29 +101,29 @@ function nameIt(name) {
 }
 function saved() {
   const tiles = [...M.tiles.values()].sort((a, b) => a.y - b.y || a.x - b.x).map((t) => [t.x, t.y, t.id, t.rot]);
-  return { world: M.world, seed: M.seed, tiles, places: M.places.slice().sort((a, b) => a.name.localeCompare(b.name)) };
+  return { world: M.world, ...(M.set !== "fair" ? { set: M.set } : {}), seed: M.seed, tiles, places: M.places.slice().sort((a, b) => a.name.localeCompare(b.name)) };
 }
 /* written the way box/maps keeps it: one tile a line, so a change reads in a diff */
 function savedText() {
   const m = saved();
-  return `{\n "world": ${JSON.stringify(m.world)},\n "seed": ${JSON.stringify(m.seed)},\n "tiles": [\n${m.tiles.map((t) => `  ${JSON.stringify(t)}`).join(",\n")}\n ],\n "places": [\n${m.places.map((p) => `  ${JSON.stringify(p)}`).join(",\n")}\n ]\n}\n`;
+  return `{\n "world": ${JSON.stringify(m.world)},\n${m.set ? ` "set": ${JSON.stringify(m.set)},\n` : ""} "seed": ${JSON.stringify(m.seed)},\n "tiles": [\n${m.tiles.map((t) => `  ${JSON.stringify(t)}`).join(",\n")}\n ],\n "places": [\n${m.places.map((p) => `  ${JSON.stringify(p)}`).join(",\n")}\n ]\n}\n`;
 }
 
 function boardSVG() {
   let s = FAIR_DEFS;
   if (mode === "lay") for (const [x, y] of openSpots()) s += `<rect x="${x * 100 + 4}" y="${y * 100 + 4}" width="92" height="92" rx="8" class="lf-spot"/>`;
-  for (const t of M.tiles.values()) s += tileG(t.x, t.y, t.id, t.rot, t.stalls);
+  for (const t of M.tiles.values()) s += tileG(t.x, t.y, t.id, t.rot, t.stalls, "", M.set);
   if (mode === "lift") for (const t of M.tiles.values()) if (M.tiles.size > 1) s += `<rect x="${t.x * 100 + 3}" y="${t.y * 100 + 3}" width="94" height="94" class="mm-lift"/>`;
-  if (mode === "name") for (const t of M.tiles.values()) for (const lm of landmarks(t.id)) {
+  if (mode === "name") for (const t of M.tiles.values()) for (const lm of landmarks(t.id, M.set)) {
     const at = `${key(t.x, t.y)}:${lm.k}`;
     if (M.places.some((p) => p.at === at)) continue;
     const [px, py] = onBoard(t, ...lm.at);
     s += `<circle cx="${px}" cy="${py}" r="14" class="mm-spot ${naming && naming.at === at ? "on" : ""}"/>`;
   }
-  for (const p of M.places) { const w = placeAt(M.tiles, p.at); if (w) s += labelSVG(w.pt[0], w.pt[1], p.name, naming && naming.at === p.at ? "here" : ""); }
+  s += labelsSVG(M.places.map((p) => [p, placeAt(M.tiles, p.at)]).filter(([, w]) => w).map(([p, w]) => ({ x: w.pt[0], y: w.pt[1], text: p.name, cls: naming && naming.at === p.at ? "here" : "" })));
   if (mode === "lay" && spot) {
     const ok = fitsHere(spot[0], spot[1], pick, rot);
-    s += tileG(spot[0], spot[1], pick, rot, null, `opacity="0.9"`) + `<rect x="${spot[0] * 100 + 1.5}" y="${spot[1] * 100 + 1.5}" width="97" height="97" class="lf-held ${ok ? "ok" : "no"}"/>`;
+    s += tileG(spot[0], spot[1], pick, rot, null, `opacity="0.9"`, M.set) + `<rect x="${spot[0] * 100 + 1.5}" y="${spot[1] * 100 + 1.5}" width="97" height="97" class="lf-held ${ok ? "ok" : "no"}"/>`;
   }
   return s;
 }
@@ -125,28 +132,33 @@ function render() {
   const worldName = (WORLDS.find((w) => w.id === M.world) || {}).title || M.world;
   if (!document.getElementById("mm-wrap")) {
     frame.stage(`<div class="mm"><div class="mm-head"><div class="mm-modes" role="group" aria-label="what a tap does">${[["lay", "Lay"], ["lift", "Lift"], ["name", "Name"]].map(([k, l]) => `<button class="lf-kind" data-mode="${k}">${l}</button>`).join("")}</div>
+      <div class="mm-deal"><select id="mm-world" aria-label="which world">${WORLDS.map((w) => `<option value="${esc(w.id)}">${esc(w.title)}</option>`).join("")}</select><select id="mm-set" aria-label="the look">${Object.entries(SETS).map(([k, v]) => `<option value="${k}">looks like ${esc(v.name)}</option>`).join("")}</select></div>
       <div class="mm-deal"><input id="mm-seed" aria-label="seed words" placeholder="seed words"><select id="mm-size" aria-label="how many tiles">${[16, 24, 36, 48].map((n) => `<option ${n === 24 ? "selected" : ""}>${n}</option>`).join("")}</select><button class="btn ghost" id="mm-deal">Deal</button></div></div>
       <div class="lf-wrap fb-wrap" id="mm-wrap"><svg id="mm-svg" class="fb-svg"></svg></div><div class="lf-bottom" id="mm-bottom"></div></div>`);
     board = new FairBoard(document.getElementById("mm-svg"), document.getElementById("mm-wrap"), tapBoard, { min: 640 });
     document.querySelectorAll("[data-mode]").forEach((b) => (b.onclick = () => { mode = b.dataset.mode; spot = null; naming = null; render(); }));
+    document.getElementById("mm-world").onchange = (e) => openWorld(e.target.value);
+    document.getElementById("mm-set").onchange = (e) => { M.set = e.target.value; for (const t of M.tiles.values()) t.set = M.set; render(); };
     document.getElementById("mm-deal").onclick = () => deal(document.getElementById("mm-seed").value.trim() || seedWords(), +document.getElementById("mm-size").value);
     board.fit(M.tiles.values());
   }
   document.querySelectorAll("[data-mode]").forEach((b) => { b.classList.toggle("on", b.dataset.mode === mode); b.setAttribute("aria-pressed", b.dataset.mode === mode); });
   document.getElementById("mm-seed").value = M.seed;
+  document.getElementById("mm-world").value = M.world;
+  document.getElementById("mm-set").value = M.set;
   board.lastTiles = [...M.tiles.values()];
   board.apply();
   document.getElementById("mm-svg").innerHTML = boardSVG();
   let bottom = "";
   if (mode === "lay") {
-    const palette = TILES.filter((t) => t.id !== "start").map((t) => `<button class="mm-pal ${t.id === pick ? "on" : ""}" data-pick="${t.id}" aria-label="${tileName(t.id)}"><svg viewBox="0 0 100 100" width="52" height="52">${tileG(0, 0, t.id, 0, null)}</svg></button>`).join("");
-    bottom = `<div class="mm-palette" role="group" aria-label="tiles">${palette}</div><button class="lf-hand" id="mm-turn" aria-label="the tile: tap to turn it"><svg viewBox="0 0 100 100" width="72" height="72">${tileG(0, 0, pick, rot, null)}</svg><span>tap to turn</span></button><button class="btn" id="mm-place" ${spot ? "" : "disabled"}>Place</button>`;
+    const palette = TILES.filter((t) => t.id !== "start").map((t) => `<button class="mm-pal ${t.id === pick ? "on" : ""}" data-pick="${t.id}" aria-label="${tileName(t.id)}"><svg viewBox="0 0 100 100" width="52" height="52">${tileG(0, 0, t.id, 0, null, "", M.set)}</svg></button>`).join("");
+    bottom = `<div class="mm-palette" role="group" aria-label="tiles">${palette}</div><button class="lf-hand" id="mm-turn" aria-label="the tile: tap to turn it"><svg viewBox="0 0 100 100" width="72" height="72">${tileG(0, 0, pick, rot, null, "", M.set)}</svg><span>tap to turn</span></button><button class="btn" id="mm-place" ${spot ? "" : "disabled"}>Place</button>`;
   } else if (mode === "lift") bottom = `<div class="lf-ask">Tap a tile to lift it.</div>`;
   else if (naming) {
     const free = (WORLDS.find((w) => w.id === M.world) || { places: [] }).places.filter((p) => !M.places.some((q) => q.name.toLowerCase() === p.toLowerCase()));
     const cur = M.places.find((p) => p.at === naming.at);
-    bottom = `<div class="mm-name"><label>Name this ${naming.kind}<input id="mm-name" value="${esc(cur ? cur.name : "")}" placeholder="The lantern bridge"></label>${free.length ? `<div class="mm-chips">${free.map((p) => `<button class="mm-chip" data-name="${esc(p)}">${esc(p)}</button>`).join("")}</div>` : ""}<div class="mm-row"><button class="btn" id="mm-ok">Name it</button>${cur ? `<button class="btn ghost" id="mm-unname">Take the name off</button>` : ""}</div></div>`;
-  } else bottom = `<div class="lf-ask">Tap a ring to name a square, well, crossing, basin, bridge, stall or landing.</div>`;
+    bottom = `<div class="mm-name"><label>Name this ${esc(naming.kind)}<input id="mm-name" value="${esc(cur ? cur.name : "")}" placeholder="The lantern bridge"></label>${free.length ? `<div class="mm-chips">${free.map((p) => `<button class="mm-chip" data-name="${esc(p)}">${esc(p)}</button>`).join("")}</div>` : ""}<div class="mm-row"><button class="btn" id="mm-ok">Name it</button>${cur ? `<button class="btn ghost" id="mm-unname">Take the name off</button>` : ""}</div></div>`;
+  } else { const pl = Object.values(skinOf(M.set).places); bottom = `<div class="lf-ask">Tap a ring to name a ${pl.slice(0, -1).join(", ")} or ${pl[pl.length - 1]}.</div>`; }
   document.getElementById("mm-bottom").innerHTML = bottom;
   document.querySelectorAll("[data-pick]").forEach((b) => (b.onclick = () => { pick = b.dataset.pick; rot = 0; if (spot && !fitsHere(spot[0], spot[1], pick, rot)) for (let r = 1; r < 4; r++) if (fitsHere(spot[0], spot[1], pick, r)) { rot = r; break; } render(); }));
   const on = (id, f) => { const b = document.getElementById(id); if (b) b.onclick = f; };
@@ -199,6 +211,6 @@ document.head.append(style);
 frame.setup({ seats: false, score: false, deck: false, hints: false, redraw: () => render() });
 document.getElementById("p-record").hidden = true;
 document.getElementById("p-log").hidden = true;
-M = MAPS.length ? fromMap(MAPS[0]) : blank("lantern-fair");
+M = MAPS.length ? fromMap(MAPS.find((m) => m.world === "lantern-fair") || MAPS[0]) : blank("lantern-fair");
 render();
 if (!MAPS.length) deal(seedWords(), 24);

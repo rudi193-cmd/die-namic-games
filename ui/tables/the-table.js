@@ -334,15 +334,17 @@ function showMap(w) {
   const here = sc ? ((w.places.find((p) => p.id === sc.place) || {}).name || "").toLowerCase() : "";
   const tiles = mapTiles(m);
   let svg = FAIR_DEFS;
-  for (const t of tiles.values()) svg += tileG(t.x, t.y, t.id, t.rot, t.stalls);
+  for (const t of tiles.values()) svg += tileG(t.x, t.y, t.id, t.rot, t.stalls, "", t.set);
   let lit = null;
+  const labels = [];
   for (const p of m.places) {
     const at = placeAt(tiles, p.at);
     if (!at) continue;
     const on = p.name.toLowerCase() === here;
     if (on) lit = at.t;
-    svg += labelSVG(at.pt[0], at.pt[1], p.name, on ? "here" : "");
+    labels.push({ x: at.pt[0], y: at.pt[1], text: p.name, cls: on ? "here" : "" });
   }
+  svg += labelsSVG(labels);
   panel.innerHTML = `<div class="fb-wrap" id="tbl-map" style="height:280px"><svg class="fb-svg" id="tbl-map-svg">${svg}</svg></div><p class="note" style="margin:6px 0 0">${here && lit ? `Tonight's scene is at <b>${esc(m.places.find((p) => p.name.toLowerCase() === here).name)}</b>.` : here ? "This scene's place isn't on the map yet: name it in the map maker." : ""}</p>`;
   const b = new FairBoard(document.getElementById("tbl-map-svg"), document.getElementById("tbl-map"), () => {}, { min: 500 });
   b.fit(tiles.values());

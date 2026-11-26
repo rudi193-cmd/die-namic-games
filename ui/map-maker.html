@@ -220,7 +220,7 @@ details.record summary { cursor: pointer; font-size: 0.72rem; letter-spacing: 0.
 
 <script>
 /* ---------- the frame: what every card game here shares ---------- */
-const GAME = {"id": "map-maker", "title": "map maker", "summary": "Lay a story's town with the fair's tiles, dealt from seed words or by hand, and name its squares, wells and bridges as the world's places.", "commands": [], "notes": "", "came": "Made for Die-Namic on 2026-11-26 from Lantern Fair's tiles: a map kept in box/maps/ beside its world, lit at the Table and offered by write.py.", "checked": "", "card": "", "sketch": true, "name": "Map Maker", "lid": "#3b2f5c", "ink": "#fff3c4", "uses": ["fair-tiles"], "also": [], "decks": [], "maps": [{"world": "lantern-fair", "seed": "the lantern fair", "tiles": [[0, -5, "fork", 0], [1, -5, "canal-bend", 3], [1, -4, "square-edge", 1], [0, -3, "lane-bend", 0], [1, -3, "lane-bend", 2], [0, -2, "fork", 0], [1, -2, "bridge", 3], [-1, -1, "square-three", 3], [0, -1, "canal", 0], [0, 0, "start", 0], [1, 0, "lane", 1], [1, 1, "stall-end", 3], [2, 1, "lane-stall", 3], [3, 1, "lane-stall", 1], [4, 1, "lane-dark", 1], [-2, 2, "square-edge", 2], [-1, 2, "square-through", 0], [0, 2, "lane-bend", 1], [1, 2, "square-mouth", 1], [2, 2, "square-mouth", 3], [3, 2, "dark-end", 1], [1, 3, "lane", 1], [2, 3, "lane", 3], [1, 4, "landing", 0]], "places": [{"name": "The lantern bridge", "at": "0,0:br"}, {"name": "The stalls", "at": "1,1:c"}]}], "worlds": [{"id": "aetheris-the-waking-tide", "title": "Aetheris — The Waking Tide", "places": ["the seawall", "the engine gallery"]}, {"id": "clockwork-cellar", "title": "The Clockwork Cellar", "places": ["The mill stair", "The gear cellar"]}, {"id": "hasbeen-late-shift", "title": "Hasbeen — Late Shift", "places": ["the empty floor"]}, {"id": "ironworks-last-pour", "title": "Ironworks — Last Pour", "places": ["the condemned gate", "the cooling hall"]}, {"id": "lantern-fair", "title": "The Lantern Fair", "places": ["The stalls", "The lantern bridge"]}, {"id": "the-wasp-nest", "title": "The Wasp Nest", "places": ["The cellar ceiling", "Cogwen's workshop"]}]}; // this game's words, from its README, and its lid
+const GAME = {"id": "map-maker", "title": "map maker", "summary": "Lay a story's town with the fair's tiles, dealt from seed words or by hand, and name its squares, wells and bridges as the world's places.", "commands": [], "notes": "", "came": "Made for Die-Namic on 2026-11-26 from Lantern Fair's tiles: a map kept in box/maps/ beside its world, lit at the Table and offered by write.py.", "checked": "", "card": "", "sketch": true, "name": "Map Maker", "lid": "#3b2f5c", "ink": "#fff3c4", "uses": ["fair-tiles"], "also": [], "decks": [], "maps": [{"world": "clockwork-cellar", "set": "cellar", "seed": "the clockwork cellar", "tiles": [[-2, -6, "bridge-stall", 2], [-1, -6, "square-three-mouth", 1], [-2, -5, "canal-bend", 0], [-3, -4, "square-edge", 1], [-2, -4, "square-edge", 3], [-1, -4, "square-three", 1], [-2, -3, "lane-stall", 3], [0, -3, "landing", 1], [1, -3, "lane-bend", 0], [-3, -2, "well", 0], [-2, -2, "lane-stall", 3], [-1, -2, "crossing", 3], [0, -2, "bridge", 2], [1, -2, "lane", 1], [2, -2, "bridge", 2], [-2, -1, "lane-bend", 1], [-1, -1, "lane-bend", 3], [0, -1, "canal", 2], [-3, 0, "square-corner", 2], [-2, 0, "lane", 2], [0, 0, "start", 0], [1, 0, "square-three-mouth", 1], [-2, 1, "crossing", 2], [0, 1, "canal", 2], [1, 1, "square-through", 2], [-3, 2, "fork", 1], [-2, 2, "lane-dark", 2], [1, 2, "square-mouth", 0], [2, 2, "square-three", 1], [1, 3, "square-corner-mouths", 2]], "places": [{"name": "The gear cellar", "at": "1,0:sq"}, {"name": "The mill stair", "at": "0,-3:ld"}]}, {"world": "ironworks-last-pour", "set": "ironworks", "seed": "the last pour", "tiles": [[0, -4, "well", 1], [0, -3, "bridge-stall", 1], [1, -3, "canal-bend", 3], [2, -3, "fork", 3], [-3, -2, "stall-end", 1], [0, -2, "square-three-mouth", 2], [1, -2, "square-edge", 3], [-3, -1, "lane-stall", 1], [-2, -1, "bridge", 2], [-1, -1, "lane", 1], [1, -1, "square-edge", 2], [-3, 0, "square-edge", 3], [-1, 0, "lane-dark", 3], [0, 0, "start", 0], [1, 0, "square-three-mouth", 1], [2, 0, "square-three", 0], [-3, 1, "lane", 3], [-1, 1, "canal", 1], [1, 1, "square-full", 3], [-3, 2, "square-mouth", 3], [-2, 2, "square-corner-mouths", 0], [-1, 2, "square-three", 2], [0, 2, "square-mouth", 3], [-2, 3, "lane-stall", 0], [-2, 4, "lane", 2], [-1, 4, "stall-end", 2], [0, 4, "square-through", 0], [-3, 5, "lane-stall", 0], [-2, 5, "lane-dark", 2], [-1, 5, "canal-bend", 1]], "places": [{"name": "the condemned gate", "at": "0,0:br"}, {"name": "the cooling hall", "at": "1,0:sq"}]}, {"world": "lantern-fair", "seed": "the lantern fair", "tiles": [[0, -5, "fork", 0], [1, -5, "canal-bend", 3], [1, -4, "square-edge", 1], [0, -3, "lane-bend", 0], [1, -3, "lane-bend", 2], [0, -2, "fork", 0], [1, -2, "bridge", 3], [-1, -1, "square-three", 3], [0, -1, "canal", 0], [0, 0, "start", 0], [1, 0, "lane", 1], [1, 1, "stall-end", 3], [2, 1, "lane-stall", 3], [3, 1, "lane-stall", 1], [4, 1, "lane-dark", 1], [-2, 2, "square-edge", 2], [-1, 2, "square-through", 0], [0, 2, "lane-bend", 1], [1, 2, "square-mouth", 1], [2, 2, "square-mouth", 3], [3, 2, "dark-end", 1], [1, 3, "lane", 1], [2, 3, "lane", 3], [1, 4, "landing", 0]], "places": [{"name": "The lantern bridge", "at": "0,0:br"}, {"name": "The stalls", "at": "1,1:c"}]}], "worlds": [{"id": "aetheris-the-waking-tide", "title": "Aetheris — The Waking Tide", "places": ["the seawall", "the engine gallery"]}, {"id": "clockwork-cellar", "title": "The Clockwork Cellar", "places": ["The mill stair", "The gear cellar"]}, {"id": "hasbeen-late-shift", "title": "Hasbeen — Late Shift", "places": ["the empty floor"]}, {"id": "ironworks-last-pour", "title": "Ironworks — Last Pour", "places": ["the condemned gate", "the cooling hall"]}, {"id": "lantern-fair", "title": "The Lantern Fair", "places": ["The stalls", "The lantern bridge"]}, {"id": "the-wasp-nest", "title": "The Wasp Nest", "places": ["The cellar ceiling", "Cogwen's workshop"]}]}; // this game's words, from its README, and its lid
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -534,42 +534,104 @@ function anchor(s) {
   return [m[0] + (50 - m[0]) * f, m[1] + (50 - m[1]) * f];
 }
 const PAVE = { 0: "0,0 100,0 68,42 32,42", 1: "100,0 100,100 58,68 58,32", 2: "0,100 100,100 68,58 32,58", 3: "0,0 0,100 42,68 42,32" };
-function squareSVG(s) {
-  let out = s.e.length === 4 ? `<rect width="100" height="100" fill="${COL.pave}"/>` : s.e.map((e) => `<polygon points="${PAVE[e]}" fill="${COL.pave}"/>`).join("");
-  if (s.e.length >= 2 && s.e.length < 4) out += `<rect x="30" y="30" width="40" height="40" fill="${COL.pave}"/>`;
-  out += `<g stroke="${COL.pave2}" stroke-width="1" opacity="0.6">${s.e.map((e) => { const [x, y] = MID[e]; return e % 2 ? `<path d="M${x === 0 ? 8 : 92} 20 V80 M${x === 0 ? 18 : 82} 28 V72"/>` : `<path d="M20 ${y === 0 ? 8 : 92} H80 M28 ${y === 0 ? 18 : 82} H72"/>`; }).join("")}</g>`;
+function squareSVG(s, pave = COL.pave, pave2 = COL.pave2) {
+  let out = s.e.length === 4 ? `<rect width="100" height="100" fill="${pave}"/>` : s.e.map((e) => `<polygon points="${PAVE[e]}" fill="${pave}"/>`).join("");
+  if (s.e.length >= 2 && s.e.length < 4) out += `<rect x="30" y="30" width="40" height="40" fill="${pave}"/>`;
+  out += `<g stroke="${pave2}" stroke-width="1" opacity="0.6">${s.e.map((e) => { const [x, y] = MID[e]; return e % 2 ? `<path d="M${x === 0 ? 8 : 92} 20 V80 M${x === 0 ? 18 : 82} 28 V72"/>` : `<path d="M20 ${y === 0 ? 8 : 92} H80 M28 ${y === 0 ? 18 : 82} H72"/>`; }).join("")}</g>`;
   return out;
 }
 function stallSVG(x, y, st) {
   const c = GOOD_COL[st.good] || "#c9553f";
   return `${st.lit ? `<circle cx="${x + 13}" cy="${y + 6}" r="24" fill="url(#glow)"/>` : ""}<rect x="${x}" y="${y}" width="26" height="19" rx="2" fill="${st.lit ? "#a8483a" : "#4a4552"}"/><path d="M${x - 3} ${y + 2} h32 l-4 -8 h-24 z" fill="${c}" opacity="${st.lit ? 1 : 0.55}"/><path d="M${x + 5} ${y - 6} v8 M${x + 13} ${y - 6} v8 M${x + 21} ${y - 6} v8" stroke="#fff8" stroke-width="2"/><circle cx="${x + 13}" cy="${y + 8}" r="3.6" fill="${st.lit ? "#fff2b0" : "#1f1c26"}"/>`;
 }
-function tileInner(id, stalls) {
+/* Each world lays the same tiles in its own look, and calls their places by its
+   own names: the fair's lanes, canals and squares are the cellar's corridors,
+   brass pipes and workshop rooms, and the ironworks' rails, molten channels and
+   plated yards. A map names its set ("set"); the fair's is the one with none. */
+const SETS = {
+  fair: { name: "the Lantern Fair", kinds: { L: "lane", C: "canal", P: "square" },
+    places: { square: "square", well: "well", crossing: "crossing", basin: "basin", stall: "stall", bridge: "bridge", landing: "landing" } },
+  cellar: { name: "the Clockwork Cellar", kinds: { L: "corridor", C: "pipe", P: "room" },
+    places: { square: "room", well: "gear pit", crossing: "turntable", basin: "boiler", stall: "workbench", bridge: "catwalk", landing: "hatch" } },
+  ironworks: { name: "the Ironworks", kinds: { L: "rail", C: "channel", P: "yard" },
+    places: { square: "yard", well: "crane", crossing: "switch", basin: "furnace", stall: "shed", bridge: "gantry", landing: "loading dock" } },
+};
+const SET_OF_WORLD = { "lantern-fair": "fair", "clockwork-cellar": "cellar", "ironworks-last-pour": "ironworks" };
+const skinOf = (set) => SETS[set] || SETS.fair;
+
+function groundSVG(set) {
+  if (set === "cellar") return `<rect width="100" height="100" fill="#2b2420"/><path d="M0 22 L30 18 L55 26 L100 20 M0 61 L22 66 L60 58 L100 64 M18 0 L22 18 M70 26 L66 58 M40 66 L44 100 M86 64 L82 100" stroke="#3a312b" stroke-width="1.5" fill="none"/>`;
+  if (set === "ironworks") return `<rect width="100" height="100" fill="#1f1c1b"/><g fill="#34302d">${[[12, 14], [37, 8], [71, 19], [88, 47], [9, 58], [27, 83], [58, 76], [84, 90], [46, 41]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.6"/>`).join("")}</g>`;
+  return `<rect width="100" height="100" fill="${COL.quay}"/><path d="M0 33 H100 M0 66 H100 M33 0 V100 M66 0 V100" stroke="${COL.quay2}" stroke-width="1"/>`;
+}
+function channelSVG(g, set) {
+  const d = segPath(g), pool = g.end === "basin" ? 24 : g.e.length === 3 ? 17 : 0;
+  if (set === "cellar") {
+    let s = `<path d="${d}" stroke="#4a2d16" stroke-width="22" fill="none"/><path d="${d}" stroke="#c07a3a" stroke-width="16" fill="none"/><path d="${d}" stroke="#7a4a22" stroke-width="22" stroke-dasharray="3 21" fill="none"/><path d="${d}" stroke="#f2b77e" stroke-width="3" fill="none" opacity="0.8"/>`;
+    if (g.e.length === 3) s += `<circle cx="50" cy="50" r="15" fill="#c07a3a" stroke="#4a2d16" stroke-width="3"/><circle cx="50" cy="50" r="5" fill="#4a2d16"/>`;
+    if (g.end === "basin") s += `<circle cx="50" cy="50" r="24" fill="#a8652d" stroke="#4a2d16" stroke-width="3"/>${[0, 60, 120, 180, 240, 300].map((a) => `<circle cx="${50 + 19 * Math.cos((a * Math.PI) / 180)}" cy="${50 + 19 * Math.sin((a * Math.PI) / 180)}" r="2" fill="#f2b77e"/>`).join("")}<circle cx="50" cy="50" r="8" fill="#5a3518"/>`;
+    return s;
+  }
+  if (set === "ironworks") {
+    let s = `<path d="${d}" stroke="#3b1d0f" stroke-width="30" fill="none"/><path d="${d}" stroke="#ff6a1a" stroke-width="20" fill="none"/><path d="${d}" stroke="#ffd27a" stroke-width="5" fill="none" opacity="0.9"/>`;
+    if (pool) s += `<circle cx="50" cy="50" r="${pool}" fill="#3b1d0f"/><circle cx="50" cy="50" r="${pool - 6}" fill="#ff6a1a"/><circle cx="50" cy="50" r="${pool - 14}" fill="#ffd27a"/>`;
+    return s;
+  }
+  let s = `<path d="${d}" stroke="${COL.water}" stroke-width="34" fill="none"/>`;
+  if (pool) s += `<circle cx="50" cy="50" r="${pool}" fill="${COL.water}"/>`;
+  return s + `<path d="${d}" stroke="${COL.water2}" stroke-width="2" stroke-dasharray="6 9" fill="none" opacity="0.7"/>`;
+}
+function wayPath(g) { return g.end === "landing" ? `M50 100 L50 67` : segPath(g); }
+function waySVG(g, set) {
+  const d = wayPath(g);
+  if (set === "cellar") return `<path d="${d}" stroke="#5c5046" stroke-width="24" fill="none"/><path d="${d}" stroke="#a89a86" stroke-width="18" fill="none"/><path d="${d}" stroke="#8c7f6d" stroke-width="18" stroke-dasharray="1.5 9" fill="none"/>`
+    + (g.end === "landing" ? `<path d="M43 70 H57 M43 76 H57 M43 82 H57 M43 68 V86 M57 68 V86" stroke="#3a312b" stroke-width="2"/>` : "");
+  if (set === "ironworks") return `<path d="${d}" stroke="#5b4632" stroke-width="24" stroke-dasharray="4 7" fill="none"/><path d="${d}" stroke="#b9c1c8" stroke-width="15" fill="none"/><path d="${d}" stroke="#2c2622" stroke-width="10" fill="none"/>`
+    + (g.end === "landing" ? `<rect x="34" y="64" width="32" height="10" fill="#6d7680"/><path d="M36 69 H64" stroke="#9aa3ad" stroke-width="1.5"/>` : "");
+  return `<path d="${d}" stroke="${COL.lane2}" stroke-width="22" fill="none"/><path d="${d}" stroke="${COL.lane}" stroke-width="16" fill="none"/>`
+    + (g.end === "landing" ? `<path d="M42 70 H58 M42 75 H58 M42 80 H58" stroke="${COL.lane2}" stroke-width="1.5"/>` : "");
+}
+const PAVES = { fair: [COL.pave, COL.pave2], cellar: ["#6e4b2c", "#56391f"], ironworks: ["#4b5560", "#66727e"] };
+function bridgeSVG(set) {
+  if (set === "cellar") return `<path d="M30 38 H70 M30 62 H70" stroke="#9aa3ad" stroke-width="3"/><path d="M34 38 V62 M42 38 V62 M50 38 V62 M58 38 V62 M66 38 V62" stroke="#9aa3ad" stroke-width="1.2" opacity="0.8"/>`;
+  if (set === "ironworks") return `<path d="M28 36 H72 M28 64 H72" stroke="#8d96a0" stroke-width="5"/><path d="M30 36 L44 64 L58 36 L72 64" stroke="#8d96a0" stroke-width="2" fill="none"/>`;
+  return `<path d="M31 39 H69 M31 61 H69" stroke="#6b4e2e" stroke-width="3"/><path d="M33 39 V61 M67 39 V61" stroke="#6b4e2e" stroke-width="1.5" opacity="0.7"/>`;
+}
+function centreSVG(end, set) {
+  if (set === "cellar") {
+    const gear = (r, c) => `<circle cx="50" cy="50" r="${r + 3}" fill="none" stroke="${c}" stroke-width="6" stroke-dasharray="4 4"/><circle cx="50" cy="50" r="${r}" fill="${c}"/><circle cx="50" cy="50" r="${r / 2.6}" fill="#2b2420"/>`;
+    return end === "well" ? gear(10, "#8c7a5a") : gear(14, "#c9a24a");
+  }
+  if (set === "ironworks") {
+    if (end === "well") return `<rect x="40" y="40" width="20" height="20" fill="#6d7680"/><path d="M50 50 L82 22" stroke="#e2b04f" stroke-width="5"/><path d="M82 22 V36" stroke="#9aa3ad" stroke-width="2"/>`;
+    return `<circle cx="50" cy="50" r="16" fill="#4b5560"/><path d="M38 38 L62 62 M62 38 L38 62" stroke="#b9c1c8" stroke-width="3"/><circle cx="50" cy="50" r="4" fill="#e2b04f"/>`;
+  }
+  if (end === "well") return `<circle cx="50" cy="50" r="13" fill="#8c8698"/><circle cx="50" cy="50" r="7" fill="#15131f"/>`;
+  return `<circle cx="50" cy="50" r="15" fill="#8c8698"/><circle cx="50" cy="50" r="10" fill="${COL.water}"/><circle cx="50" cy="50" r="3" fill="${COL.water2}"/>`;
+}
+function standSVG(x, y, st, set) {
+  if (set === "cellar") return `${st.lit ? `<circle cx="${x + 13}" cy="${y + 4}" r="22" fill="url(#glow)"/>` : ""}<rect x="${x}" y="${y + 4}" width="26" height="10" fill="#6e4b2c" stroke="#3a2614"/><path d="M${x + 3} ${y + 14} v6 M${x + 23} ${y + 14} v6" stroke="#3a2614" stroke-width="2.5"/><path d="M${x + 18} ${y + 4} v-8 h5" stroke="#9aa3ad" stroke-width="2" fill="none"/><circle cx="${x + 23}" cy="${y - 3}" r="3.4" fill="${st.lit ? "#fff2b0" : "#1f1c26"}"/>`;
+  if (set === "ironworks") return `${st.lit ? `<circle cx="${x + 13}" cy="${y + 8}" r="22" fill="url(#glow)"/>` : ""}<path d="M${x} ${y + 20} V${y + 4} L${x + 13} ${y - 4} L${x + 26} ${y + 4} V${y + 20} Z" fill="#59626c" stroke="#2c2622" stroke-width="1.5"/><rect x="${x + 9}" y="${y + 7}" width="8" height="7" fill="${st.lit ? "#ffd27a" : "#1f1c1b"}"/>`;
+  return stallSVG(x, y, st);
+}
+function tileInner(id, stalls, set = "fair") {
   const def = T[id];
-  let s = `<rect width="100" height="100" fill="${COL.quay}"/><path d="M0 33 H100 M0 66 H100 M33 0 V100 M66 0 V100" stroke="${COL.quay2}" stroke-width="1"/>`;
-  for (const g of def.segs.filter((g) => g.k === "C")) {
-    s += `<path d="${segPath(g)}" stroke="${COL.water}" stroke-width="34" fill="none"/>`;
-    if (g.end === "basin") s += `<circle cx="50" cy="50" r="24" fill="${COL.water}"/>`;
-    if (g.e.length === 3) s += `<circle cx="50" cy="50" r="17" fill="${COL.water}"/>`;
-    s += `<path d="${segPath(g)}" stroke="${COL.water2}" stroke-width="2" stroke-dasharray="6 9" fill="none" opacity="0.7"/>`;
-  }
-  for (const g of def.segs.filter((g) => g.k === "L")) {
-    const d = g.end === "landing" ? `M50 100 L50 67` : segPath(g);
-    s += `<path d="${d}" stroke="${COL.lane2}" stroke-width="22" fill="none"/><path d="${d}" stroke="${COL.lane}" stroke-width="16" fill="none"/>`;
-    if (g.end === "landing") s += `<path d="M42 70 H58 M42 75 H58 M42 80 H58" stroke="${COL.lane2}" stroke-width="1.5"/>`;
-  }
-  for (const g of def.segs.filter((g) => g.k === "P")) s += squareSVG(g);
-  if (def.bridge) s += `<path d="M31 39 H69 M31 61 H69" stroke="#6b4e2e" stroke-width="3"/><path d="M33 39 V61 M67 39 V61" stroke="#6b4e2e" stroke-width="1.5" opacity="0.7"/>`;
+  let s = groundSVG(set);
+  for (const g of def.segs.filter((g) => g.k === "C")) s += channelSVG(g, set);
+  for (const g of def.segs.filter((g) => g.k === "L")) s += waySVG(g, set);
+  const [pave, pave2] = PAVES[set] || PAVES.fair;
+  for (const g of def.segs.filter((g) => g.k === "P")) s += squareSVG(g, pave, pave2);
+  if (def.bridge) s += bridgeSVG(set);
   const ends = new Set(def.segs.map((g) => g.end).filter(Boolean));
-  if (ends.has("well")) s += `<circle cx="50" cy="50" r="13" fill="#8c8698"/><circle cx="50" cy="50" r="7" fill="#15131f"/>`;
-  if (ends.has("cross")) s += `<circle cx="50" cy="50" r="15" fill="#8c8698"/><circle cx="50" cy="50" r="10" fill="${COL.water}"/><circle cx="50" cy="50" r="3" fill="${COL.water2}"/>`;
+  if (ends.has("well")) s += centreSVG("well", set);
+  if (ends.has("cross")) s += centreSVG("cross", set);
   (stalls || stallsOf(id).map((x) => ({ ...x, good: null }))).forEach((st) => {
     const g = def.segs[st.seg];
-    s += g.end === "stall" ? stallSVG(37, 42, st) : id === "start" || id === "bridge-stall" ? stallSVG(5, 70, st) : stallSVG(64, 42, st);
+    s += g.end === "stall" ? standSVG(37, 42, st, set) : id === "start" || id === "bridge-stall" ? standSVG(5, 70, st, set) : standSVG(64, 42, st, set);
   });
   return s;
 }
-const tileG = (x, y, id, rot, stalls, extra = "") => `<g transform="translate(${x * 100} ${y * 100}) rotate(${rot * 90} 50 50)" ${extra}>${tileInner(id, stalls)}</g>`;
+const tileG = (x, y, id, rot, stalls, extra = "", set = "fair") => `<g transform="translate(${x * 100} ${y * 100}) rotate(${rot * 90} 50 50)" ${extra}>${tileInner(id, stalls, set)}</g>`;
 const onTile = (t, inner) => `<g transform="translate(${t.x * 100} ${t.y * 100}) rotate(${t.rot * 90} 50 50)">${inner}</g>`;
 
 /* glows for lit stalls and lanterns, once per board */
@@ -678,8 +740,8 @@ function onBoard(t, ax, ay) {
 /* the places on a tile a map can name: a square, the end of a lane or canal (a
    well, a crossing, a basin, a stall at a lane's end), a bridge, a stall
    beside a lane, a landing. Each is "x,y:KEY" on a map, its point on the tile. */
-function landmarks(id) {
-  const def = T[id], out = [];
+function landmarks(id, set = "fair") {
+  const def = T[id], out = [], named = skinOf(set).places;
   def.segs.forEach((s, i) => { if (s.k === "P") out.push({ k: "sq", kind: "square", at: anchor(s) }); });
   const ends = def.segs.map((s) => s.end).filter(Boolean);
   const centre = ends.find((e) => ["well", "cross", "basin", "stall"].includes(e));
@@ -687,20 +749,37 @@ function landmarks(id) {
   if (def.bridge) out.push({ k: "br", kind: "bridge", at: [50, 50] });
   if (def.segs.some((s) => s.stalls && s.end !== "stall")) out.push({ k: "st", kind: "stall", at: id === "start" || id === "bridge-stall" ? [18, 79] : [77, 51] });
   if (ends.includes("landing")) out.push({ k: "ld", kind: "landing", at: [50, 74] });
-  return out;
+  return out.map((l) => ({ ...l, kind: named[l.kind] || l.kind }));
 }
 /* a map's tiles as the board holds them, and its named places by where they are */
-function mapTiles(map) { return new Map(map.tiles.map(([x, y, id, rot]) => [key(x, y), { x, y, id, rot, stalls: stallsOf(id).map((s) => ({ ...s, good: null })) }])); }
+function mapTiles(map) { const set = map.set || "fair"; return new Map(map.tiles.map(([x, y, id, rot]) => [key(x, y), { x, y, id, rot, set, stalls: stallsOf(id).map((s) => ({ ...s, good: null })) }])); }
 function placeAt(tiles, at) {
   const [k, lk] = at.split(":"), t = tiles.get(k);
   if (!t) return null;
-  const lm = landmarks(t.id).find((l) => l.k === lk);
+  const lm = landmarks(t.id, t.set).find((l) => l.k === lk);
   return lm ? { t, lm, pt: onBoard(t, ...lm.at) } : null;
 }
-/* a label on the board, upright whatever way its tile is turned */
-function labelSVG(px, py, text, cls = "") {
+/* a label on the board, upright whatever way its tile is turned; dy is where
+   its tag sits from its point (above, by default) */
+function labelSVG(px, py, text, cls = "", dy = -44) {
   const w = Math.max(40, text.length * 9.2 + 18);
-  return `<g class="fb-label ${cls}"><circle cx="${px}" cy="${py}" r="9"/><rect x="${px - w / 2}" y="${py - 44}" width="${w}" height="26" rx="13"/><text x="${px}" y="${py - 26}">${esc(text)}</text></g>`;
+  return `<g class="fb-label ${cls}"><circle cx="${px}" cy="${py}" r="9"/><rect x="${px - w / 2}" y="${py + dy}" width="${w}" height="26" rx="13"/><text x="${px}" y="${py + dy + 18}">${esc(text)}</text></g>`;
+}
+/* several labels laid together: a tag that would cover one already placed
+   goes below its point, or further up, and the one lit is drawn last, on top */
+function labelsSVG(items) {
+  const placed = [], out = [];
+  const order = items.slice().sort((a, b) => (a.cls === "here") - (b.cls === "here"));
+  for (const it of [...order].sort((a, b) => (b.cls === "here") - (a.cls === "here"))) {
+    const w = Math.max(40, it.text.length * 9.2 + 18);
+    const box = (dy) => [it.x - w / 2, it.y + dy, it.x + w / 2, it.y + dy + 26];
+    const hits = (r) => placed.some((q) => r[0] < q[2] && q[0] < r[2] && r[1] < q[3] && q[1] < r[3]);
+    const dy = [-44, 16, -74, 46].find((d) => !hits(box(d))) ?? -44;
+    placed.push(box(dy));
+    it.dy = dy;
+  }
+  for (const it of order) out.push(labelSVG(it.x, it.y, it.text, it.cls, it.dy));
+  return out.join("");
 }
 {
   const s = document.createElement("style");
@@ -725,9 +804,16 @@ function labelSVG(px, py, text, cls = "") {
 const MAPS = GAME.maps || [], WORLDS = GAME.worlds || [];
 let M, mode = "lay", pick = "lane", rot = 0, spot = null, naming = null, board = null;
 
-function blank(world) { return { world, seed: "", tiles: new Map([[key(0, 0), { x: 0, y: 0, id: "start", rot: 0, stalls: stallsOf("start").map((s) => ({ ...s, good: null })) }]]), places: [] }; }
-function fromMap(m) { return { world: m.world, seed: m.seed || "", tiles: mapTiles(m), places: m.places.map((p) => ({ ...p })) }; }
-const tileOf = (x, y, id, r) => ({ x, y, id, rot: r, stalls: stallsOf(id).map((s) => ({ ...s, good: null })) });
+function blank(world, set = SET_OF_WORLD[world] || "fair") { return { world, set, seed: "", tiles: new Map([[key(0, 0), { x: 0, y: 0, id: "start", rot: 0, set, stalls: stallsOf("start").map((s) => ({ ...s, good: null })) }]]), places: [] }; }
+function fromMap(m) { return { world: m.world, set: m.set || "fair", seed: m.seed || "", tiles: mapTiles(m), places: m.places.map((p) => ({ ...p })) }; }
+/* the world being mapped: its map from box/maps if it has one, else a town dealt for it */
+function openWorld(world) {
+  const m = MAPS.find((x) => x.world === world);
+  M = m ? fromMap(m) : blank(world);
+  spot = null; naming = null;
+  if (m) { board.fit(M.tiles.values()); render(); } else deal(seedWords(), 24);
+}
+const tileOf = (x, y, id, r) => ({ x, y, id, rot: r, set: M ? M.set : "fair", stalls: stallsOf(id).map((s) => ({ ...s, good: null })) });
 
 function fitsHere(x, y, id, r) {
   if (M.tiles.has(key(x, y))) return false;
@@ -750,7 +836,7 @@ function openSpots() {
    set at a spot the words pick among those it fits */
 function deal(words, size) {
   const rng = Stream.fromText(`lantern-map:${words}`);
-  M = blank(M ? M.world : "lantern-fair");
+  M = blank(M ? M.world : "lantern-fair", M ? M.set : "fair");
   M.seed = words;
   const pool = rng.shuffled(TILES.filter((t) => t.id !== "start").flatMap((t) => Array(t.n).fill(t.id)));
   for (const id of pool) {
@@ -768,7 +854,7 @@ function deal(words, size) {
 
 function landmarkNear(bx, by) {
   let best = null;
-  for (const t of M.tiles.values()) for (const lm of landmarks(t.id)) {
+  for (const t of M.tiles.values()) for (const lm of landmarks(t.id, M.set)) {
     const [px, py] = onBoard(t, ...lm.at), d = Math.hypot(px - bx, py - by);
     if (d < 34 && (!best || d < best.d)) best = { d, at: `${key(t.x, t.y)}:${lm.k}`, kind: lm.kind };
   }
@@ -810,29 +896,29 @@ function nameIt(name) {
 }
 function saved() {
   const tiles = [...M.tiles.values()].sort((a, b) => a.y - b.y || a.x - b.x).map((t) => [t.x, t.y, t.id, t.rot]);
-  return { world: M.world, seed: M.seed, tiles, places: M.places.slice().sort((a, b) => a.name.localeCompare(b.name)) };
+  return { world: M.world, ...(M.set !== "fair" ? { set: M.set } : {}), seed: M.seed, tiles, places: M.places.slice().sort((a, b) => a.name.localeCompare(b.name)) };
 }
 /* written the way box/maps keeps it: one tile a line, so a change reads in a diff */
 function savedText() {
   const m = saved();
-  return `{\n "world": ${JSON.stringify(m.world)},\n "seed": ${JSON.stringify(m.seed)},\n "tiles": [\n${m.tiles.map((t) => `  ${JSON.stringify(t)}`).join(",\n")}\n ],\n "places": [\n${m.places.map((p) => `  ${JSON.stringify(p)}`).join(",\n")}\n ]\n}\n`;
+  return `{\n "world": ${JSON.stringify(m.world)},\n${m.set ? ` "set": ${JSON.stringify(m.set)},\n` : ""} "seed": ${JSON.stringify(m.seed)},\n "tiles": [\n${m.tiles.map((t) => `  ${JSON.stringify(t)}`).join(",\n")}\n ],\n "places": [\n${m.places.map((p) => `  ${JSON.stringify(p)}`).join(",\n")}\n ]\n}\n`;
 }
 
 function boardSVG() {
   let s = FAIR_DEFS;
   if (mode === "lay") for (const [x, y] of openSpots()) s += `<rect x="${x * 100 + 4}" y="${y * 100 + 4}" width="92" height="92" rx="8" class="lf-spot"/>`;
-  for (const t of M.tiles.values()) s += tileG(t.x, t.y, t.id, t.rot, t.stalls);
+  for (const t of M.tiles.values()) s += tileG(t.x, t.y, t.id, t.rot, t.stalls, "", M.set);
   if (mode === "lift") for (const t of M.tiles.values()) if (M.tiles.size > 1) s += `<rect x="${t.x * 100 + 3}" y="${t.y * 100 + 3}" width="94" height="94" class="mm-lift"/>`;
-  if (mode === "name") for (const t of M.tiles.values()) for (const lm of landmarks(t.id)) {
+  if (mode === "name") for (const t of M.tiles.values()) for (const lm of landmarks(t.id, M.set)) {
     const at = `${key(t.x, t.y)}:${lm.k}`;
     if (M.places.some((p) => p.at === at)) continue;
     const [px, py] = onBoard(t, ...lm.at);
     s += `<circle cx="${px}" cy="${py}" r="14" class="mm-spot ${naming && naming.at === at ? "on" : ""}"/>`;
   }
-  for (const p of M.places) { const w = placeAt(M.tiles, p.at); if (w) s += labelSVG(w.pt[0], w.pt[1], p.name, naming && naming.at === p.at ? "here" : ""); }
+  s += labelsSVG(M.places.map((p) => [p, placeAt(M.tiles, p.at)]).filter(([, w]) => w).map(([p, w]) => ({ x: w.pt[0], y: w.pt[1], text: p.name, cls: naming && naming.at === p.at ? "here" : "" })));
   if (mode === "lay" && spot) {
     const ok = fitsHere(spot[0], spot[1], pick, rot);
-    s += tileG(spot[0], spot[1], pick, rot, null, `opacity="0.9"`) + `<rect x="${spot[0] * 100 + 1.5}" y="${spot[1] * 100 + 1.5}" width="97" height="97" class="lf-held ${ok ? "ok" : "no"}"/>`;
+    s += tileG(spot[0], spot[1], pick, rot, null, `opacity="0.9"`, M.set) + `<rect x="${spot[0] * 100 + 1.5}" y="${spot[1] * 100 + 1.5}" width="97" height="97" class="lf-held ${ok ? "ok" : "no"}"/>`;
   }
   return s;
 }
@@ -841,28 +927,33 @@ function render() {
   const worldName = (WORLDS.find((w) => w.id === M.world) || {}).title || M.world;
   if (!document.getElementById("mm-wrap")) {
     frame.stage(`<div class="mm"><div class="mm-head"><div class="mm-modes" role="group" aria-label="what a tap does">${[["lay", "Lay"], ["lift", "Lift"], ["name", "Name"]].map(([k, l]) => `<button class="lf-kind" data-mode="${k}">${l}</button>`).join("")}</div>
+      <div class="mm-deal"><select id="mm-world" aria-label="which world">${WORLDS.map((w) => `<option value="${esc(w.id)}">${esc(w.title)}</option>`).join("")}</select><select id="mm-set" aria-label="the look">${Object.entries(SETS).map(([k, v]) => `<option value="${k}">looks like ${esc(v.name)}</option>`).join("")}</select></div>
       <div class="mm-deal"><input id="mm-seed" aria-label="seed words" placeholder="seed words"><select id="mm-size" aria-label="how many tiles">${[16, 24, 36, 48].map((n) => `<option ${n === 24 ? "selected" : ""}>${n}</option>`).join("")}</select><button class="btn ghost" id="mm-deal">Deal</button></div></div>
       <div class="lf-wrap fb-wrap" id="mm-wrap"><svg id="mm-svg" class="fb-svg"></svg></div><div class="lf-bottom" id="mm-bottom"></div></div>`);
     board = new FairBoard(document.getElementById("mm-svg"), document.getElementById("mm-wrap"), tapBoard, { min: 640 });
     document.querySelectorAll("[data-mode]").forEach((b) => (b.onclick = () => { mode = b.dataset.mode; spot = null; naming = null; render(); }));
+    document.getElementById("mm-world").onchange = (e) => openWorld(e.target.value);
+    document.getElementById("mm-set").onchange = (e) => { M.set = e.target.value; for (const t of M.tiles.values()) t.set = M.set; render(); };
     document.getElementById("mm-deal").onclick = () => deal(document.getElementById("mm-seed").value.trim() || seedWords(), +document.getElementById("mm-size").value);
     board.fit(M.tiles.values());
   }
   document.querySelectorAll("[data-mode]").forEach((b) => { b.classList.toggle("on", b.dataset.mode === mode); b.setAttribute("aria-pressed", b.dataset.mode === mode); });
   document.getElementById("mm-seed").value = M.seed;
+  document.getElementById("mm-world").value = M.world;
+  document.getElementById("mm-set").value = M.set;
   board.lastTiles = [...M.tiles.values()];
   board.apply();
   document.getElementById("mm-svg").innerHTML = boardSVG();
   let bottom = "";
   if (mode === "lay") {
-    const palette = TILES.filter((t) => t.id !== "start").map((t) => `<button class="mm-pal ${t.id === pick ? "on" : ""}" data-pick="${t.id}" aria-label="${tileName(t.id)}"><svg viewBox="0 0 100 100" width="52" height="52">${tileG(0, 0, t.id, 0, null)}</svg></button>`).join("");
-    bottom = `<div class="mm-palette" role="group" aria-label="tiles">${palette}</div><button class="lf-hand" id="mm-turn" aria-label="the tile: tap to turn it"><svg viewBox="0 0 100 100" width="72" height="72">${tileG(0, 0, pick, rot, null)}</svg><span>tap to turn</span></button><button class="btn" id="mm-place" ${spot ? "" : "disabled"}>Place</button>`;
+    const palette = TILES.filter((t) => t.id !== "start").map((t) => `<button class="mm-pal ${t.id === pick ? "on" : ""}" data-pick="${t.id}" aria-label="${tileName(t.id)}"><svg viewBox="0 0 100 100" width="52" height="52">${tileG(0, 0, t.id, 0, null, "", M.set)}</svg></button>`).join("");
+    bottom = `<div class="mm-palette" role="group" aria-label="tiles">${palette}</div><button class="lf-hand" id="mm-turn" aria-label="the tile: tap to turn it"><svg viewBox="0 0 100 100" width="72" height="72">${tileG(0, 0, pick, rot, null, "", M.set)}</svg><span>tap to turn</span></button><button class="btn" id="mm-place" ${spot ? "" : "disabled"}>Place</button>`;
   } else if (mode === "lift") bottom = `<div class="lf-ask">Tap a tile to lift it.</div>`;
   else if (naming) {
     const free = (WORLDS.find((w) => w.id === M.world) || { places: [] }).places.filter((p) => !M.places.some((q) => q.name.toLowerCase() === p.toLowerCase()));
     const cur = M.places.find((p) => p.at === naming.at);
-    bottom = `<div class="mm-name"><label>Name this ${naming.kind}<input id="mm-name" value="${esc(cur ? cur.name : "")}" placeholder="The lantern bridge"></label>${free.length ? `<div class="mm-chips">${free.map((p) => `<button class="mm-chip" data-name="${esc(p)}">${esc(p)}</button>`).join("")}</div>` : ""}<div class="mm-row"><button class="btn" id="mm-ok">Name it</button>${cur ? `<button class="btn ghost" id="mm-unname">Take the name off</button>` : ""}</div></div>`;
-  } else bottom = `<div class="lf-ask">Tap a ring to name a square, well, crossing, basin, bridge, stall or landing.</div>`;
+    bottom = `<div class="mm-name"><label>Name this ${esc(naming.kind)}<input id="mm-name" value="${esc(cur ? cur.name : "")}" placeholder="The lantern bridge"></label>${free.length ? `<div class="mm-chips">${free.map((p) => `<button class="mm-chip" data-name="${esc(p)}">${esc(p)}</button>`).join("")}</div>` : ""}<div class="mm-row"><button class="btn" id="mm-ok">Name it</button>${cur ? `<button class="btn ghost" id="mm-unname">Take the name off</button>` : ""}</div></div>`;
+  } else { const pl = Object.values(skinOf(M.set).places); bottom = `<div class="lf-ask">Tap a ring to name a ${pl.slice(0, -1).join(", ")} or ${pl[pl.length - 1]}.</div>`; }
   document.getElementById("mm-bottom").innerHTML = bottom;
   document.querySelectorAll("[data-pick]").forEach((b) => (b.onclick = () => { pick = b.dataset.pick; rot = 0; if (spot && !fitsHere(spot[0], spot[1], pick, rot)) for (let r = 1; r < 4; r++) if (fitsHere(spot[0], spot[1], pick, r)) { rot = r; break; } render(); }));
   const on = (id, f) => { const b = document.getElementById(id); if (b) b.onclick = f; };
@@ -915,7 +1006,7 @@ document.head.append(style);
 frame.setup({ seats: false, score: false, deck: false, hints: false, redraw: () => render() });
 document.getElementById("p-record").hidden = true;
 document.getElementById("p-log").hidden = true;
-M = MAPS.length ? fromMap(MAPS[0]) : blank("lantern-fair");
+M = MAPS.length ? fromMap(MAPS.find((m) => m.world === "lantern-fair") || MAPS[0]) : blank("lantern-fair");
 render();
 if (!MAPS.length) deal(seedWords(), 24);
 
