@@ -498,7 +498,7 @@ const same = (a, b) => a[0] === b[0] && a[1] === b[1];
 const allTiles = () => { const out = []; for (let a = 6; a >= 0; a--) for (let b = a; b >= 0; b--) out.push([a, b]); return out; };
 
 /* ── the layout: a lead, and four arms going out from it, each tile [inner, outer] ── */
-function newLayout() { return { lead: null, arms: { left: [], right: [], up: [], down: [] }, spinner: null }; }
+function newLayout() { return { lead: null, arms: { left: [], right: [], up: [], down: [] }, spinner: null, seq: [] }; }
 function spinnerTile(L) { return L.spinner === "lead" ? L.lead : L.spinner ? L.arms[L.spinner[0]][L.spinner[1]] : null; }
 function openArms(L) { return L.spinner !== null ? ARMS : ["left", "right"]; }
 function endOf(L, arm) {
@@ -512,6 +512,7 @@ function place(L, t, arm) {
   if (arm === "lead") { L.lead = t; if (t[0] === t[1]) L.spinner = "lead"; return; }
   const e = endOf(L, arm);
   L.arms[arm].push([e, t[0] === e ? t[1] : t[0]]);
+  L.seq.push(arm);
   if (L.spinner === null && t[0] === t[1]) L.spinner = [arm, L.arms[arm].length - 1];
 }
 /* What each open end adds to the count, by arm: a double at an end counts both
@@ -532,7 +533,7 @@ function countParts(L) {
   return parts;
 }
 const countOf = (L) => Object.values(countParts(L)).reduce((a, b) => a + b, 0);
-const copyLayout = (L) => ({ lead: L.lead, spinner: L.spinner, arms: Object.fromEntries(ARMS.map((a) => [a, L.arms[a].slice()])) });
+const copyLayout = (L) => ({ lead: L.lead, spinner: L.spinner, seq: L.seq.slice(), arms: Object.fromEntries(ARMS.map((a) => [a, L.arms[a].slice()])) });
 const scoreOf = (c) => (c && c % 5 === 0 ? c : 0);
 
 /* ── the game ── */
@@ -671,36 +672,77 @@ function tileSVG(cx, cy, a, b, vertical, cls = "") {
   const pips = vertical ? halfSVG(x, y, a, false) + halfSVG(x, y + S, b, false) : halfSVG(x, y, a, true) + halfSVG(x + S, y, b, true);
   return `<g class="tl ${cls}"><rect x="${x + 1.5}" y="${y + 2.5}" width="${w}" height="${h}" rx="5" class="sh"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" class="fc"/>${line}${pips}</g>`;
 }
+/* The tiles go down in the order they were played, as at a table. Each arm runs
+   out from where it starts and turns clockwise when a leg runs long, so each
+   keeps its own quarter of the table and the picture stays near its size; a
+   tile that would land on one already down turns the other way instead. A
+   tile turning a corner goes against the side of the one before it. */
+const LEGS = [6.5 * S, 9 * S, Infinity];
+const cw = ([dx, dy]) => [-dy, dx], ccw = ([dx, dy]) => [dy, -dx];
+const rectOf = (x, y, v) => { const w = v ? S : 2 * S, h = v ? 2 * S : S; return [x - w / 2, y - h / 2, x + w / 2, y + h / 2]; };
+const meets = (a, b) => Math.min(a[2], b[2]) - Math.max(a[0], b[0]) > 0.5 && Math.min(a[3], b[3]) - Math.max(a[1], b[1]) > 0.5;
 function boardTiles(L) {
-  const out = [], last = G.last;
+  const out = [], rects = [], kept = {}, last = G.last, ends = {}, state = {};
   const isLast = (arm, i) => !!last && last[0] === arm && last[1] === i;
   const ld = L.lead[0] === L.lead[1];
-  out.push({ x: 0, y: 0, a: L.lead[0], b: L.lead[1], v: ld, hot: isLast("lead", 0), spin: L.spinner === "lead" });
-  let spinAt = L.spinner === "lead" ? 0 : null;
-  const ends = {};
-  for (const [arm, sign] of [["right", 1], ["left", -1]]) {
-    let x = sign * ((ld ? S / 2 : S) + GAP);
-    L.arms[arm].forEach(([inner, outer], i) => {
-      const d = inner === outer, w = d ? S : 2 * S, cx = x + (sign * w) / 2;
-      const [a, b] = sign > 0 ? [inner, outer] : [outer, inner];
-      const spin = Array.isArray(L.spinner) && L.spinner[0] === arm && L.spinner[1] === i;
-      out.push({ x: cx, y: 0, a, b, v: d, hot: isLast(arm, i), spin });
-      if (spin) spinAt = cx;
-      x += sign * (w + GAP);
-    });
-    ends[arm] = { x: x + sign * (S * 0.6), y: 0 };
-  }
-  if (spinAt !== null) {
-    for (const [arm, sign] of [["down", 1], ["up", -1]]) {
-      let y = sign * (S + GAP);
-      L.arms[arm].forEach(([inner, outer], i) => {
-        const d = inner === outer, h = d ? S : 2 * S, cy = y + (sign * h) / 2;
-        const [a, b] = sign > 0 ? [inner, outer] : [outer, inner];
-        out.push({ x: spinAt, y: cy, a, b, v: !d, hot: isLast(arm, i), spin: false });
-        y += sign * (h + GAP);
-      });
-      ends[arm] = { x: spinAt, y: y + sign * (S * 0.6) };
+  const put = (t) => { out.push(t); rects.push(rectOf(t.x, t.y, t.v)); };
+  put({ x: 0, y: 0, a: L.lead[0], b: L.lead[1], v: ld, hot: isLast("lead", 0), spin: L.spinner === "lead" });
+  const reach = (ld ? S / 2 : S) + GAP;
+  state.right = { c: [reach, 0], d: [1, 0], leg: 0, used: 0, prev: null, i: 0 };
+  state.left = { c: [-reach, 0], d: [-1, 0], leg: 0, used: 0, prev: null, i: 0 };
+  const sides = (x, y, d) => {
+    /* up and down go out from the spinner's long sides, across its line */
+    const across = cw(d), back = [-across[0], -across[1]];
+    const [dn, up] = d[0] >= 0 && d[1] >= 0 ? [across, back] : [back, across];
+    state.down = { c: [x + dn[0] * (S + GAP), y + dn[1] * (S + GAP)], d: dn, leg: 0, used: 0, prev: null, i: 0 };
+    state.up = { c: [x + up[0] * (S + GAP), y + up[1] * (S + GAP)], d: up, leg: 0, used: 0, prev: null, i: 0 };
+    /* each side's first place is kept clear for its own arm */
+    for (const side of ["down", "up"]) {
+      const st = state[side], c = [st.c[0] + st.d[0] * S, st.c[1] + st.d[1] * S];
+      kept[side] = rectOf(c[0], c[1], st.d[1] !== 0);
     }
+  };
+  if (L.spinner === "lead") sides(0, 0, [1, 0]);
+  const at = (st, d, len) => {
+    const [x, y] = [st.c[0] + (d[0] * len) / 2, st.c[1] + (d[1] * len) / 2];
+    return { x, y };
+  };
+  const corner = (st, nd) => {
+    const p = st.prev;
+    let c = [p.x + nd[0] * (p.side + GAP), p.y + nd[1] * (p.side + GAP)];
+    if (!p.dbl) c = [c[0] + st.d[0] * (S / 2), c[1] + st.d[1] * (S / 2)];
+    return c;
+  };
+  for (const arm of L.seq) {
+    const st = state[arm], [inner, outer] = L.arms[arm][st.i];
+    const dbl = inner === outer, len = dbl ? S : 2 * S;
+    const tries = [];
+    const long = st.prev && st.used + len > LEGS[st.leg];
+    if (!long) tries.push({ c: st.c, d: st.d, turned: false });
+    if (st.prev) tries.push({ c: corner(st, cw(st.d)), d: cw(st.d), turned: true }, { c: corner(st, ccw(st.d)), d: ccw(st.d), turned: true });
+    if (long) tries.push({ c: st.c, d: st.d, turned: false });
+    let pick = null;
+    for (const tr of tries) {
+      const { x, y } = at({ c: tr.c }, tr.d, len), flat = tr.d[1] === 0;
+      const r = rectOf(x, y, flat ? dbl : !dbl);
+      const clear = Object.entries(kept).every(([side, q]) => side === arm || !meets(q, r));
+      if (clear && !rects.some((q) => meets(q, r))) { pick = { ...tr, x, y, flat }; break; }
+    }
+    if (!pick) { const tr = tries[0]; const { x, y } = at({ c: tr.c }, tr.d, len); pick = { ...tr, x, y, flat: tr.d[1] === 0 }; }
+    if (pick.turned) { st.leg = Math.min(st.leg + 1, LEGS.length - 1); st.used = 0; }
+    st.d = pick.d;
+    const forward = st.d[0] + st.d[1] > 0;
+    const [a, b] = forward ? [inner, outer] : [outer, inner];
+    const spin = Array.isArray(L.spinner) && L.spinner[0] === arm && L.spinner[1] === st.i;
+    put({ x: pick.x, y: pick.y, a, b, v: pick.flat ? dbl : !dbl, hot: isLast(arm, st.i), spin });
+    if (spin) sides(pick.x, pick.y, st.d);
+    st.prev = { x: pick.x, y: pick.y, dbl, side: dbl ? S : S / 2 };
+    st.c = [pick.c[0] + st.d[0] * (len + GAP), pick.c[1] + st.d[1] * (len + GAP)];
+    st.used += len + GAP; st.i++;
+  }
+  for (const arm of openArms(L)) {
+    const st = state[arm];
+    ends[arm] = { x: st.c[0] + st.d[0] * S * 0.55, y: st.c[1] + st.d[1] * S * 0.55 };
   }
   return { tiles: out, ends };
 }
