@@ -192,6 +192,8 @@ const LIDS = {
   "play-backgammon":   { shelf: "board",  name: "Backgammon",     lid: "#7a3b1d", ink: "#ffe9d0", art: "#00000026" },
   "play-hearts":       { shelf: "board",  name: "Hearts",         lid: "#b8263f", ink: "#fff0f2", art: "#00000024" },
   "play-crazy-eights": { shelf: "board",  name: "Crazy Eights",   lid: "#ff8a3d", ink: "#2b1300", art: "#ffffff40" },
+  "play-dominoes":     { shelf: "board",  name: "Dominoes",       lid: "#1f5e3b", ink: "#fbf6e8", art: "#ffffff14" },
+  "lantern-fair":      { shelf: "board",  name: "Lantern Fair",   lid: "#2b2550", ink: "#ffd98a", art: "#ffffff12", keeps: "saves nothing" },
   "play-dice":         { shelf: "chance", name: "Dice",           lid: "#2a9d8f", ink: "#f0fffc", art: "#00000020" },
   "play-dice5e":       { shelf: "chance", name: "Fancy Dice",     lid: "#4a2c82", ink: "#f2eaff", art: "#ffffff14" },
   "play-liars-dice":   { shelf: "chance", name: "Liar's Dice",    lid: "#2f2f2f", ink: "#ffd34d", art: "#ffffff10" },
@@ -429,9 +431,9 @@ const TOYS = {
 };
 
 /* ---------- the cupboard ---------- */
-const games = [TABLE, ...DATA.games];
+const games = [TABLE, ...DATA.games, ...(DATA.sketches || [])];
 const byId = Object.fromEntries(games.map((g) => [g.id, g]));
-$("lede").textContent = `${DATA.games.length} games and a table with ${DATA.worlds.length} worlds. Poke the lids, then open a box to play.`;
+$("lede").textContent = `${DATA.games.length + (DATA.sketches || []).length} games and a table with ${DATA.worlds.length} worlds. Poke the lids, then open a box to play.`;
 $("jump").innerHTML = SHELVES.map((s) => `<a href="#${s.id}">${esc(s.name)}</a>`).join("");
 
 function lid(g) {
@@ -475,7 +477,7 @@ function openBox(id) {
        ${g.came ? `<div><h4>Where it came from</h4><p>${esc(g.came)}</p></div>` : ""}
        ${g.card ? `<p><a class="card-link" href="${esc(g.card)}" target="_blank" rel="noopener">Everything it does and refuses, on its card in willow</a></p>` : ""}`;
   $("inside-body").innerHTML = `
-    <div class="inside-head"><div><h3 id="inside-title">${esc(L.name)}</h3>${id !== "the-table" ? `<div class="add-on">willow add-on · ${esc(g.id)}</div>` : ""}</div>
+    <div class="inside-head"><div><h3 id="inside-title">${esc(L.name)}</h3>${id !== "the-table" ? `<div class="add-on">${g.sketch ? "a page of its own · nothing kept" : `willow add-on · ${esc(g.id)}`}</div>` : ""}</div>
       <button class="close" data-close aria-label="Close">×</button></div>${body}`;
   $("inside").showModal();
 }

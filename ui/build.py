@@ -87,6 +87,24 @@ PAGES = {
 }
 
 
+# Games played only on a page of their own, with no willow add-on behind them
+# yet: their rules are the page's, and nothing they do is kept. Each is on the
+# shelf beside the games/ folder's, marked so.
+SKETCHES = {
+    "lantern-fair": {
+        "page": {"name": "Lantern Fair", "lid": "#2b2550", "ink": "#ffd98a"},
+        "title": "Lantern Fair",
+        "summary": "Build the night market on the river, tile by tile: match canal to canal and lane to lane, hang your lanterns, and score what you close.",
+        "came": "A tile-laying game made for Die-Namic on 2026-11-26, set in the box's own Lantern Fair: canals, lanes and stalls, one of them dark.",
+    },
+}
+
+
+def sketch(gid: str, s: dict) -> dict:
+    return {"id": gid, "title": s["title"], "summary": s["summary"], "commands": [], "notes": "",
+            "came": s["came"], "checked": "", "card": "", "sketch": True}
+
+
 def decks() -> list[dict]:
     """The card art fetched into ui/decks/ (decks/fetch_decks.py), as the
     pages offer it: what each deck is, whose it is, and its backs. None
@@ -165,13 +183,17 @@ def main() -> None:
     by_id = {g["id"]: g for g in games}
     for gid, lid in PAGES.items():
         table_page(by_id[gid], lid, [by_id[a] for a in lid.get("also", [])])
+    sketches = [sketch(gid, s) for gid, s in SKETCHES.items()]
+    for g in sketches:
+        table_page(g, SKETCHES[g["id"]]["page"], [])
     # each game on the shelf that has a page, and the page that plays it
     pages = {gid: gid for gid in PAGES} | {a: gid for gid, lid in PAGES.items() for a in lid.get("also", [])}
-    data = {"games": games, "worlds": [w["title"] for w in worlds], "pages": pages}
+    pages |= {gid: gid for gid in SKETCHES}
+    data = {"games": games, "sketches": sketches, "worlds": [w["title"] for w in worlds], "pages": pages}
     lay("index.src.html", "index.html", data)
     table_page(TABLE, {"name": "The Table", "lid": "#c8442f", "ink": "#fff3e2"}, [], held, "table.html")
     print(f"index.html: {len(games)} games; table.html: {len(worlds)} worlds; "
-          f"pages: {', '.join(f'{g}.html' for g in PAGES)}")
+          f"pages: {', '.join(f'{g}.html' for g in [*PAGES, *SKETCHES])}")
 
 
 if __name__ == "__main__":
