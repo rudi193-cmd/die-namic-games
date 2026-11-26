@@ -514,19 +514,24 @@ function place(L, t, arm) {
   L.arms[arm].push([e, t[0] === e ? t[1] : t[0]]);
   if (L.spinner === null && t[0] === t[1]) L.spinner = [arm, L.arms[arm].length - 1];
 }
-function countOf(L) {
-  if (L.lead === null) return 0;
-  let total = 0;
+/* What each open end adds to the count, by arm: a double at an end counts both
+   halves, and so does the spinner, while either side of it along the line is
+   open (once, if both are); up and down add nothing until they're played on.
+   An arm that adds nothing is still open to play on. */
+function countParts(L) {
+  const parts = {};
+  if (L.lead === null) return parts;
   const dbl = L.lead[0] === L.lead[1];
-  for (const arm of ["left", "right"]) {
+  for (const arm of ARMS) {
     const a = L.arms[arm];
-    if (a.length) { const [x, y] = a[a.length - 1]; total += x === y ? x + y : y; }
-    else if (dbl) total += arm === "right" && !L.arms.left.length ? 0 : 2 * L.lead[0];
-    else total += arm === "left" ? L.lead[0] : L.lead[1];
+    if (a.length) { const [x, y] = a[a.length - 1]; parts[arm] = x === y ? x + y : y; }
+    else if (arm === "up" || arm === "down") continue;
+    else if (dbl) { if (!(arm === "right" && !L.arms.left.length)) parts[arm] = 2 * L.lead[0]; }
+    else parts[arm] = arm === "left" ? L.lead[0] : L.lead[1];
   }
-  for (const arm of ["up", "down"]) { const a = L.arms[arm]; if (a.length) { const [x, y] = a[a.length - 1]; total += x === y ? x + y : y; } }
-  return total;
+  return parts;
 }
+const countOf = (L) => Object.values(countParts(L)).reduce((a, b) => a + b, 0);
 const copyLayout = (L) => ({ lead: L.lead, spinner: L.spinner, arms: Object.fromEntries(ARMS.map((a) => [a, L.arms[a].slice()])) });
 const scoreOf = (c) => (c && c % 5 === 0 ? c : 0);
 
@@ -708,9 +713,11 @@ function boardSVG() {
   const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
   const pad = S * 1.2, x0 = Math.min(...xs) - pad, x1 = Math.max(...xs) + pad, y0 = Math.min(...ys) - pad, y1 = Math.max(...ys) + pad;
   const body = tiles.map((t) => tileSVG(t.x, t.y, t.a, t.b, t.v, (t.hot ? "hot " : "") + (t.spin ? "spin" : ""))).join("");
+  const parts = countParts(L);
   const marks = openArms(L).map((arm) => {
-    const e = ends[arm], on = targets.includes(arm);
-    return `<g class="end ${on ? "on" : ""}" data-arm="${arm}" ${on ? `role="button" tabindex="0" aria-label="play on the ${arm} arm"` : ""}><circle cx="${e.x}" cy="${e.y}" r="${S * 0.42}"/><text x="${e.x}" y="${e.y + 4.5}">${endOf(L, arm)}</text></g>`;
+    const e = ends[arm], on = targets.includes(arm), counts = arm in parts;
+    const label = on || counts ? endOf(L, arm) : "";
+    return `<g class="end ${on ? "on" : ""} ${counts ? "" : "quiet"}" data-arm="${arm}" ${on ? `role="button" tabindex="0" aria-label="play on the ${arm} arm"` : ""}><circle cx="${e.x}" cy="${e.y}" r="${S * 0.42}"/><text x="${e.x}" y="${e.y + 4.5}">${label}</text></g>`;
   }).join("");
   const w = x1 - x0, h = y1 - y0;
   return `<svg class="dm-board" viewBox="${x0} ${y0} ${w} ${h}" style="max-width:${Math.min(w * 1.6, 1100)}px" role="img" aria-label="the table: ${tiles.length} tiles; ends ${openArms(L).map((a) => `${a} ${endOf(L, a)}`).join(", ")}">${body}${marks}</svg>`;
@@ -726,11 +733,12 @@ function render() {
   const legal = mine ? canPlay(ME) : [];
   const L = G.layout;
   const count = L.lead === null ? 0 : countOf(L);
+  const sum = Object.values(countParts(L));
   const north = `<div class="dm-seat ${G.turn === NORTH && !G.ended ? "turn" : ""}"><div class="seat-name">North<span class="meta">${G.hands[NORTH].length} tiles · ${G.scores[NORTH]}</span></div>${backsHTML(G.hands[NORTH].length)}</div>`;
   const hand = G.hands[ME].map((t, i) => [t, i]).sort((a, b) => b[0][0] + b[0][1] - (a[0][0] + a[0][1]) || b[0][0] - a[0][0]);
   const tiles = hand.map(([t, i]) => handTileHTML(t, i, { lit: frame.hints && legal.some((x) => same(x, t)), chosen: chosen && same(chosen, t), disabled: !mine })).join("");
   const you = `<div class="dm-seat ${mine ? "turn" : ""}"><div class="seat-name">${mine ? "▸ " : ""}You · south<span class="meta">${G.hands[ME].length} tiles · ${G.scores[ME]}</span></div><div class="dm-hand">${tiles}</div></div>`;
-  frame.stage(`<div class="dm">${north}<div class="dm-felt"><div class="dm-count">${L.lead === null ? "" : `count <b>${count}</b>${scoreOf(count) ? " ★" : ""}`}<span>boneyard ${G.boneyard.length}</span></div>${boardSVG()}</div>${you}</div>`);
+  frame.stage(`<div class="dm">${north}<div class="dm-felt"><div class="dm-count">${L.lead === null ? "" : `count ${sum.length > 1 ? sum.join(" + ") + " = " : ""}<b>${count}</b>${scoreOf(count) ? " ★" : ""}`}<span>boneyard ${G.boneyard.length}</span></div>${boardSVG()}</div>${you}</div>`);
   document.querySelectorAll(".dm-tile").forEach((b) => b.addEventListener("click", () => pick(Number(b.dataset.i))));
   document.querySelectorAll(".end.on").forEach((g) => {
     g.addEventListener("click", () => onArm(g.dataset.arm));
@@ -774,6 +782,7 @@ style.textContent = `
 .tl.hot .fc { stroke: var(--go); stroke-width: 3; }
 .end circle { fill: #ffffff10; stroke: #ffffff30; stroke-width: 1; }
 .end text { fill: var(--chalk-faint); font: 700 13px var(--mono); text-anchor: middle; }
+.end.quiet circle { fill: none; stroke-dasharray: 3 3; }
 .end.on { cursor: pointer; }
 .end.on circle { fill: var(--go); stroke: var(--go); }
 .end.on text { fill: var(--go-ink); }
