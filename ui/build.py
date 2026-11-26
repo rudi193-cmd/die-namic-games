@@ -81,6 +81,7 @@ PAGES = {
     "play-tarot": {"name": "Tarot", "lid": "#0f3d3a", "ink": "#f1d9a0", "deckKind": "tarot"},
     "play-dice": {"name": "Dice", "lid": "#2a9d8f", "ink": "#f0fffc", "also": ["play-dice5e"]},
     "play-liars-dice": {"name": "Liar's Dice", "lid": "#2f2f2f", "ink": "#ffd34d"},
+    "play-dominoes": {"name": "Dominoes", "lid": "#1f5e3b", "ink": "#fbf6e8"},
     "play-catgrid": {"name": "Catgrid", "lid": "#c4577a", "ink": "#fff0f4"},
     "play-life": {"name": "Life", "lid": "#111a14", "ink": "#9ff0b4"},
 }

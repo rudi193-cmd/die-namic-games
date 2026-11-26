@@ -31,6 +31,7 @@ FIRST = {
     "play-crazy-eights": (True, ["new"]),
     "play-dice": (True, ["roll", "2d6+1"]),
     "play-dice5e": (True, ["roll", "4d6kh3"]),
+    "play-dominoes": (True, ["new"]),
     "play-hearts": (True, ["new"]),
     "play-horoscope": (False, ["Ana"]),
     "play-liars-dice": (True, ["new"]),

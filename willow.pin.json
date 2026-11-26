@@ -1,7 +1,7 @@
 {
   "_what": "Die-Namic plays with willow's kernel and add-ons where they live, in willow. This pins them: the commit, and each file the box runs at that commit by its SHA-256. box/willow_pin.py finds a willow checkout and refuses one whose files differ.",
   "willow": "https://github.com/willow-memory/Willow",
-  "commit": "55cc1f49750fb6712692e291ff8cfea9c2d0ef57",
+  "commit": "406d56bb9689a85654b034843a1c5c47bbcf4277",
   "add_ons": [
     "all-passages",
     "backup",
@@ -20,6 +20,7 @@
     "play-crazy-eights",
     "play-dice",
     "play-dice5e",
+    "play-dominoes",
     "play-hearts",
     "play-horoscope",
     "play-liars-dice",
@@ -180,6 +181,8 @@
     "adapters/deps/play-fight5e/play_fight5e.py": "d9e665aa87489eea92676dcf7e599352d0982de46441e730475fb5a1f36920e5",
     "adapters/deps/play-fight5e/requirements-floor.txt": "0b08b093a9b20dcde6e8d0b5fb73631109cca7045d4c4a487558f1c9af285c9d",
     "adapters/deps/play-fight5e/requirements.txt": "353cec572af58d19bbe7e1db4638f648908b60d0217e681e007dab9f202c5c9f",
-    "adapters/deps/play-fight5e/statblocks.py": "f51ab0bf642d6541fec5adb3fc27c119c69036733e9340db7742393cf9a12e56"
+    "adapters/deps/play-fight5e/statblocks.py": "f51ab0bf642d6541fec5adb3fc27c119c69036733e9340db7742393cf9a12e56",
+    "adapters/stdlib/play-dominoes/README.md": "cadf115ccecdc4da60bf2ff360c2c5f92c651b496262c0d86f3b27d281de2016",
+    "adapters/stdlib/play-dominoes/play_dominoes.py": "cf34d6cdb2b9f5729b240a0b363f1c989630586f1ff38e3ea73af11ed782ed64"
   }
 }
