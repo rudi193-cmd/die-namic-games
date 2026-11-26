@@ -122,7 +122,8 @@ def test_where_offers_the_places_on_the_maps_and_a_number_picks_one(home):
 def test_the_maps_count_from_one(home):
     offered = [p["name"] for f in sorted((BOX / "maps").glob("*.json")) for p in sorted(json.loads(f.read_text())["places"], key=lambda p: p["name"])]  # fmt: skip
     got = run("write.py", home, [EGG[0], EGG[1], "0", "1", *EGG[3:], "n"])
-    assert got.returncode == 0 and "Type a number from 1 to" in got.stdout
+    assert got.returncode == 0 and f"Type a number from 1 to {len(offered)}," in got.stdout
+    assert f"On the maps:\n  1. {offered[0]} (" in got.stdout and f"\n  {len(offered)}. {offered[-1]} (" in got.stdout  # the list shows the numbers typed
     first = offered[0]
     assert f"## Places\n\n- {first.lower().replace(' ', '-')}: {first}\n" in (table(home) / "stories" / "the-garden-egg.md").read_text()
 
