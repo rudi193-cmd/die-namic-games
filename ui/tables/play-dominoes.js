@@ -323,7 +323,8 @@ function render() {
   const on = (id, f) => { const b = document.getElementById(id); if (b) b.addEventListener("click", f); };
   on("a-new", newGame); on("a-next", deal); on("a-draw", onDraw); on("a-pass", onPass);
   document.querySelectorAll("#actions [data-arm]").forEach((b) => b.addEventListener("click", () => onArm(b.dataset.arm)));
-  frame.score({ cols: ["North", "You"], rows: G.rows, totals: G.scores, lead: G.scores[0] === G.scores[1] ? [] : [G.scores[0] > G.scores[1] ? 0 : 1], head: "Hand", you: ME, empty: "The first hand is on", note: `Fives as they're made, ★ for the hand's pips. First to ${TARGET}.` });
+  if (xs) tallySheet();
+  else frame.score({ cols: ["North", "You"], rows: G.rows, totals: G.scores, lead: G.scores[0] === G.scores[1] ? [] : [G.scores[0] > G.scores[1] ? 0 : 1], head: "Hand", you: ME, empty: "The first hand is on", note: `Fives as they're made, ★ for the hand's pips. First to ${TARGET}.` });
   frame.deck([["In the boneyard", String(G.boneyard.length)], ["In North's hand", String(G.hands[NORTH].length)], ["On the table", String(L.lead === null ? 0 : 1 + ARMS.reduce((n, a) => n + L.arms[a].length, 0))]], "A double-six set: 28 tiles.");
 }
 
@@ -360,8 +361,45 @@ style.textContent = `
 .dm-backs { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; max-width: 100%; }
 .dm-back { width: 16px; height: 30px; border-radius: 3px; background: repeating-linear-gradient(45deg, var(--lid) 0 4px, color-mix(in srgb, var(--lid) 55%, #fff) 4px 7px); border: 2px solid #fbf6e8; }
 @media (prefers-reduced-motion: reduce) { .dm-tile { transition: none; } }
+.tally { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tc { display: grid; gap: 6px; align-content: start; justify-items: start; padding: 4px 0; }
+.tc + .tc { border-left: 1px solid var(--edge); padding-left: 12px; }
+.tc .th { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--chalk-dim); font-weight: 800; }
+.tc.you .th { color: var(--go); }
+.tt { display: grid; gap: 2px; min-height: 22px; }
+.tr { display: flex; gap: 1px; }
+.tr.nil { color: var(--chalk-faint); }
+.tm { width: 20px; height: 20px; }
+.tm path { fill: none; stroke: var(--chalk); stroke-width: 2.4; stroke-linecap: round; }
+.tc .tg { font-weight: 800; font-size: 1.15rem; font-variant-numeric: tabular-nums; border-top: 2px solid var(--chalk-faint); padding-top: 4px; min-width: 3ch; }
+.tc .tg.lead { color: var(--go); }
 @media (max-width: 560px) { .dm-tile svg { width: 30px; height: 58px; } .dm-hand { gap: 6px; } }`;
 document.head.append(style);
 
+/* the scoresheet kept the paper way: an X for every ten, a slash for the odd
+   five, in rows of five X's (fifty), the grand total under each */
+let xs = remembered("dn-dominoes-xs");
+const X_MARK = '<svg viewBox="0 0 20 20" class="tm" aria-hidden="true"><path d="M4 4.5 L16 15.5 M15.5 4 L4.5 16"/></svg>';
+const SLASH = '<svg viewBox="0 0 20 20" class="tm" aria-hidden="true"><path d="M15 4 L5 16"/></svg>';
+function tallyHTML(points) {
+  const tens = Math.floor(points / 10), five = points % 10 >= 5;
+  const rows = [];
+  for (let i = 0; i < tens; i += 5) rows.push(X_MARK.repeat(Math.min(5, tens - i)));
+  if (five) { if (rows.length && tens % 5) rows[rows.length - 1] += SLASH; else rows.push(SLASH); }
+  return rows.length ? rows.map((r) => `<div class="tr">${r}</div>`).join("") : '<div class="tr nil">—</div>';
+}
+function tallySheet() {
+  const lead = G.scores[0] === G.scores[1] ? -1 : G.scores[0] > G.scores[1] ? 0 : 1;
+  const col = (i) => `<div class="tc ${i === ME ? "you" : ""}"><div class="th">${WHO[i]}</div><div class="tt" role="img" aria-label="${G.scores[i]} points">${tallyHTML(G.scores[i])}</div><div class="tg ${i === lead ? "lead" : ""}">${G.scores[i]}</div></div>`;
+  document.getElementById("score").innerHTML = `<div class="tally">${col(NORTH)}${col(ME)}</div>`;
+  document.getElementById("score-note").textContent = `X is ten, / is five. First to ${TARGET}.`;
+}
 frame.setup({ seats: false, score: true, deck: true, scoreTitle: "Scoresheet", deckTitle: "The tiles", redraw: () => render() });
+{
+  const b = document.createElement("button");
+  b.className = "toggle"; b.id = "t-xs"; b.title = "Keep the score in X's"; b.textContent = "X's";
+  b.setAttribute("aria-pressed", xs);
+  b.addEventListener("click", () => { xs = !xs; remember("dn-dominoes-xs", xs); b.setAttribute("aria-pressed", xs); render(); });
+  document.getElementById("toggles").append(b);
+}
 newGame();
